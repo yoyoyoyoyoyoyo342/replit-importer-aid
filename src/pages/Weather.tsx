@@ -29,22 +29,29 @@ export default function WeatherPage() {
     isLoading,
     refetch,
     error,
-  } = useQuery({
+  } = useQuery<WeatherResponse, Error>({
     queryKey: ["/api/weather", selectedLocation?.lat, selectedLocation?.lon],
     enabled: !!selectedLocation,
     queryFn: () =>
       weatherApi.getWeatherData(selectedLocation!.lat, selectedLocation!.lon),
-    onSuccess: () => {
+  });
+
+  // After query: side effects for success/error
+  useEffect(() => {
+    if (weatherData) {
       setLastUpdated(new Date());
-    },
-    onError: (error: Error) => {
+    }
+  }, [weatherData]);
+
+  useEffect(() => {
+    if (error) {
       toast({
         title: "Failed to fetch weather data",
-        description: error.message || "Please check your connection and try again.",
+        description: (error as Error).message || "Please check your connection and try again.",
         variant: "destructive",
       });
-    },
-  });
+    }
+  }, [error, toast]);
 
   // Auto-detect location on component mount
   useEffect(() => {
