@@ -159,15 +159,24 @@ export const weatherApi = {
 
     const hourlyTimes: string[] = data?.hourly?.time || [];
     const currentTime: string | undefined = data?.current_weather?.time;
-    let idx = hourlyTimes.findIndex((t) => t === currentTime);
-    if (idx < 0) idx = 0;
+    // Find the nearest hourly index to current time (handles 30-min offsets like 11:30 vs 11:00)
+    let idx = 0;
+    if (hourlyTimes.length) {
+      const parseTs = (s: string) => new Date(s).getTime();
+      const target = currentTime ? parseTs(currentTime) : Date.now();
+      idx = hourlyTimes.reduce((bestIdx, t, i) => {
+        const d = parseTs(t);
+        const best = parseTs(hourlyTimes[bestIdx]);
+        return Math.abs(d - target) < Math.abs(best - target) ? i : bestIdx;
+      }, 0);
+    }
 
     const current: CurrentWeather = {
       temperature: Math.round(data?.current_weather?.temperature ?? 0),
       condition: weatherCodeToText(data?.current_weather?.weathercode),
       description: weatherCodeToText(data?.current_weather?.weathercode),
       humidity: Math.round(data?.hourly?.relative_humidity_2m?.[idx] ?? 0),
-      windSpeed: Math.round(data?.current_weather?.windspeed ?? 0),
+      windSpeed: Math.round((data?.current_weather?.windspeed ?? 0) * 0.621371),
       windDirection: Math.round(data?.current_weather?.winddirection ?? 0),
       visibility: Math.round((data?.hourly?.visibility?.[idx] ?? 0) / 1609.34),
       feelsLike: Math.round(data?.hourly?.temperature_2m?.[idx] ?? data?.current_weather?.temperature ?? 0),
