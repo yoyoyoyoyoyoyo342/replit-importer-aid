@@ -5,9 +5,10 @@ import { DailyForecast, WeatherSource } from "@/types/weather";
 interface TenDayForecastProps {
   dailyForecast: DailyForecast[];
   weatherSources: WeatherSource[];
+  isImperial?: boolean;
 }
 
-export function TenDayForecast({ dailyForecast, weatherSources }: TenDayForecastProps) {
+export function TenDayForecast({ dailyForecast, weatherSources, isImperial = true }: TenDayForecastProps) {
   const sourceColors = {
     openweathermap: "bg-secondary",
     accuweather: "bg-accent", 
@@ -78,10 +79,10 @@ export function TenDayForecast({ dailyForecast, weatherSources }: TenDayForecast
 
                   <div className="text-right min-w-[80px]">
                     <div className="font-semibold text-neutral-800">
-                      {day.highTemp}°
+                      {isImperial ? day.highTemp : Math.round((day.highTemp - 32) * 5/9)}°
                     </div>
                     <div className="text-sm text-neutral-500">
-                      {day.lowTemp}°
+                      {isImperial ? day.lowTemp : Math.round((day.lowTemp - 32) * 5/9)}°
                     </div>
                   </div>
                 </div>

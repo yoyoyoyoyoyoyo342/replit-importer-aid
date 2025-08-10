@@ -179,15 +179,18 @@ export default function WeatherPage() {
               onRefresh={handleRefresh}
               isLoading={isLoading}
               lastUpdated={lastUpdated}
+              isImperial={isImperial}
             />
 
             <HourlyForecast 
-              hourlyData={weatherData.mostAccurate.hourlyForecast} 
+              hourlyData={weatherData.mostAccurate.hourlyForecast}
+              isImperial={isImperial}
             />
 
             <TenDayForecast
               dailyForecast={weatherData.mostAccurate.dailyForecast}
               weatherSources={weatherData.sources}
+              isImperial={isImperial}
             />
 
             <DetailedMetrics 

@@ -4,9 +4,10 @@ import { HourlyForecast as HourlyData } from "@/types/weather";
 
 interface HourlyForecastProps {
   hourlyData: HourlyData[];
+  isImperial?: boolean;
 }
 
-export function HourlyForecast({ hourlyData }: HourlyForecastProps) {
+export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecastProps) {
   return (
     <section className="mb-8">
       <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
@@ -27,7 +28,7 @@ export function HourlyForecast({ hourlyData }: HourlyForecastProps) {
                   <span className="text-sm">☀️</span>
                 </div>
                 <div className="text-lg font-semibold text-neutral-800">
-                  {hour.temperature}°
+                  {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
                 </div>
                 <div className="text-xs text-neutral-500 mt-1">
                   {hour.precipitation}%

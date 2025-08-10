@@ -9,6 +9,7 @@ interface CurrentWeatherProps {
   onRefresh: () => void;
   isLoading: boolean;
   lastUpdated: Date | null;
+  isImperial?: boolean;
 }
 
 export function CurrentWeather({ 
@@ -16,7 +17,8 @@ export function CurrentWeather({
   mostAccurate, 
   onRefresh, 
   isLoading,
-  lastUpdated 
+  lastUpdated,
+  isImperial = true,
 }: CurrentWeatherProps) {
   const sourceColors = {
     openweathermap: "bg-secondary",
@@ -71,7 +73,7 @@ export function CurrentWeather({
                 </div>
                 <div>
                   <div className="text-6xl font-bold text-neutral-800">
-                    {mostAccurate.currentWeather.temperature}°
+                    {isImperial ? mostAccurate.currentWeather.temperature : Math.round((mostAccurate.currentWeather.temperature - 32) * 5/9)}°
                   </div>
                   <div className="text-neutral-600 text-lg">
                     {mostAccurate.currentWeather.condition}
@@ -87,7 +89,7 @@ export function CurrentWeather({
                     <span className="text-sm text-neutral-600">Visibility</span>
                   </div>
                   <div className="text-xl font-semibold text-neutral-800">
-                    {mostAccurate.currentWeather.visibility} mi
+                    {isImperial ? mostAccurate.currentWeather.visibility : Math.round(mostAccurate.currentWeather.visibility * 1.609)} {isImperial ? 'mi' : 'km'}
                   </div>
                 </div>
                 <div className="bg-neutral-50 rounded-xl p-4">
@@ -105,7 +107,7 @@ export function CurrentWeather({
                     <span className="text-sm text-neutral-600">Wind</span>
                   </div>
                   <div className="text-xl font-semibold text-neutral-800">
-                    {mostAccurate.currentWeather.windSpeed} mph
+                    {isImperial ? mostAccurate.currentWeather.windSpeed : Math.round(mostAccurate.currentWeather.windSpeed * 1.609)} {isImperial ? 'mph' : 'km/h'}
                   </div>
                 </div>
                 <div className="bg-neutral-50 rounded-xl p-4">
@@ -114,7 +116,7 @@ export function CurrentWeather({
                     <span className="text-sm text-neutral-600">Feels like</span>
                   </div>
                   <div className="text-xl font-semibold text-neutral-800">
-                    {mostAccurate.currentWeather.feelsLike}°
+                    {isImperial ? mostAccurate.currentWeather.feelsLike : Math.round((mostAccurate.currentWeather.feelsLike - 32) * 5/9)}°
                   </div>
                 </div>
               </div>
