@@ -1,4 +1,4 @@
-import { CalendarDays, Droplets } from "lucide-react";
+import { CalendarDays, Droplets, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { DailyForecast, WeatherSource } from "@/types/weather";
 
@@ -9,6 +9,17 @@ interface TenDayForecastProps {
 }
 
 export function TenDayForecast({ dailyForecast, weatherSources, isImperial = true }: TenDayForecastProps) {
+  const getConditionIcon = (condition: string) => {
+    const c = condition.toLowerCase();
+    if (c.includes("thunder")) return <CloudLightning className="w-7 h-7 text-primary" />;
+    if (c.includes("drizzle")) return <CloudDrizzle className="w-7 h-7 text-primary" />;
+    if (c.includes("shower") || c.includes("rain")) return <CloudRain className="w-7 h-7 text-primary" />;
+    if (c.includes("snow")) return <CloudSnow className="w-7 h-7 text-primary" />;
+    if (c.includes("fog")) return <CloudFog className="w-7 h-7 text-primary" />;
+    if (c.includes("partly") || c.includes("sun")) return <CloudSun className="w-7 h-7 text-primary" />;
+    if (c.includes("cloud")) return <Cloud className="w-7 h-7 text-primary" />;
+    return <Sun className="w-7 h-7 text-primary" />;
+  };
   const sourceColors = {
     openweathermap: "bg-secondary",
     accuweather: "bg-accent", 
@@ -49,7 +60,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, isImperial = tru
                     {day.day}
                   </div>
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
-                    <span className="text-lg">☀️</span>
+                    {getConditionIcon(day.condition)}
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-neutral-800">

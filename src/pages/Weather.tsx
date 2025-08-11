@@ -32,7 +32,7 @@ export default function WeatherPage() {
   } = useQuery<WeatherResponse, Error>({
     queryKey: ["/api/weather", selectedLocation?.lat, selectedLocation?.lon],
     enabled: !!selectedLocation,
-    queryFn: () => weatherApi.getWeatherData(selectedLocation!.lat, selectedLocation!.lon)
+    queryFn: () => weatherApi.getWeatherData(selectedLocation!.lat, selectedLocation!.lon, selectedLocation!.name)
   });
 
   // After query: side effects for success/error

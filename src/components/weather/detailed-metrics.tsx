@@ -47,11 +47,15 @@ export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
               </div>
               <h3 className="font-semibold text-neutral-800">Air Quality</h3>
             </div>
-            <div className="text-3xl font-bold text-neutral-800 mb-2">42</div>
-            <div className="text-sm text-neutral-600 mb-4">Good - Clean air</div>
+            <div className="text-3xl font-bold text-neutral-800 mb-2">
+              {currentWeather.aqi ?? '—'}
+            </div>
+            <div className="text-sm text-neutral-600 mb-4">
+              {currentWeather.aqiCategory ? `${currentWeather.aqiCategory} - US AQI` : 'Air quality data not available'}
+            </div>
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-neutral-600">EPA Standard</span>
+              <div className={`w-3 h-3 rounded-full ${currentWeather.aqi == null ? 'bg-neutral-400' : currentWeather.aqi <= 50 ? 'bg-green-500' : currentWeather.aqi <= 100 ? 'bg-yellow-500' : currentWeather.aqi <= 150 ? 'bg-orange-500' : currentWeather.aqi <= 200 ? 'bg-red-500' : currentWeather.aqi <= 300 ? 'bg-purple-500' : 'bg-rose-700'}`}></div>
+              <span className="text-sm text-neutral-600">US AQI</span>
             </div>
           </CardContent>
         </Card>
@@ -71,19 +75,19 @@ export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
                   <Sunrise className="text-orange-500 w-4 h-4" />
                   <span className="text-neutral-600">Sunrise</span>
                 </div>
-                <span className="font-semibold text-neutral-800">6:42 AM</span>
+                <span className="font-semibold text-neutral-800">{currentWeather.sunrise ?? '—'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sunset className="text-orange-500 w-4 h-4" />
                   <span className="text-neutral-600">Sunset</span>
                 </div>
-                <span className="font-semibold text-neutral-800">7:28 PM</span>
+                <span className="font-semibold text-neutral-800">{currentWeather.sunset ?? '—'}</span>
               </div>
               <div className="pt-2 border-t border-neutral-200">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-500">Daylight</span>
-                  <span className="text-neutral-700 font-medium">12h 46m</span>
+                  <span className="text-neutral-700 font-medium">{currentWeather.daylight ?? '—'}</span>
                 </div>
               </div>
             </div>

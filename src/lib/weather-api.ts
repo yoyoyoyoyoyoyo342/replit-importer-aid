@@ -98,7 +98,7 @@ export const weatherApi = {
     }));
   },
 
-  getWeatherData: async (lat: number, lon: number): Promise<WeatherResponse> => {
+  getWeatherData: async (lat: number, lon: number, locationName?: string): Promise<WeatherResponse> => {
     // Fetch directly from Open-Meteo (no API key required)
     const params = new URLSearchParams({
       latitude: String(lat),
@@ -118,6 +118,8 @@ export const weatherApi = {
         "temperature_2m_max",
         "temperature_2m_min",
         "precipitation_probability_max",
+        "sunrise",
+        "sunset",
       ].join(","),
       timezone: "auto",
       temperature_unit: "fahrenheit",
@@ -171,6 +173,62 @@ export const weatherApi = {
       }, 0);
     }
 
+    // Sun times (today)
+    const sunriseIso = data?.daily?.sunrise?.[0];
+    const sunsetIso = data?.daily?.sunset?.[0];
+    const sunriseStr = sunriseIso
+      ? new Date(sunriseIso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      : undefined;
+    const sunsetStr = sunsetIso
+      ? new Date(sunsetIso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      : undefined;
+    let daylightStr: string | undefined = undefined;
+    if (sunriseIso && sunsetIso) {
+      const diffMs = new Date(sunsetIso).getTime() - new Date(sunriseIso).getTime();
+      const h = Math.floor(diffMs / (1000 * 60 * 60));
+      const m = Math.round((diffMs - h * 3600000) / 60000);
+      daylightStr = `${h}h ${m}m`;
+    }
+
+    // Air Quality (US AQI) - fetch nearest hour
+    const aqiParams = new URLSearchParams({
+      latitude: String(lat),
+      longitude: String(lon),
+      hourly: "us_aqi",
+      timezone: "auto",
+    });
+    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?${aqiParams.toString()}`;
+    let currentAqi: number | undefined = undefined;
+    let currentAqiCategory: string | undefined = undefined;
+    try {
+      const aqiRes = await fetch(aqiUrl);
+      if (aqiRes.ok) {
+        const aqiData: any = await aqiRes.json();
+        const aqiTimes: string[] = aqiData?.hourly?.time || [];
+        const parseTs = (s: string) => new Date(s).getTime();
+        const target = currentTime ? parseTs(currentTime) : Date.now();
+        let aqiIdx = 0;
+        if (aqiTimes.length) {
+          aqiIdx = aqiTimes.reduce((bestIdx, t, i) => {
+            const d = parseTs(t);
+            const best = parseTs(aqiTimes[bestIdx]);
+            return Math.abs(d - target) < Math.abs(best - target) ? i : bestIdx;
+          }, 0);
+        }
+        const aqiVal = aqiData?.hourly?.us_aqi?.[aqiIdx];
+        if (typeof aqiVal === "number") {
+          currentAqi = Math.round(aqiVal);
+          const n = currentAqi;
+          currentAqiCategory =
+            n <= 50 ? "Good" :
+            n <= 100 ? "Moderate" :
+            n <= 150 ? "Unhealthy for Sensitive Groups" :
+            n <= 200 ? "Unhealthy" :
+            n <= 300 ? "Very Unhealthy" : "Hazardous";
+        }
+      }
+    } catch {}
+
     const current: CurrentWeather = {
       temperature: Math.round(data?.current_weather?.temperature ?? 0),
       condition: weatherCodeToText(data?.current_weather?.weathercode),
@@ -182,6 +240,11 @@ export const weatherApi = {
       feelsLike: Math.round(data?.hourly?.temperature_2m?.[idx] ?? data?.current_weather?.temperature ?? 0),
       uvIndex: Math.round(data?.hourly?.uv_index?.[idx] ?? 0),
       pressure: Math.round(data?.hourly?.pressure_msl?.[idx] ?? 0),
+      sunrise: sunriseStr,
+      sunset: sunsetStr,
+      daylight: daylightStr,
+      aqi: currentAqi,
+      aqiCategory: currentAqiCategory,
     };
 
     const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + 24).map((t: string, i: number) => {
@@ -207,7 +270,7 @@ export const weatherApi = {
 
     const source: WeatherSource = {
       source: "Open-Meteo",
-      location: "Selected Location",
+      location: locationName || "Selected Location",
       latitude: lat,
       longitude: lon,
       accuracy: 0.95,

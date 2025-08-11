@@ -1,4 +1,4 @@
-import { MapPin, RefreshCw, Eye, Droplets, Wind, Thermometer } from "lucide-react";
+import { MapPin, RefreshCw, Eye, Droplets, Wind, Thermometer, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
@@ -43,6 +43,18 @@ export function CurrentWeather({
     return abbrev[source as keyof typeof abbrev] || source.toUpperCase();
   };
 
+  const getConditionIcon = (condition: string) => {
+    const c = condition.toLowerCase();
+    if (c.includes("thunder")) return <CloudLightning className="w-8 h-8 text-primary" />;
+    if (c.includes("drizzle")) return <CloudDrizzle className="w-8 h-8 text-primary" />;
+    if (c.includes("shower") || c.includes("rain")) return <CloudRain className="w-8 h-8 text-primary" />;
+    if (c.includes("snow")) return <CloudSnow className="w-8 h-8 text-primary" />;
+    if (c.includes("fog")) return <CloudFog className="w-8 h-8 text-primary" />;
+    if (c.includes("partly") || c.includes("sun")) return <CloudSun className="w-8 h-8 text-primary" />;
+    if (c.includes("cloud")) return <Cloud className="w-8 h-8 text-primary" />;
+    return <Sun className="w-8 h-8 text-primary" />;
+  };
+
   return (
     <section className="mb-8">
       <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
@@ -69,7 +81,7 @@ export function CurrentWeather({
             <div className="text-center lg:text-left">
               <div className="flex items-center justify-center lg:justify-start gap-4 mb-4">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
-                  <span className="text-2xl">☀️</span>
+                  {getConditionIcon(mostAccurate.currentWeather.condition)}
                 </div>
                 <div>
                   <div className="text-6xl font-bold text-neutral-800">

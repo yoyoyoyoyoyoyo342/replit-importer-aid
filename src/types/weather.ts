@@ -20,6 +20,12 @@ export interface CurrentWeather {
   feelsLike: number;
   uvIndex: number;
   pressure: number;
+  // Optional enriched fields
+  sunrise?: string;
+  sunset?: string;
+  daylight?: string;
+  aqi?: number;
+  aqiCategory?: string;
 }
 
 export interface HourlyForecast {
