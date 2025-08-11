@@ -6,6 +6,7 @@ import {
   DailyForecast,
   CurrentWeather,
 } from "../types/weather";
+import { supabase } from "@/integrations/supabase/client";
 
 function buildDemoWeatherResponse(lat: number, lon: number): WeatherResponse {
   const now = new Date();
@@ -284,6 +285,20 @@ export const weatherApi = {
       mostAccurate: source,
       aggregated: source,
     };
+
+    // Try to fetch additional sources from Supabase Edge Function
+    try {
+      const { data, error } = await supabase.functions.invoke("aggregate-weather", {
+        body: { lat, lon, locationName }
+      });
+      if (!error && data && Array.isArray((data as any).sources)) {
+        const extraSources = (data as any).sources as WeatherSource[];
+        response.sources = [...response.sources, ...extraSources];
+      }
+    } catch (e) {
+      // Silently ignore to keep core functionality working
+      console.warn("Additional sources unavailable:", (e as Error).message);
+    }
 
     return response;
   },
