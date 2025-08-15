@@ -14,6 +14,7 @@ import { TenDayForecast } from "@/components/weather/ten-day-forecast";
 import { DetailedMetrics } from "@/components/weather/detailed-metrics";
 import { SettingsDialog } from "@/components/weather/settings-dialog";
 import { WeatherResponse } from "@/types/weather";
+import { checkWeatherAlerts } from "@/lib/weather-alerts";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -21,6 +22,7 @@ export default function WeatherPage() {
     name: string;
   } | null>(null);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
+  const [notifications, setNotifications] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const {
     toast
@@ -40,8 +42,20 @@ export default function WeatherPage() {
   useEffect(() => {
     if (weatherData) {
       setLastUpdated(new Date());
+      
+      // Check for weather alerts if notifications are enabled
+      if (notifications && weatherData.mostAccurate?.currentWeather) {
+        const alerts = checkWeatherAlerts(weatherData.mostAccurate.currentWeather);
+        alerts.forEach(alert => {
+          toast({
+            title: `${alert.icon} ${alert.title}`,
+            description: alert.description,
+            variant: alert.severity === "extreme" || alert.severity === "high" ? "destructive" : "default",
+          });
+        });
+      }
     }
-  }, [weatherData]);
+  }, [weatherData, notifications, toast]);
   useEffect(() => {
     if (error) {
       toast({
@@ -112,6 +126,8 @@ export default function WeatherPage() {
               <SettingsDialog 
                 isImperial={isImperial} 
                 onUnitsChange={setIsImperial}
+                notifications={notifications}
+                onNotificationsChange={setNotifications}
               />
             </div>
           </div>

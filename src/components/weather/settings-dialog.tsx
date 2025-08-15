@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Settings, Moon, Sun, Globe } from "lucide-react";
+import { useEffect } from "react";
+import { Settings, Moon, Sun, Globe, Bell } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,15 +12,33 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useTheme } from "@/components/theme-provider";
+import { useToast } from "@/hooks/use-toast";
 
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
+  notifications: boolean;
+  onNotificationsChange: (enabled: boolean) => void;
 }
 
-export function SettingsDialog({ isImperial, onUnitsChange }: SettingsDialogProps) {
-  const [darkMode, setDarkMode] = useState(false);
-  const [notifications, setNotifications] = useState(true);
+export function SettingsDialog({ 
+  isImperial, 
+  onUnitsChange, 
+  notifications, 
+  onNotificationsChange 
+}: SettingsDialogProps) {
+  const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (theme === "dark") {
+      toast({
+        title: "Dark mode enabled",
+        description: "The interface has switched to dark theme.",
+      });
+    }
+  }, [theme, toast]);
 
   return (
     <Dialog>
@@ -65,12 +83,12 @@ export function SettingsDialog({ isImperial, onUnitsChange }: SettingsDialogProp
             <Label className="text-base font-medium">Appearance</Label>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {darkMode ? <Moon className="w-4 h-4 text-muted-foreground" /> : <Sun className="w-4 h-4 text-muted-foreground" />}
+                {theme === "dark" ? <Moon className="w-4 h-4 text-muted-foreground" /> : <Sun className="w-4 h-4 text-muted-foreground" />}
                 <span className="text-sm">Dark mode</span>
               </div>
               <Switch
-                checked={darkMode}
-                onCheckedChange={setDarkMode}
+                checked={theme === "dark"}
+                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
               />
             </div>
             <p className="text-xs text-muted-foreground">
@@ -85,11 +103,12 @@ export function SettingsDialog({ isImperial, onUnitsChange }: SettingsDialogProp
             <Label className="text-base font-medium">Notifications</Label>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
+                <Bell className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm">Weather alerts</span>
               </div>
               <Switch
                 checked={notifications}
-                onCheckedChange={setNotifications}
+                onCheckedChange={onNotificationsChange}
               />
             </div>
             <p className="text-xs text-muted-foreground">
