@@ -28,11 +28,11 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
             24-Hour Forecast
           </h2>
 
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent">
-            {hourlyData.map((hour, index) => (
+          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 gap-2 sm:gap-4">
+            {hourlyData.slice(0, 12).map((hour, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 text-center p-4 rounded-xl hover:bg-neutral-50 transition-colors min-w-[80px]"
+                className="text-center p-2 sm:p-4 rounded-xl hover:bg-neutral-50 transition-colors"
               >
                 <div className="text-sm text-neutral-600 mb-2">{hour.time}</div>
                 <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
