@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CloudSun, Settings } from "lucide-react";
+import { CloudSun } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +12,7 @@ import { CurrentWeather } from "@/components/weather/current-weather";
 import { HourlyForecast } from "@/components/weather/hourly-forecast";
 import { TenDayForecast } from "@/components/weather/ten-day-forecast";
 import { DetailedMetrics } from "@/components/weather/detailed-metrics";
+import { SettingsDialog } from "@/components/weather/settings-dialog";
 import { WeatherResponse } from "@/types/weather";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -19,7 +20,7 @@ export default function WeatherPage() {
     lon: number;
     name: string;
   } | null>(null);
-  const [isImperial, setIsImperial] = useState(true); // true for Fahrenheit, false for Celsius
+  const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const {
     toast
@@ -84,7 +85,7 @@ export default function WeatherPage() {
   const convertTemperature = (temp: number) => {
     return isImperial ? temp : Math.round((temp - 32) * 5 / 9);
   };
-  return <div className="font-inter bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+  return <div className="font-inter bg-background min-h-screen">
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Header */}
         <header className="mb-8">
@@ -108,9 +109,10 @@ export default function WeatherPage() {
                 <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
                 <span className="text-sm font-medium">°C</span>
               </div>
-              <Button variant="ghost" size="icon" className="text-neutral-600 hover:text-primary hover:bg-white rounded-xl">
-                <Settings className="w-5 h-5" />
-              </Button>
+              <SettingsDialog 
+                isImperial={isImperial} 
+                onUnitsChange={setIsImperial}
+              />
             </div>
           </div>
         </header>
