@@ -28,21 +28,27 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
             24-Hour Forecast
           </h2>
 
-          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-12 gap-2 sm:gap-4">
+          <div className="space-y-2">
             {hourlyData.slice(0, 12).map((hour, index) => (
               <div
                 key={index}
-                className="text-center p-2 sm:p-4 rounded-xl hover:bg-neutral-50 transition-colors"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 transition-colors border border-neutral-100"
               >
-                <div className="text-sm text-neutral-600 mb-2">{hour.time}</div>
-                <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
-                  {getConditionIcon(hour.condition)}
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="text-sm text-neutral-600 font-medium w-16">
+                    {hour.time}
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
+                    {getConditionIcon(hour.condition)}
+                  </div>
                 </div>
-                <div className="text-lg font-semibold text-neutral-800">
-                  {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
-                </div>
-                <div className="text-xs text-neutral-500 mt-1">
-                  {hour.precipitation}%
+                <div className="flex items-center gap-4">
+                  <div className="text-xs text-neutral-500">
+                    {hour.precipitation}%
+                  </div>
+                  <div className="text-lg font-semibold text-neutral-800 min-w-[40px] text-right">
+                    {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
+                  </div>
                 </div>
               </div>
             ))}
