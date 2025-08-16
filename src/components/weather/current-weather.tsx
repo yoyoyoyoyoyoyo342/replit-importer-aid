@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
 import { PollenWheel } from "./pollen-wheel";
-
 interface CurrentWeatherProps {
   weatherData: WeatherSource[];
   mostAccurate: WeatherSource;
@@ -12,14 +11,13 @@ interface CurrentWeatherProps {
   lastUpdated: Date | null;
   isImperial?: boolean;
 }
-
-export function CurrentWeather({ 
-  weatherData, 
-  mostAccurate, 
-  onRefresh, 
+export function CurrentWeather({
+  weatherData,
+  mostAccurate,
+  onRefresh,
   isLoading,
   lastUpdated,
-  isImperial = true,
+  isImperial = true
 }: CurrentWeatherProps) {
   const sourceColors = {
     openweathermap: "bg-secondary",
@@ -27,14 +25,12 @@ export function CurrentWeather({
     weatherapi: "bg-primary",
     demo: "bg-neutral-400"
   };
-
   const sourceNames = {
     openweathermap: "OpenWeatherMap",
     accuweather: "AccuWeather",
     weatherapi: "WeatherAPI",
     demo: "Demo Data"
   };
-
   const getSourceAbbreviation = (source: string) => {
     const abbrev = {
       openweathermap: "OWM",
@@ -43,7 +39,6 @@ export function CurrentWeather({
     };
     return abbrev[source as keyof typeof abbrev] || source.toUpperCase();
   };
-
   const getConditionIcon = (condition: string) => {
     const c = condition.toLowerCase();
     if (c.includes("thunder")) return <CloudLightning className="w-8 h-8 text-primary" />;
@@ -55,9 +50,7 @@ export function CurrentWeather({
     if (c.includes("cloud")) return <Cloud className="w-8 h-8 text-primary" />;
     return <Sun className="w-8 h-8 text-primary" />;
   };
-
-  return (
-    <section className="mb-8">
+  return <section className="mb-8">
       <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -69,10 +62,7 @@ export function CurrentWeather({
             </div>
             <div className="text-sm text-neutral-500">
               <span>
-                Updated {lastUpdated ? 
-                  new Date(Date.now() - lastUpdated.getTime()).getMinutes() + ' min ago' : 
-                  'just now'
-                }
+                Updated {lastUpdated ? new Date(Date.now() - lastUpdated.getTime()).getMinutes() + ' min ago' : 'just now'}
               </span>
             </div>
           </div>
@@ -86,11 +76,11 @@ export function CurrentWeather({
                 </div>
                 <div>
                   <div className="text-6xl font-bold text-neutral-800">
-                    {isImperial ? mostAccurate.currentWeather.temperature : Math.round((mostAccurate.currentWeather.temperature - 32) * 5/9)}°
+                    {isImperial ? mostAccurate.currentWeather.temperature : Math.round((mostAccurate.currentWeather.temperature - 32) * 5 / 9)}°
                   </div>
                   <div className="flex items-center gap-2 text-sm text-neutral-500 mt-1">
-                    <span>H: {isImperial ? mostAccurate.dailyForecast[0]?.highTemp : Math.round((mostAccurate.dailyForecast[0]?.highTemp - 32) * 5/9)}°</span>
-                    <span>L: {isImperial ? mostAccurate.dailyForecast[0]?.lowTemp : Math.round((mostAccurate.dailyForecast[0]?.lowTemp - 32) * 5/9)}°</span>
+                    <span>H: {isImperial ? mostAccurate.dailyForecast[0]?.highTemp : Math.round((mostAccurate.dailyForecast[0]?.highTemp - 32) * 5 / 9)}°</span>
+                    <span>L: {isImperial ? mostAccurate.dailyForecast[0]?.lowTemp : Math.round((mostAccurate.dailyForecast[0]?.lowTemp - 32) * 5 / 9)}°</span>
                   </div>
                   <div className="text-neutral-600 text-lg">
                     {mostAccurate.currentWeather.condition}
@@ -121,7 +111,7 @@ export function CurrentWeather({
                 <div className="bg-neutral-50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Wind className="text-primary w-4 h-4" />
-                    <span className="text-sm text-neutral-600">Wind</span>
+                    <span className="text-sm text-neutral-600">Wind (Placeholder info)</span>
                   </div>
                   <div className="text-xl font-semibold text-neutral-800">
                     {isImperial ? mostAccurate.currentWeather.windSpeed : Math.round(mostAccurate.currentWeather.windSpeed * 1.609)} {isImperial ? 'mph' : 'km/h'}
@@ -133,7 +123,7 @@ export function CurrentWeather({
                     <span className="text-sm text-neutral-600">Feels like</span>
                   </div>
                   <div className="text-xl font-semibold text-neutral-800">
-                    {isImperial ? mostAccurate.currentWeather.feelsLike : Math.round((mostAccurate.currentWeather.feelsLike - 32) * 5/9)}°
+                    {isImperial ? mostAccurate.currentWeather.feelsLike : Math.round((mostAccurate.currentWeather.feelsLike - 32) * 5 / 9)}°
                   </div>
                 </div>
               </div>
@@ -146,32 +136,17 @@ export function CurrentWeather({
                 Pollen Index
               </h3>
 
-              {mostAccurate.currentWeather.pollenData ? (
-                <PollenWheel pollenData={mostAccurate.currentWeather.pollenData} />
-              ) : (
-                <div className="text-center py-8">
+              {mostAccurate.currentWeather.pollenData ? <PollenWheel pollenData={mostAccurate.currentWeather.pollenData} /> : <div className="text-center py-8">
                   <div className="text-neutral-500">Pollen data unavailable</div>
-                </div>
-              )}
+                </div>}
 
-              <Button
-                onClick={onRefresh}
-                disabled={isLoading}
-                variant="outline"
-                size="sm"
-                className="w-full mt-4"
-              >
-                {isLoading ? (
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                )}
+              <Button onClick={onRefresh} disabled={isLoading} variant="outline" size="sm" className="w-full mt-4">
+                {isLoading ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
                 Refresh Data
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
-    </section>
-  );
+    </section>;
 }

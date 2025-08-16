@@ -1,14 +1,13 @@
 import { Sun, Leaf, Sunrise, Sunset, Moon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrentWeather } from "@/types/weather";
-
 interface DetailedMetricsProps {
   currentWeather: CurrentWeather;
 }
-
-export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
-  return (
-    <section className="mb-8">
+export function DetailedMetrics({
+  currentWeather
+}: DetailedMetricsProps) {
+  return <section className="mb-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* UV Index Card */}
         <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
@@ -23,17 +22,12 @@ export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
               {currentWeather.uvIndex}
             </div>
             <div className="text-sm text-neutral-600 mb-4">
-              {currentWeather.uvIndex <= 2 ? 'Low - No protection needed' :
-               currentWeather.uvIndex <= 5 ? 'Moderate - Some protection needed' :
-               currentWeather.uvIndex <= 7 ? 'High - Wear sunscreen' :
-               currentWeather.uvIndex <= 10 ? 'Very High - Extra protection needed' :
-               'Extreme - Avoid sun exposure'}
+              {currentWeather.uvIndex <= 2 ? 'Low - No protection needed' : currentWeather.uvIndex <= 5 ? 'Moderate - Some protection needed' : currentWeather.uvIndex <= 7 ? 'High - Wear sunscreen' : currentWeather.uvIndex <= 10 ? 'Very High - Extra protection needed' : 'Extreme - Avoid sun exposure'}
             </div>
             <div className="w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" 
-                style={{ width: `${Math.min((currentWeather.uvIndex / 11) * 100, 100)}%` }}
-              ></div>
+              <div className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" style={{
+              width: `${Math.min(currentWeather.uvIndex / 11 * 100, 100)}%`
+            }}></div>
             </div>
           </CardContent>
         </Card>
@@ -128,6 +122,5 @@ export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
           </CardContent>
         </Card>
       </div>
-    </section>
-  );
+    </section>;
 }

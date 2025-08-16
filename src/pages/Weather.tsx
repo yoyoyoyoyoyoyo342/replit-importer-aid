@@ -25,9 +25,15 @@ export default function WeatherPage() {
   } | null>(null);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const { toast } = useToast();
-  const { user, profile, loading: authLoading } = useAuth();
-  
+  const {
+    toast
+  } = useToast();
+  const {
+    user,
+    profile,
+    loading: authLoading
+  } = useAuth();
+
   // Initialize push notifications
   usePushNotifications();
   const {
@@ -45,7 +51,7 @@ export default function WeatherPage() {
   useEffect(() => {
     if (weatherData) {
       setLastUpdated(new Date());
-      
+
       // Check for weather alerts if notifications are enabled for authenticated users
       if (profile?.notification_enabled && weatherData.mostAccurate?.currentWeather) {
         const alerts = checkWeatherAlerts(weatherData.mostAccurate.currentWeather);
@@ -53,7 +59,7 @@ export default function WeatherPage() {
           toast({
             title: `${alert.icon} ${alert.title}`,
             description: alert.description,
-            variant: alert.severity === "extreme" || alert.severity === "high" ? "destructive" : "default",
+            variant: alert.severity === "extreme" || alert.severity === "high" ? "destructive" : "default"
           });
         });
       }
@@ -127,22 +133,10 @@ export default function WeatherPage() {
                 <span className="text-sm font-medium">°C</span>
               </div>
               
-              {user ? (
-                <SettingsDialog 
-                  isImperial={isImperial} 
-                  onUnitsChange={setIsImperial}
-                  mostAccurate={weatherData?.mostAccurate}
-                />
-              ) : (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => window.location.href = '/auth'}
-                >
+              {user ? <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} /> : <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'}>
                   <LogIn className="w-4 h-4 mr-2" />
                   Sign In
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
         </header>
@@ -205,7 +199,7 @@ export default function WeatherPage() {
                   Data from{" "}
                   <span className="font-medium">OpenWeatherMap</span>,{" "}
                   <span className="font-medium">Open-meteo, AccuWeather</span>, and{" "}
-                  <span className="font-medium">WeatherAPI</span>
+                  <span className="font-medium">WeatherAPI. We are not to be held accountable for any inaccuracy or wrong claims.</span>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-neutral-500">
                   <span>
