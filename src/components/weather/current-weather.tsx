@@ -2,6 +2,7 @@ import { MapPin, RefreshCw, Eye, Droplets, Wind, Thermometer, Sun, Cloud, CloudS
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
+import { PollenWheel } from "./pollen-wheel";
 
 interface CurrentWeatherProps {
   weatherData: WeatherSource[];
@@ -145,60 +146,13 @@ export function CurrentWeather({
                 Pollen Index
               </h3>
 
-              <div className="space-y-4">
-                {mostAccurate.currentWeather.pollenData ? (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-white/60 rounded-lg p-3">
-                        <div className="text-sm text-neutral-600 mb-1">Alder</div>
-                        <div className="text-xl font-semibold text-neutral-800">
-                          {mostAccurate.currentWeather.pollenData.alder}
-                        </div>
-                      </div>
-                      <div className="bg-white/60 rounded-lg p-3">
-                        <div className="text-sm text-neutral-600 mb-1">Birch</div>
-                        <div className="text-xl font-semibold text-neutral-800">
-                          {mostAccurate.currentWeather.pollenData.birch}
-                        </div>
-                      </div>
-                      <div className="bg-white/60 rounded-lg p-3">
-                        <div className="text-sm text-neutral-600 mb-1">Grass</div>
-                        <div className="text-xl font-semibold text-neutral-800">
-                          {mostAccurate.currentWeather.pollenData.grass}
-                        </div>
-                      </div>
-                      <div className="bg-white/60 rounded-lg p-3">
-                        <div className="text-sm text-neutral-600 mb-1">Mugwort</div>
-                        <div className="text-xl font-semibold text-neutral-800">
-                          {mostAccurate.currentWeather.pollenData.mugwort}
-                        </div>
-                      </div>
-                      <div className="bg-white/60 rounded-lg p-3">
-                        <div className="text-sm text-neutral-600 mb-1">Olive</div>
-                        <div className="text-xl font-semibold text-neutral-800">
-                          {mostAccurate.currentWeather.pollenData.olive}
-                        </div>
-                      </div>
-                      <div className="bg-white/60 rounded-lg p-3">
-                        <div className="text-sm text-neutral-600 mb-1">Ragweed</div>
-                        <div className="text-xl font-semibold text-neutral-800">
-                          {mostAccurate.currentWeather.pollenData.ragweed}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 p-3 bg-white/60 rounded-lg">
-                      <div className="text-sm text-neutral-600">
-                        <span className="text-accent">🌸</span>
-                        <span className="font-medium ml-1">Scale:</span> 0 = No risk, 1 = Low, 2 = Medium, 3 = High, 4+ = Very High
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-4">
-                    <div className="text-neutral-500">Pollen data unavailable</div>
-                  </div>
-                )}
-              </div>
+              {mostAccurate.currentWeather.pollenData ? (
+                <PollenWheel pollenData={mostAccurate.currentWeather.pollenData} />
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-neutral-500">Pollen data unavailable</div>
+                </div>
+              )}
 
               <Button
                 onClick={onRefresh}
