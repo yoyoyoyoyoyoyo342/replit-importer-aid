@@ -35,9 +35,7 @@ export function SettingsDialog({
   const handleNotificationToggle = async (enabled: boolean) => {
     if (enabled && permission !== 'granted') {
       const granted = await requestPermission();
-      if (granted) {
-        onNotificationsChange(true);
-      }
+      onNotificationsChange(granted);
     } else {
       onNotificationsChange(enabled);
     }
@@ -113,9 +111,9 @@ export function SettingsDialog({
                 <span className="text-sm">Morning weather & pollen alerts</span>
               </div>
               <Switch
-                checked={notifications && permission === 'granted'}
+                checked={notifications && (permission === 'granted' || permission === 'default')}
                 onCheckedChange={handleNotificationToggle}
-                disabled={!isSupported}
+                disabled={!isSupported || permission === 'denied'}
               />
             </div>
             <div className="space-y-2">
