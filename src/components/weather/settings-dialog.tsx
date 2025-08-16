@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { Settings, Moon, Sun, Globe, Bell } from "lucide-react";
+import { Settings, Globe, Bell, TestTube } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,33 +11,60 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useTheme } from "@/components/theme-provider";
 import { useToast } from "@/hooks/use-toast";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
   notifications: boolean;
   onNotificationsChange: (enabled: boolean) => void;
+  mostAccurate?: any;
 }
 
 export function SettingsDialog({ 
   isImperial, 
   onUnitsChange, 
   notifications, 
-  onNotificationsChange 
+  onNotificationsChange,
+  mostAccurate 
 }: SettingsDialogProps) {
-  const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { permission, requestPermission, sendTestNotification, isSupported } = usePushNotifications();
 
-  useEffect(() => {
-    if (theme === "dark") {
-      toast({
-        title: "Dark mode enabled",
-        description: "The interface has switched to dark theme.",
-      });
+  const handleNotificationToggle = async (enabled: boolean) => {
+    if (enabled && permission !== 'granted') {
+      const granted = await requestPermission();
+      if (granted) {
+        onNotificationsChange(true);
+      }
+    } else {
+      onNotificationsChange(enabled);
     }
-  }, [theme, toast]);
+  };
+
+  const handleTestNotification = async () => {
+    if (!mostAccurate) return;
+    
+    const pollenAlerts = [];
+    if (mostAccurate.currentWeather.pollenData) {
+      const { pollenData } = mostAccurate.currentWeather;
+      if (pollenData.grass > 2) pollenAlerts.push('Grass');
+      if (pollenData.mugwort > 2) pollenAlerts.push('Mugwort');
+      if (pollenData.alder > 2) pollenAlerts.push('Alder');
+      if (pollenData.birch > 2) pollenAlerts.push('Birch');
+      if (pollenData.olive > 2) pollenAlerts.push('Olive');
+      if (pollenData.ragweed > 2) pollenAlerts.push('Ragweed');
+    }
+
+    await sendTestNotification({
+      temperature: mostAccurate.currentWeather.temperature,
+      condition: mostAccurate.currentWeather.condition,
+      highTemp: mostAccurate.dailyForecast[0]?.highTemp || 0,
+      lowTemp: mostAccurate.dailyForecast[0]?.lowTemp || 0,
+      pollenAlerts
+    });
+  };
 
   return (
     <Dialog>
@@ -78,42 +104,41 @@ export function SettingsDialog({
 
           <Separator />
 
-          {/* Theme Settings */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">Appearance</Label>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {theme === "dark" ? <Moon className="w-4 h-4 text-muted-foreground" /> : <Sun className="w-4 h-4 text-muted-foreground" />}
-                <span className="text-sm">Dark mode</span>
-              </div>
-              <Switch
-                checked={theme === "dark"}
-                onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Switch between light and dark themes
-            </p>
-          </div>
-
-          <Separator />
-
           {/* Notifications */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Notifications</Label>
+            <Label className="text-base font-medium">Daily Notifications</Label>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Weather alerts</span>
+                <span className="text-sm">Morning weather & pollen alerts</span>
               </div>
               <Switch
-                checked={notifications}
-                onCheckedChange={onNotificationsChange}
+                checked={notifications && permission === 'granted'}
+                onCheckedChange={handleNotificationToggle}
+                disabled={!isSupported}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Receive notifications for severe weather conditions
-            </p>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">
+                Receive daily weather and pollen updates at 8:00 AM
+              </p>
+              {permission === 'denied' && (
+                <p className="text-xs text-destructive">
+                  Notifications blocked. Please enable in browser settings.
+                </p>
+              )}
+              {mostAccurate && permission === 'granted' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestNotification}
+                  className="w-full mt-2"
+                >
+                  <TestTube className="w-3 h-3 mr-2" />
+                  Send Test Notification
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>

@@ -128,6 +128,7 @@ export default function WeatherPage() {
                 onUnitsChange={setIsImperial}
                 notifications={notifications}
                 onNotificationsChange={setNotifications}
+                mostAccurate={weatherData?.mostAccurate}
               />
             </div>
           </div>
