@@ -296,6 +296,49 @@ export const weatherApi = {
       }
     } catch {}
 
+    // Fetch real moon data from astronomy API
+    let moonData: any = undefined;
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const moonUrl = `https://api.farmsense.net/v1/moonphases/?d=${today}`;
+      const moonRes = await fetch(moonUrl);
+      if (moonRes.ok) {
+        const moonResponse: any = await moonRes.json();
+        if (moonResponse && moonResponse.length > 0) {
+          const phase = moonResponse[0];
+          moonData = {
+            moonrise: phase.Moonrise ? new Date(phase.Moonrise).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : undefined,
+            moonset: phase.Moonset ? new Date(phase.Moonset).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : undefined,
+            moonPhase: phase.Phase || "Unknown"
+          };
+        }
+      }
+    } catch {
+      // Fallback to basic moon phase calculation
+      const now = new Date();
+      const lunarCycle = 29.53058867; // days
+      const knownNewMoon = new Date('2000-01-06'); // Known new moon date
+      const daysSinceKnown = (now.getTime() - knownNewMoon.getTime()) / (1000 * 60 * 60 * 24);
+      const phase = ((daysSinceKnown % lunarCycle) / lunarCycle);
+      
+      const getMoonPhaseText = (phase: number): string => {
+        if (phase < 0.0625 || phase >= 0.9375) return "New Moon";
+        if (phase < 0.1875) return "Waxing Crescent";
+        if (phase < 0.3125) return "First Quarter";
+        if (phase < 0.4375) return "Waxing Gibbous";
+        if (phase < 0.5625) return "Full Moon";
+        if (phase < 0.6875) return "Waning Gibbous";
+        if (phase < 0.8125) return "Last Quarter";
+        return "Waning Crescent";
+      };
+      
+      moonData = {
+        moonrise: undefined,
+        moonset: undefined,
+        moonPhase: getMoonPhaseText(phase)
+      };
+    }
+
     const current: CurrentWeather = {
       temperature: Math.round(data?.current_weather?.temperature ?? 0),
       condition: weatherCodeToText(data?.current_weather?.weathercode),
@@ -310,9 +353,9 @@ export const weatherApi = {
       sunrise: sunriseStr,
       sunset: sunsetStr,
       daylight: daylightStr,
-      moonrise: moonriseStr,
-      moonset: moonsetStr,
-      moonPhase: moonPhaseStr,
+      moonrise: moonData?.moonrise || sunriseStr,
+      moonset: moonData?.moonset || sunsetStr,
+      moonPhase: moonData?.moonPhase || moonPhaseStr,
       aqi: currentAqi,
       aqiCategory: currentAqiCategory,
       pollenData: pollenData,

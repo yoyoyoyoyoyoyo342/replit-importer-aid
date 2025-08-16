@@ -92,6 +92,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_allergies: {
+        Row: {
+          allergen: string
+          created_at: string
+          id: string
+          severity: string | null
+          user_id: string
+        }
+        Insert: {
+          allergen: string
+          created_at?: string
+          id?: string
+          severity?: string | null
+          user_id: string
+        }
+        Update: {
+          allergen?: string
+          created_at?: string
+          id?: string
+          severity?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
