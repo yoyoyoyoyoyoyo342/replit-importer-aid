@@ -219,9 +219,19 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
       </div>
       
       {/* Legend */}
-      <div className="mt-4 text-center">
+      <div className="mt-4 text-center space-y-2">
         <div className="text-xs text-muted-foreground">
           Overall level based on all pollen types
+        </div>
+        <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+          <div className="font-medium mb-1">Pollen Index Scale:</div>
+          <div className="space-y-1">
+            <div>0 - No risk</div>
+            <div>1 - Low risk</div>
+            <div>2 - Medium risk</div>
+            <div>3 - High risk</div>
+            <div>4+ - Very high risk</div>
+          </div>
         </div>
       </div>
     </div>

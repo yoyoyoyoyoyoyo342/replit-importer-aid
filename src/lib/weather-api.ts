@@ -121,6 +121,9 @@ export const weatherApi = {
         "precipitation_probability_max",
         "sunrise",
         "sunset",
+        "moonrise",
+        "moonset",
+        "moon_phase",
       ].join(","),
       timezone: "auto",
       temperature_unit: "fahrenheit",
@@ -190,6 +193,32 @@ export const weatherApi = {
       const m = Math.round((diffMs - h * 3600000) / 60000);
       daylightStr = `${h}h ${m}m`;
     }
+
+    // Moon data (today)
+    const moonriseIso = data?.daily?.moonrise?.[0];
+    const moonsetIso = data?.daily?.moonset?.[0];
+    const moonPhase = data?.daily?.moon_phase?.[0];
+    
+    const moonriseStr = moonriseIso
+      ? new Date(moonriseIso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      : undefined;
+    const moonsetStr = moonsetIso
+      ? new Date(moonsetIso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      : undefined;
+    
+    const getMoonPhaseText = (phase: number): string => {
+      if (phase === 0 || phase === 1) return "New Moon";
+      if (phase > 0 && phase < 0.25) return "Waxing Crescent";
+      if (phase === 0.25) return "First Quarter";
+      if (phase > 0.25 && phase < 0.5) return "Waxing Gibbous";
+      if (phase === 0.5) return "Full Moon";
+      if (phase > 0.5 && phase < 0.75) return "Waning Gibbous";
+      if (phase === 0.75) return "Last Quarter";
+      if (phase > 0.75 && phase < 1) return "Waning Crescent";
+      return "—";
+    };
+    
+    const moonPhaseStr = moonPhase !== undefined ? getMoonPhaseText(moonPhase) : undefined;
 
     // Air Quality (US AQI) - fetch nearest hour
     const aqiParams = new URLSearchParams({
@@ -280,6 +309,9 @@ export const weatherApi = {
       sunrise: sunriseStr,
       sunset: sunsetStr,
       daylight: daylightStr,
+      moonrise: moonriseStr,
+      moonset: moonsetStr,
+      moonPhase: moonPhaseStr,
       aqi: currentAqi,
       aqiCategory: currentAqiCategory,
       pollenData: pollenData,

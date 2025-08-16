@@ -24,6 +24,9 @@ export interface CurrentWeather {
   sunrise?: string;
   sunset?: string;
   daylight?: string;
+  moonrise?: string;
+  moonset?: string;
+  moonPhase?: string;
   aqi?: number;
   aqiCategory?: string;
   pollenData?: {

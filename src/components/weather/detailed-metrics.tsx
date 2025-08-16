@@ -1,4 +1,4 @@
-import { Sun, Leaf, Sunrise, Sunset } from "lucide-react";
+import { Sun, Leaf, Sunrise, Sunset, Moon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrentWeather } from "@/types/weather";
 
@@ -9,7 +9,7 @@ interface DetailedMetricsProps {
 export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
   return (
     <section className="mb-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* UV Index Card */}
         <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
           <CardContent className="p-6">
@@ -61,7 +61,7 @@ export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
         </Card>
 
         {/* Sunrise/Sunset Card */}
-        <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100 md:col-span-2 lg:col-span-1">
+        <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-orange-100 rounded-lg">
@@ -88,6 +88,40 @@ export function DetailedMetrics({ currentWeather }: DetailedMetricsProps) {
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-500">Daylight</span>
                   <span className="text-neutral-700 font-medium">{currentWeather.daylight ?? '—'}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Moon Times Card */}
+        <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Moon className="text-blue-600 w-5 h-5" />
+              </div>
+              <h3 className="font-semibold text-neutral-800">Moon Times</h3>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Moon className="text-blue-500 w-4 h-4" />
+                  <span className="text-neutral-600">Moonrise</span>
+                </div>
+                <span className="font-semibold text-neutral-800">{currentWeather.moonrise ?? '—'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Moon className="text-blue-500 w-4 h-4" />
+                  <span className="text-neutral-600">Moonset</span>
+                </div>
+                <span className="font-semibold text-neutral-800">{currentWeather.moonset ?? '—'}</span>
+              </div>
+              <div className="pt-2 border-t border-neutral-200">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-500">Moon Phase</span>
+                  <span className="text-neutral-700 font-medium">{currentWeather.moonPhase ?? '—'}</span>
                 </div>
               </div>
             </div>
