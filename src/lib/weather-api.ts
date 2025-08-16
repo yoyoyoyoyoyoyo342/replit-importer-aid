@@ -127,14 +127,18 @@ export const weatherApi = {
       ].join(","),
       timezone: "auto",
       temperature_unit: "fahrenheit",
+      forecast_days: "10",
     });
 
     const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+    console.log("Fetching weather from:", url);
     const res = await fetch(url);
     if (!res.ok) {
-      throw new Error(`Failed to fetch weather: ${res.status}`);
+      console.error("Weather API error:", res.status, res.statusText);
+      throw new Error(`Failed to fetch weather: ${res.status} ${res.statusText}`);
     }
     const data: any = await res.json();
+    console.log("Weather data received:", data);
 
     const weatherCodeToText = (code?: number): string => {
       switch (code) {
