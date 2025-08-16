@@ -23,6 +23,7 @@ export default function WeatherPage() {
   } | null>(null);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [notifications, setNotifications] = useState(true);
+  const [notificationTime, setNotificationTime] = useState("08:00");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const {
     toast
@@ -128,6 +129,8 @@ export default function WeatherPage() {
                 onUnitsChange={setIsImperial}
                 notifications={notifications}
                 onNotificationsChange={setNotifications}
+                notificationTime={notificationTime}
+                onNotificationTimeChange={setNotificationTime}
                 mostAccurate={weatherData?.mostAccurate}
               />
             </div>

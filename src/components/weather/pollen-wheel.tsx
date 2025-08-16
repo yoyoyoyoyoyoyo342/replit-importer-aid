@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React from "react";
 
 interface PollenData {
   alder: number;
@@ -21,31 +21,29 @@ interface SeasonalPollen {
 }
 
 export function PollenWheel({ pollenData }: PollenWheelProps) {
-  const currentMonth = new Date().getMonth();
-  
   const allPollens: SeasonalPollen[] = [
     {
       name: "Alder",
       value: pollenData.alder,
-      color: "hsl(var(--primary))",
+      color: "hsl(25 95% 53%)", // Orange
       months: [0, 1, 2, 3] // Jan-Apr
     },
     {
       name: "Birch",
       value: pollenData.birch,
-      color: "hsl(var(--secondary))",
+      color: "hsl(142 71% 45%)", // Green
       months: [2, 3, 4] // Mar-May
     },
     {
       name: "Grass",
       value: pollenData.grass,
-      color: "hsl(var(--accent))",
+      color: "hsl(120 60% 50%)", // Bright green
       months: [4, 5, 6, 7, 8] // May-Sep
     },
     {
       name: "Mugwort",
       value: pollenData.mugwort,
-      color: "hsl(142 71% 45%)", // Green
+      color: "hsl(280 70% 55%)", // Purple
       months: [6, 7, 8] // Jul-Sep
     },
     {
@@ -57,20 +55,13 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
     {
       name: "Ragweed",
       value: pollenData.ragweed,
-      color: "hsl(25 95% 53%)", // Orange
+      color: "hsl(15 80% 50%)", // Red-orange
       months: [7, 8, 9] // Aug-Oct
     }
   ];
 
-  // Filter pollens based on current season (show current month ± 1 month)
-  const activePollens = useMemo(() => {
-    return allPollens.filter(pollen => {
-      return pollen.months.some(month => {
-        const diff = Math.abs(month - currentMonth);
-        return diff <= 1 || diff >= 11; // Handle year wrap-around
-      });
-    });
-  }, [currentMonth]);
+  // Show all pollens regardless of season
+  const activePollens = allPollens;
 
   const getIntensityRadius = (value: number) => {
     return 20 + (value * 15); // Base radius 20px, add up to 60px for max intensity
@@ -88,7 +79,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
     return (
       <div className="text-center py-8">
         <div className="text-neutral-500 mb-2">🌿</div>
-        <div className="text-sm text-neutral-600">No active pollens this season</div>
+        <div className="text-sm text-neutral-600">No pollen data available</div>
       </div>
     );
   }
@@ -195,7 +186,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
       {/* Legend */}
       <div className="mt-4 text-center">
         <div className="text-xs text-neutral-600 mb-2">
-          Current season active pollens
+          All pollen types
         </div>
         <div className="text-xs text-neutral-500">
           Size indicates intensity: 0 = No risk, 1 = Low, 2 = Medium, 3 = High, 4+ = Very High

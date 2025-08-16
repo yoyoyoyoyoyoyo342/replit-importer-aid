@@ -1,4 +1,5 @@
-import { Settings, Globe, Bell, TestTube } from "lucide-react";
+import { useState } from "react";
+import { Settings, Globe, Bell, TestTube, Clock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,8 @@ interface SettingsDialogProps {
   onUnitsChange: (isImperial: boolean) => void;
   notifications: boolean;
   onNotificationsChange: (enabled: boolean) => void;
+  notificationTime: string;
+  onNotificationTimeChange: (time: string) => void;
   mostAccurate?: any;
 }
 
@@ -27,17 +30,26 @@ export function SettingsDialog({
   onUnitsChange, 
   notifications, 
   onNotificationsChange,
+  notificationTime,
+  onNotificationTimeChange,
   mostAccurate 
 }: SettingsDialogProps) {
   const { toast } = useToast();
   const { permission, requestPermission, sendTestNotification, isSupported } = usePushNotifications();
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleNotificationToggle = async (enabled: boolean) => {
     if (enabled && permission !== 'granted') {
       const granted = await requestPermission();
-      onNotificationsChange(granted);
+      if (granted) {
+        onNotificationsChange(true);
+        setShowTimePicker(true);
+      }
     } else {
       onNotificationsChange(enabled);
+      if (enabled) {
+        setShowTimePicker(true);
+      }
     }
   };
 
@@ -108,24 +120,41 @@ export function SettingsDialog({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bell className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Morning weather & pollen alerts</span>
+                <span className="text-sm">Weather & pollen alerts</span>
               </div>
               <Switch
-                checked={notifications && (permission === 'granted' || permission === 'default')}
+                checked={notifications}
                 onCheckedChange={handleNotificationToggle}
                 disabled={!isSupported || permission === 'denied'}
               />
             </div>
+            
+            {/* Time Picker */}
+            {notifications && (
+              <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <Label className="text-sm font-medium">Notification Time</Label>
+                </div>
+                <input
+                  type="time"
+                  value={notificationTime}
+                  onChange={(e) => onNotificationTimeChange(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-input bg-background rounded-md"
+                />
+              </div>
+            )}
+            
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">
-                Receive daily weather and pollen updates at 8:00 AM
+                {notifications ? `Daily updates at ${notificationTime}` : "Enable to receive daily weather and pollen updates"}
               </p>
               {permission === 'denied' && (
                 <p className="text-xs text-destructive">
                   Notifications blocked. Please enable in browser settings.
                 </p>
               )}
-              {mostAccurate && permission === 'granted' && (
+              {mostAccurate && notifications && permission === 'granted' && (
                 <Button
                   variant="outline"
                   size="sm"
