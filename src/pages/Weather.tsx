@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CloudSun } from "lucide-react";
+import { CloudSun, LogIn } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -15,6 +15,8 @@ import { DetailedMetrics } from "@/components/weather/detailed-metrics";
 import { SettingsDialog } from "@/components/weather/settings-dialog";
 import { WeatherResponse } from "@/types/weather";
 import { checkWeatherAlerts } from "@/lib/weather-alerts";
+import { useAuth } from "@/hooks/use-auth";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -22,12 +24,12 @@ export default function WeatherPage() {
     name: string;
   } | null>(null);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
-  const [notifications, setNotifications] = useState(true);
-  const [notificationTime, setNotificationTime] = useState("08:00");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { user, profile, loading: authLoading } = useAuth();
+  
+  // Initialize push notifications
+  usePushNotifications();
   const {
     data: weatherData,
     isLoading,
@@ -44,8 +46,8 @@ export default function WeatherPage() {
     if (weatherData) {
       setLastUpdated(new Date());
       
-      // Check for weather alerts if notifications are enabled
-      if (notifications && weatherData.mostAccurate?.currentWeather) {
+      // Check for weather alerts if notifications are enabled for authenticated users
+      if (profile?.notification_enabled && weatherData.mostAccurate?.currentWeather) {
         const alerts = checkWeatherAlerts(weatherData.mostAccurate.currentWeather);
         alerts.forEach(alert => {
           toast({
@@ -56,7 +58,7 @@ export default function WeatherPage() {
         });
       }
     }
-  }, [weatherData, notifications, toast]);
+  }, [weatherData, profile, toast]);
   useEffect(() => {
     if (error) {
       toast({
@@ -124,15 +126,23 @@ export default function WeatherPage() {
                 <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
                 <span className="text-sm font-medium">°C</span>
               </div>
-              <SettingsDialog 
-                isImperial={isImperial} 
-                onUnitsChange={setIsImperial}
-                notifications={notifications}
-                onNotificationsChange={setNotifications}
-                notificationTime={notificationTime}
-                onNotificationTimeChange={setNotificationTime}
-                mostAccurate={weatherData?.mostAccurate}
-              />
+              
+              {user ? (
+                <SettingsDialog 
+                  isImperial={isImperial} 
+                  onUnitsChange={setIsImperial}
+                  mostAccurate={weatherData?.mostAccurate}
+                />
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/auth'}
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+              )}
             </div>
           </div>
         </header>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Globe, Bell, TestTube, Clock } from "lucide-react";
+import { Settings, Globe, Bell, TestTube, Clock, LogOut, User } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,42 +14,79 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { useAuth } from "@/hooks/use-auth";
 
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
-  notifications: boolean;
-  onNotificationsChange: (enabled: boolean) => void;
-  notificationTime: string;
-  onNotificationTimeChange: (time: string) => void;
   mostAccurate?: any;
 }
 
 export function SettingsDialog({ 
   isImperial, 
   onUnitsChange, 
-  notifications, 
-  onNotificationsChange,
-  notificationTime,
-  onNotificationTimeChange,
   mostAccurate 
 }: SettingsDialogProps) {
+  const { user, profile, signOut, updateProfile } = useAuth();
   const { toast } = useToast();
   const { permission, requestPermission, sendTestNotification, isSupported } = usePushNotifications();
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleNotificationToggle = async (enabled: boolean) => {
-    if (enabled && permission !== 'granted') {
-      const granted = await requestPermission();
-      if (granted) {
-        onNotificationsChange(true);
-        setShowTimePicker(true);
+    if (!profile) return;
+    
+    try {
+      if (enabled && permission !== 'granted') {
+        const granted = await requestPermission();
+        if (!granted) {
+          toast({
+            variant: "destructive",
+            title: "Permission Required",
+            description: "Please enable notifications in your browser settings.",
+          });
+          return;
+        }
       }
-    } else {
-      onNotificationsChange(enabled);
+
+      await updateProfile({
+        notification_enabled: enabled
+      });
+
+      toast({
+        title: enabled ? "Notifications Enabled" : "Notifications Disabled",
+        description: enabled ? "You'll receive daily weather and pollen updates" : "Daily notifications have been turned off",
+      });
+
       if (enabled) {
         setShowTimePicker(true);
       }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to update settings",
+        description: "Please try again.",
+      });
+    }
+  };
+
+  const handleTimeChange = async (time: string) => {
+    if (!profile) return;
+    
+    try {
+      await updateProfile({
+        notification_time: time
+      });
+
+      toast({
+        title: "Notification time updated",
+        description: `Daily updates will be sent at ${time}`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to update time",
+        description: "Please try again.",
+      });
     }
   };
 
@@ -76,6 +113,18 @@ export function SettingsDialog({
     });
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Sign out failed",
+        description: "Please try again.",
+      });
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -94,6 +143,26 @@ export function SettingsDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4">
+          {/* User Profile */}
+          {user && (
+            <>
+              <div className="space-y-3">
+                <Label className="text-base font-medium">Account</Label>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">{user.email}</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleSignOut}>
+                    <LogOut className="w-3 h-3 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              </div>
+              <Separator />
+            </>
+          )}
+
           {/* Temperature Units */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Temperature Units</Label>
@@ -123,14 +192,14 @@ export function SettingsDialog({
                 <span className="text-sm">Weather & pollen alerts</span>
               </div>
               <Switch
-                checked={notifications}
+                checked={profile?.notification_enabled || false}
                 onCheckedChange={handleNotificationToggle}
-                disabled={!isSupported || permission === 'denied'}
+                disabled={!isSupported || permission === 'denied' || !profile}
               />
             </div>
             
             {/* Time Picker */}
-            {notifications && (
+            {profile?.notification_enabled && (
               <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-muted-foreground" />
@@ -138,8 +207,8 @@ export function SettingsDialog({
                 </div>
                 <input
                   type="time"
-                  value={notificationTime}
-                  onChange={(e) => onNotificationTimeChange(e.target.value)}
+                  value={profile.notification_time}
+                  onChange={(e) => handleTimeChange(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-input bg-background rounded-md"
                 />
               </div>
@@ -147,14 +216,14 @@ export function SettingsDialog({
             
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">
-                {notifications ? `Daily updates at ${notificationTime}` : "Enable to receive daily weather and pollen updates"}
+                {profile?.notification_enabled ? `Daily updates at ${profile.notification_time}` : "Enable to receive daily weather and pollen updates"}
               </p>
               {permission === 'denied' && (
                 <p className="text-xs text-destructive">
                   Notifications blocked. Please enable in browser settings.
                 </p>
               )}
-              {mostAccurate && notifications && permission === 'granted' && (
+              {mostAccurate && profile?.notification_enabled && permission === 'granted' && (
                 <Button
                   variant="outline"
                   size="sm"
