@@ -49,47 +49,32 @@ export function TenDayForecast({ dailyForecast, weatherSources, isImperial = tru
             10-Day Forecast
           </h2>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {dailyForecast.map((day, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-4 rounded-xl hover:bg-neutral-50 transition-colors group"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 transition-colors border border-neutral-100"
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <div className="w-16 text-neutral-600 font-medium">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="text-sm text-neutral-600 font-medium w-16">
                     {day.day}
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
                     {getConditionIcon(day.condition)}
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-neutral-800">
                       {day.condition}
                     </div>
-                    <div className="text-sm text-neutral-500">
-                      {day.description}
-                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <Droplets className="text-blue-500 w-3 h-3" />
-                    <span className="text-sm text-neutral-600">
-                      {day.precipitation}%
-                    </span>
+                <div className="flex items-center gap-4">
+                  <div className="text-xs text-neutral-500">
+                    {day.precipitation}%
                   </div>
-
-                  {/* Accuracy indicator */}
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${sourceColors[mostAccurateSource.source as keyof typeof sourceColors]}`}></div>
-                    <span className="text-xs text-neutral-500">
-                      {getSourceAbbreviation(mostAccurateSource.source)}
-                    </span>
-                  </div>
-
-                  <div className="text-right min-w-[80px]">
-                    <div className="font-semibold text-neutral-800">
+                  <div className="text-right min-w-[60px]">
+                    <div className="text-lg font-semibold text-neutral-800">
                       {isImperial ? day.highTemp : Math.round((day.highTemp - 32) * 5/9)}°
                     </div>
                     <div className="text-sm text-neutral-500">
@@ -99,24 +84,6 @@ export function TenDayForecast({ dailyForecast, weatherSources, isImperial = tru
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Legend */}
-          <div className="mt-6 pt-4 border-t border-neutral-200">
-            <div className="flex flex-wrap items-center gap-6 text-sm text-neutral-500">
-              {weatherSources.map((source) => (
-                <div key={source.source} className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${sourceColors[source.source as keyof typeof sourceColors]}`}></div>
-                  <span>
-                    {source.source === 'openweathermap' ? 'OpenWeatherMap' :
-                     source.source === 'accuweather' ? 'AccuWeather' :
-                     source.source === 'weatherapi' ? 'WeatherAPI' :
-                     source.source}
-                  </span>
-                </div>
-              ))}
-              <span className="ml-4">• Most accurate source shown for each day</span>
-            </div>
           </div>
         </CardContent>
       </Card>

@@ -26,6 +26,14 @@ export interface CurrentWeather {
   daylight?: string;
   aqi?: number;
   aqiCategory?: string;
+  pollenData?: {
+    alder: number;
+    birch: number;
+    grass: number;
+    mugwort: number;
+    olive: number;
+    ragweed: number;
+  };
 }
 
 export interface HourlyForecast {

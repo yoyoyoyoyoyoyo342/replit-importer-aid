@@ -87,6 +87,10 @@ export function CurrentWeather({
                   <div className="text-6xl font-bold text-neutral-800">
                     {isImperial ? mostAccurate.currentWeather.temperature : Math.round((mostAccurate.currentWeather.temperature - 32) * 5/9)}°
                   </div>
+                  <div className="flex items-center gap-2 text-sm text-neutral-500 mt-1">
+                    <span>H: {isImperial ? mostAccurate.dailyForecast[0]?.highTemp : Math.round((mostAccurate.dailyForecast[0]?.highTemp - 32) * 5/9)}°</span>
+                    <span>L: {isImperial ? mostAccurate.dailyForecast[0]?.lowTemp : Math.round((mostAccurate.dailyForecast[0]?.lowTemp - 32) * 5/9)}°</span>
+                  </div>
                   <div className="text-neutral-600 text-lg">
                     {mostAccurate.currentWeather.condition}
                   </div>
@@ -134,42 +138,66 @@ export function CurrentWeather({
               </div>
             </div>
 
-            {/* Accuracy Dashboard */}
+            {/* Pollen Index */}
             <div className="bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-neutral-800 mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 bg-primary rounded-full"></div>
-                Source Accuracy
+                Pollen Index
               </h3>
 
               <div className="space-y-4">
-                {weatherData.map((source) => (
-                  <div key={source.source} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${sourceColors[source.source as keyof typeof sourceColors]}`}></div>
-                      <span className="font-medium text-neutral-700">
-                        {sourceNames[source.source as keyof typeof sourceNames]}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-20 h-2 bg-neutral-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full ${sourceColors[source.source as keyof typeof sourceColors]}`}
-                          style={{ width: `${source.accuracy * 100}%` }}
-                        ></div>
+                {mostAccurate.currentWeather.pollenData ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <div className="text-sm text-neutral-600 mb-1">Alder</div>
+                        <div className="text-xl font-semibold text-neutral-800">
+                          {mostAccurate.currentWeather.pollenData.alder}
+                        </div>
                       </div>
-                      <span className="text-sm font-semibold text-neutral-800">
-                        {Math.round(source.accuracy * 100)}%
-                      </span>
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <div className="text-sm text-neutral-600 mb-1">Birch</div>
+                        <div className="text-xl font-semibold text-neutral-800">
+                          {mostAccurate.currentWeather.pollenData.birch}
+                        </div>
+                      </div>
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <div className="text-sm text-neutral-600 mb-1">Grass</div>
+                        <div className="text-xl font-semibold text-neutral-800">
+                          {mostAccurate.currentWeather.pollenData.grass}
+                        </div>
+                      </div>
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <div className="text-sm text-neutral-600 mb-1">Mugwort</div>
+                        <div className="text-xl font-semibold text-neutral-800">
+                          {mostAccurate.currentWeather.pollenData.mugwort}
+                        </div>
+                      </div>
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <div className="text-sm text-neutral-600 mb-1">Olive</div>
+                        <div className="text-xl font-semibold text-neutral-800">
+                          {mostAccurate.currentWeather.pollenData.olive}
+                        </div>
+                      </div>
+                      <div className="bg-white/60 rounded-lg p-3">
+                        <div className="text-sm text-neutral-600 mb-1">Ragweed</div>
+                        <div className="text-xl font-semibold text-neutral-800">
+                          {mostAccurate.currentWeather.pollenData.ragweed}
+                        </div>
+                      </div>
                     </div>
+                    <div className="mt-4 p-3 bg-white/60 rounded-lg">
+                      <div className="text-sm text-neutral-600">
+                        <span className="text-accent">🌸</span>
+                        <span className="font-medium ml-1">Scale:</span> 0 = No risk, 1 = Low, 2 = Medium, 3 = High, 4+ = Very High
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="text-neutral-500">Pollen data unavailable</div>
                   </div>
-                ))}
-              </div>
-
-              <div className="mt-4 p-3 bg-white/60 rounded-lg">
-                <p className="text-sm text-neutral-600">
-                  <span className="text-accent">💡</span>
-                  <span className="font-medium ml-1">Most Accurate:</span> {sourceNames[mostAccurate.source as keyof typeof sourceNames]} for current conditions
-                </p>
+                )}
               </div>
 
               <Button

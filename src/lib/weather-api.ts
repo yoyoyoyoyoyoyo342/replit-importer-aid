@@ -230,6 +230,42 @@ export const weatherApi = {
       }
     } catch {}
 
+    // Fetch pollen data
+    const pollenParams = new URLSearchParams({
+      latitude: lat.toString(),
+      longitude: lon.toString(),
+      hourly: "alder_pollen,birch_pollen,grass_pollen,mugwort_pollen,olive_pollen,ragweed_pollen",
+      timezone: "auto",
+      forecast_days: "1"
+    });
+    const pollenUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?${pollenParams.toString()}`;
+    let pollenData: any = undefined;
+    try {
+      const pollenRes = await fetch(pollenUrl);
+      if (pollenRes.ok) {
+        const pollen: any = await pollenRes.json();
+        const pollenTimes: string[] = pollen?.hourly?.time || [];
+        const parseTs = (s: string) => new Date(s).getTime();
+        const target = currentTime ? parseTs(currentTime) : Date.now();
+        let pollenIdx = 0;
+        if (pollenTimes.length) {
+          pollenIdx = pollenTimes.reduce((bestIdx, t, i) => {
+            const d = parseTs(t);
+            const best = parseTs(pollenTimes[bestIdx]);
+            return Math.abs(d - target) < Math.abs(best - target) ? i : bestIdx;
+          }, 0);
+        }
+        pollenData = {
+          alder: Math.round(pollen?.hourly?.alder_pollen?.[pollenIdx] ?? 0),
+          birch: Math.round(pollen?.hourly?.birch_pollen?.[pollenIdx] ?? 0),
+          grass: Math.round(pollen?.hourly?.grass_pollen?.[pollenIdx] ?? 0),
+          mugwort: Math.round(pollen?.hourly?.mugwort_pollen?.[pollenIdx] ?? 0),
+          olive: Math.round(pollen?.hourly?.olive_pollen?.[pollenIdx] ?? 0),
+          ragweed: Math.round(pollen?.hourly?.ragweed_pollen?.[pollenIdx] ?? 0),
+        };
+      }
+    } catch {}
+
     const current: CurrentWeather = {
       temperature: Math.round(data?.current_weather?.temperature ?? 0),
       condition: weatherCodeToText(data?.current_weather?.weathercode),
@@ -246,6 +282,7 @@ export const weatherApi = {
       daylight: daylightStr,
       aqi: currentAqi,
       aqiCategory: currentAqiCategory,
+      pollenData: pollenData,
     };
 
     const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + 24).map((t: string, i: number) => {
