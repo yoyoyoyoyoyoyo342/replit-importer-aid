@@ -64,7 +64,7 @@ export function CurrentWeather({
             <div className="flex items-center gap-2">
               <MapPin className="text-primary w-5 h-5" />
               <span className="text-lg font-semibold text-neutral-800">
-                {mostAccurate.location}
+                {mostAccurate.location.split(',')[0]}
               </span>
             </div>
             <div className="text-sm text-neutral-500">
