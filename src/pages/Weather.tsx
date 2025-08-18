@@ -17,6 +17,7 @@ import { WeatherResponse } from "@/types/weather";
 import { checkWeatherAlerts } from "@/lib/weather-alerts";
 import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -25,17 +26,12 @@ export default function WeatherPage() {
   } | null>(null);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const {
-    toast
-  } = useToast();
-  const {
-    user,
-    profile,
-    loading: authLoading
-  } = useAuth();
+  const { toast } = useToast();
+  const { user, profile, loading: authLoading } = useAuth();
 
   // Initialize push notifications
   usePushNotifications();
+  
   const {
     data: weatherData,
     isLoading,
@@ -65,6 +61,7 @@ export default function WeatherPage() {
       }
     }
   }, [weatherData, profile, toast]);
+  
   useEffect(() => {
     if (error) {
       toast({
@@ -80,10 +77,7 @@ export default function WeatherPage() {
     const detectLocation = async () => {
       try {
         const position = await weatherApi.getCurrentLocation();
-        const {
-          latitude,
-          longitude
-        } = position.coords;
+        const { latitude, longitude } = position.coords;
         setSelectedLocation({
           lat: latitude,
           lon: longitude,
@@ -95,6 +89,7 @@ export default function WeatherPage() {
     };
     detectLocation();
   }, []);
+  
   const handleLocationSelect = (lat: number, lon: number, locationName: string) => {
     setSelectedLocation({
       lat,
@@ -102,41 +97,44 @@ export default function WeatherPage() {
       name: locationName
     });
   };
+  
   const handleRefresh = () => {
     refetch();
   };
-  const convertTemperature = (temp: number) => {
-    return isImperial ? temp : Math.round((temp - 32) * 5 / 9);
-  };
-  return <div className="font-inter bg-background min-h-screen">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        {/* Header */}
-        <header className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-primary text-white p-3 rounded-xl">
-                <CloudSun className="w-6 h-6" />
+
+  return (
+    <div className="bg-background min-h-screen">
+      <div className="container mx-auto px-3 py-2 max-w-5xl">
+        {/* Header - Ultra Compact */}
+        <header className="mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="bg-primary text-primary-foreground p-1 rounded">
+                <CloudSun className="w-4 h-4" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-neutral-800">Pear Weather</h1>
-                <p className="text-neutral-600 text-sm">Multi-source weather accuracy</p>
+                <h1 className="text-lg font-bold text-foreground">Pear Weather</h1>
+                <p className="text-muted-foreground text-xs">Multi-source data</p>
               </div>
             </div>
 
-            <LocationSearch onLocationSelect={handleLocationSelect} />
-
-            {/* Settings Toggle */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 text-neutral-600">
-                <span className="text-sm font-medium">°F</span>
+            <div className="flex items-center gap-2">
+              <LocationSearch onLocationSelect={handleLocationSelect} />
+              
+              <div className="flex items-center gap-1 px-2 py-1 text-muted-foreground bg-muted rounded text-xs">
+                <span>°F</span>
                 <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
-                <span className="text-sm font-medium">°C</span>
+                <span>°C</span>
               </div>
               
-              {user ? <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} /> : <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'}>
-                  <LogIn className="w-4 h-4 mr-2" />
+              {user ? (
+                <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'} className="h-8 px-2 text-xs">
+                  <LogIn className="w-3 h-3 mr-1" />
                   Sign In
-                </Button>}
+                </Button>
+              )}
             </div>
           </div>
         </header>
@@ -145,76 +143,96 @@ export default function WeatherPage() {
         <LoadingOverlay isOpen={isLoading && !weatherData} />
 
         {/* Main Content */}
-        {!selectedLocation ? <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100 text-center py-12">
+        {!selectedLocation ? (
+          <Card className="bg-card border border-border text-center py-6">
             <CardContent>
-              <CloudSun className="w-16 h-16 text-neutral-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-neutral-800 mb-2">
-                Welcome to WeatherSync
+              <CloudSun className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+              <h2 className="text-sm font-semibold text-foreground mb-1">
+                Welcome to Pear Weather
               </h2>
-              <p className="text-neutral-600">
-                Search for a location above or allow location access to get started
+              <p className="text-muted-foreground text-xs">
+                Search for a location above or allow location access
               </p>
             </CardContent>
-          </Card> : error ? <Card className="bg-red-50 border-red-200 rounded-2xl shadow-lg text-center py-12">
+          </Card>
+        ) : error ? (
+          <Card className="bg-destructive/10 border-destructive/20 text-center py-6">
             <CardContent>
-              <div className="text-red-600 mb-4">⚠️</div>
-              <h2 className="text-xl font-semibold text-red-800 mb-2">
+              <div className="text-destructive mb-2">⚠️</div>
+              <h2 className="text-sm font-semibold text-destructive mb-1">
                 Failed to load weather data
               </h2>
-              <p className="text-red-600 mb-4">
+              <p className="text-destructive/80 mb-3 text-xs">
                 Please check your connection and try again
               </p>
-              <Button onClick={handleRefresh} variant="outline">
+              <Button onClick={handleRefresh} variant="outline" size="sm">
                 Try Again
               </Button>
             </CardContent>
-          </Card> : weatherData ? <>
+          </Card>
+        ) : weatherData ? (
+          <>
             {/* Demo Data Banner */}
-            {weatherData.demo && <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <span className="text-yellow-600">⚠️</span>
+            {weatherData.demo && (
+              <div className="mb-3 p-2 bg-primary/10 border border-primary/20 rounded">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-primary/20 rounded flex items-center justify-center">
+                    <span className="text-primary text-xs">⚠️</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-yellow-800">Using Demo Data</h3>
-                    <p className="text-yellow-700 text-sm">
-                      {weatherData.message || "Please provide valid API keys for real weather data"}
+                    <h3 className="font-semibold text-primary text-xs">Demo Data</h3>
+                    <p className="text-primary/80 text-xs">
+                      {weatherData.message || "API keys needed for real data"}
                     </p>
                   </div>
                 </div>
-              </div>}
+              </div>
+            )}
 
-            <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
+            <CurrentWeather 
+              weatherData={weatherData.sources} 
+              mostAccurate={weatherData.mostAccurate} 
+              onRefresh={handleRefresh} 
+              isLoading={isLoading} 
+              lastUpdated={lastUpdated} 
+              isImperial={isImperial} 
+            />
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
 
-            <TenDayForecast dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} isImperial={isImperial} />
+            <TenDayForecast 
+              dailyForecast={weatherData.mostAccurate.dailyForecast} 
+              weatherSources={weatherData.sources} 
+              isImperial={isImperial} 
+            />
 
             <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
 
-            {/* Footer */}
-            <footer className="text-center py-8 border-t border-neutral-200">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-neutral-600 text-sm">
+            {/* Footer - Ultra Compact */}
+            <footer className="text-center py-2 border-t border-border/50 mt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div className="text-muted-foreground text-xs">
                   Data from{" "}
-                  <span className="font-medium">OpenWeatherMap</span>,{" "}
-                  <span className="font-medium">Open-meteo, AccuWeather</span>, and{" "}
-                  <span className="font-medium">WeatherAPI. We are not to be held accountable for any inaccuracy or wrong claims.</span>
+                  <span className="font-medium text-foreground">OpenWeatherMap</span>,{" "}
+                  <span className="font-medium text-foreground">Open-meteo</span>, and{" "}
+                  <span className="font-medium text-foreground">WeatherAPI</span>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-neutral-500">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>
-                    Last updated:{" "}
-                    <span>
-                      {lastUpdated ? `${Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60))} minutes ago` : "just now"}
+                    Updated:{" "}
+                    <span className="text-foreground">
+                      {lastUpdated ? `${Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60))}m ago` : "now"}
                     </span>
                   </span>
-                  <Button onClick={handleRefresh} variant="ghost" size="sm" className="text-primary hover:text-primary/80 transition-colors p-0">
-                    🔄 Refresh
+                  <Button onClick={handleRefresh} variant="ghost" size="sm" className="text-primary hover:text-primary/80 h-5 px-1 text-xs">
+                    🔄
                   </Button>
                 </div>
               </div>
             </footer>
-          </> : null}
+          </>
+        ) : null}
       </div>
-    </div>;
+    </div>
+  );
 }
