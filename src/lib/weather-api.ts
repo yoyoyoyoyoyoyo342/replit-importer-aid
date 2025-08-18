@@ -361,6 +361,16 @@ export const weatherApi = {
       pollenData: pollenData,
     };
 
+    console.log("Processed current weather:", {
+      windSpeed: current.windSpeed,
+      visibility: current.visibility,
+      humidity: current.humidity,
+      raw_windspeed: data?.current_weather?.windspeed,
+      raw_visibility: data?.hourly?.visibility?.[idx],
+      raw_humidity: data?.hourly?.relative_humidity_2m?.[idx],
+      idx
+    });
+
     const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + 24).map((t: string, i: number) => {
       const j = idx + i;
       return {
