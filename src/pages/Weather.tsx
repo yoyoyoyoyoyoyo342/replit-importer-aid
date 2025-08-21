@@ -116,7 +116,7 @@ export default function WeatherPage() {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-foreground">Rainz</h1>
-                <p className="text-muted-foreground text-xs">Multi-source data</p>
+                <p className="text-muted-foreground text-xs">The peoples weather app.</p>
               </div>
             </div>
 
