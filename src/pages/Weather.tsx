@@ -195,7 +195,7 @@ export default function WeatherPage() {
                   Data from{" "}
                   <span className="font-medium text-foreground">OpenWeatherMap</span>,{" "}
                   <span className="font-medium text-foreground">Open-meteo</span>, and{" "}
-                  <span className="font-medium text-foreground">WeatherAPI</span>
+                  <span className="font-medium text-foreground">WeatherAPI. We are not to be held accountable for any inacuracyes or wrong claims</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>
