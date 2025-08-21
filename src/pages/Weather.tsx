@@ -17,7 +17,6 @@ import { WeatherResponse } from "@/types/weather";
 import { checkWeatherAlerts } from "@/lib/weather-alerts";
 import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
-
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -26,12 +25,17 @@ export default function WeatherPage() {
   } | null>(null);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const { toast } = useToast();
-  const { user, profile, loading: authLoading } = useAuth();
+  const {
+    toast
+  } = useToast();
+  const {
+    user,
+    profile,
+    loading: authLoading
+  } = useAuth();
 
   // Initialize push notifications
   usePushNotifications();
-  
   const {
     data: weatherData,
     isLoading,
@@ -61,7 +65,6 @@ export default function WeatherPage() {
       }
     }
   }, [weatherData, profile, toast]);
-  
   useEffect(() => {
     if (error) {
       toast({
@@ -77,7 +80,10 @@ export default function WeatherPage() {
     const detectLocation = async () => {
       try {
         const position = await weatherApi.getCurrentLocation();
-        const { latitude, longitude } = position.coords;
+        const {
+          latitude,
+          longitude
+        } = position.coords;
         setSelectedLocation({
           lat: latitude,
           lon: longitude,
@@ -89,7 +95,6 @@ export default function WeatherPage() {
     };
     detectLocation();
   }, []);
-  
   const handleLocationSelect = (lat: number, lon: number, locationName: string) => {
     setSelectedLocation({
       lat,
@@ -97,13 +102,10 @@ export default function WeatherPage() {
       name: locationName
     });
   };
-  
   const handleRefresh = () => {
     refetch();
   };
-
-  return (
-    <div className="bg-background min-h-screen">
+  return <div className="bg-background min-h-screen">
       <div className="container mx-auto px-3 py-2 max-w-5xl">
         {/* Header - Ultra Compact */}
         <header className="mb-4">
@@ -113,7 +115,7 @@ export default function WeatherPage() {
                 <CloudSun className="w-4 h-4" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-foreground">Pear Weather</h1>
+                <h1 className="text-lg font-bold text-foreground">Rainz</h1>
                 <p className="text-muted-foreground text-xs">Multi-source data</p>
               </div>
             </div>
@@ -127,14 +129,10 @@ export default function WeatherPage() {
                 <span>°C</span>
               </div>
               
-              {user ? (
-                <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
-              ) : (
-                <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'} className="h-8 px-2 text-xs">
+              {user ? <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} /> : <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'} className="h-8 px-2 text-xs">
                   <LogIn className="w-3 h-3 mr-1" />
                   Sign In
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
         </header>
@@ -143,8 +141,7 @@ export default function WeatherPage() {
         <LoadingOverlay isOpen={isLoading && !weatherData} />
 
         {/* Main Content */}
-        {!selectedLocation ? (
-          <Card className="bg-card border border-border text-center py-6">
+        {!selectedLocation ? <Card className="bg-card border border-border text-center py-6">
             <CardContent>
               <CloudSun className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
               <h2 className="text-sm font-semibold text-foreground mb-1">
@@ -154,9 +151,7 @@ export default function WeatherPage() {
                 Search for a location above or allow location access
               </p>
             </CardContent>
-          </Card>
-        ) : error ? (
-          <Card className="bg-destructive/10 border-destructive/20 text-center py-6">
+          </Card> : error ? <Card className="bg-destructive/10 border-destructive/20 text-center py-6">
             <CardContent>
               <div className="text-destructive mb-2">⚠️</div>
               <h2 className="text-sm font-semibold text-destructive mb-1">
@@ -169,12 +164,9 @@ export default function WeatherPage() {
                 Try Again
               </Button>
             </CardContent>
-          </Card>
-        ) : weatherData ? (
-          <>
+          </Card> : weatherData ? <>
             {/* Demo Data Banner */}
-            {weatherData.demo && (
-              <div className="mb-3 p-2 bg-primary/10 border border-primary/20 rounded">
+            {weatherData.demo && <div className="mb-3 p-2 bg-primary/10 border border-primary/20 rounded">
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 bg-primary/20 rounded flex items-center justify-center">
                     <span className="text-primary text-xs">⚠️</span>
@@ -186,25 +178,13 @@ export default function WeatherPage() {
                     </p>
                   </div>
                 </div>
-              </div>
-            )}
+              </div>}
 
-            <CurrentWeather 
-              weatherData={weatherData.sources} 
-              mostAccurate={weatherData.mostAccurate} 
-              onRefresh={handleRefresh} 
-              isLoading={isLoading} 
-              lastUpdated={lastUpdated} 
-              isImperial={isImperial} 
-            />
+            <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
 
-            <TenDayForecast 
-              dailyForecast={weatherData.mostAccurate.dailyForecast} 
-              weatherSources={weatherData.sources} 
-              isImperial={isImperial} 
-            />
+            <TenDayForecast dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} isImperial={isImperial} />
 
             <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
 
@@ -230,9 +210,7 @@ export default function WeatherPage() {
                 </div>
               </div>
             </footer>
-          </>
-        ) : null}
+          </> : null}
       </div>
-    </div>
-  );
+    </div>;
 }
