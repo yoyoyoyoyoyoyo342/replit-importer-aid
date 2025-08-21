@@ -114,13 +114,13 @@ export default function Auth() {
       });
       return;
     }
-    
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`,
+      const {
+        error
+      } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`
       });
-      
       if (error) {
         toast({
           variant: "destructive",
@@ -129,7 +129,6 @@ export default function Auth() {
         });
         return;
       }
-      
       toast({
         title: "Reset Link Sent!",
         description: "Check your email for a password reset link."
@@ -144,7 +143,6 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -189,7 +187,7 @@ export default function Auth() {
   return <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Pear weather</CardTitle>
+          <CardTitle className="text-2xl">Rainz</CardTitle>
           <CardDescription>
             Sign in to save your preferences and get personalized alerts
           </CardDescription>
@@ -214,13 +212,7 @@ export default function Auth() {
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  className="w-full text-sm" 
-                  onClick={handleForgotPassword}
-                  disabled={loading}
-                >
+                <Button type="button" variant="ghost" className="w-full text-sm" onClick={handleForgotPassword} disabled={loading}>
                   Forgot your password?
                 </Button>
               </form>
