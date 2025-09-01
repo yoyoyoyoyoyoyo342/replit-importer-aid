@@ -21,9 +21,9 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
   };
   return (
     <section className="mb-8">
-      <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
+      <Card className="bg-card rounded-2xl shadow-lg border border-border">
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold text-neutral-800 mb-6 flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-card-foreground mb-6 flex items-center gap-2">
             <Clock className="text-primary w-5 h-5" />
             24-Hour Forecast
           </h2>
@@ -32,21 +32,21 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
             {hourlyData.slice(0, 12).map((hour, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 transition-colors border border-neutral-100"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
               >
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="text-sm text-neutral-600 font-medium w-16">
+                  <div className="text-sm text-muted-foreground font-medium w-16">
                     {hour.time}
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                     {getConditionIcon(hour.condition)}
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-xs text-neutral-500">
+                  <div className="text-xs text-muted-foreground">
                     {hour.precipitation}%
                   </div>
-                  <div className="text-lg font-semibold text-neutral-800 min-w-[40px] text-right">
+                  <div className="text-lg font-semibold text-card-foreground min-w-[40px] text-right">
                     {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
                   </div>
                 </div>

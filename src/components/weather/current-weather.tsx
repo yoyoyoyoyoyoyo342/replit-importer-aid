@@ -111,10 +111,10 @@ export function CurrentWeather({
               <div className="bg-muted/50 rounded p-2 border border-border/50">
                 <div className="flex items-center gap-1 mb-1">
                   <Droplets className="text-primary w-2 h-2" />
-                  <span className="text-xs text-muted-foreground">Humidity</span>
+                  <span className="text-xs text-muted-foreground">Feels like</span>
                 </div>
                 <div className="text-xs font-semibold text-foreground">
-                  {mostAccurate.currentWeather.humidity}%
+                  {isImperial ? mostAccurate.currentWeather.feelsLike : Math.round((mostAccurate.currentWeather.feelsLike - 32) * 5 / 9)}°
                 </div>
               </div>
             </div>

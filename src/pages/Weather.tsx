@@ -13,6 +13,7 @@ import { HourlyForecast } from "@/components/weather/hourly-forecast";
 import { TenDayForecast } from "@/components/weather/ten-day-forecast";
 import { DetailedMetrics } from "@/components/weather/detailed-metrics";
 import { SettingsDialog } from "@/components/weather/settings-dialog";
+import { WeatherReportForm } from "@/components/weather/weather-report-form";
 import { WeatherResponse } from "@/types/weather";
 import { checkWeatherAlerts } from "@/lib/weather-alerts";
 import { useAuth } from "@/hooks/use-auth";
@@ -111,9 +112,7 @@ export default function WeatherPage() {
         <header className="mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="bg-primary text-primary-foreground p-1 rounded">
-                <CloudSun className="w-4 h-4" />
-              </div>
+              <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
               <div>
                 <h1 className="text-lg font-bold text-foreground">Rainz</h1>
                 <p className="text-muted-foreground text-xs">The peoples weather app.</p>
@@ -133,6 +132,13 @@ export default function WeatherPage() {
                   <LogIn className="w-3 h-3 mr-1" />
                   Sign In
                 </Button>}
+              
+              {weatherData && (
+                <WeatherReportForm 
+                  location={selectedLocation?.name || "Unknown"} 
+                  currentCondition={weatherData.mostAccurate.currentWeather.condition}
+                />
+              )}
             </div>
           </div>
         </header>

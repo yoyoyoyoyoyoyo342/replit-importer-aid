@@ -59,14 +59,14 @@ export function DetailedMetrics({
                   <Sunrise className="text-primary w-3 h-3" />
                   <span className="text-xs text-muted-foreground">Sunrise</span>
                 </div>
-                <span className="font-semibold text-card-foreground text-xs">{currentWeather.sunrise ?? '—'}</span>
+                <span className="font-semibold text-card-foreground text-xs">{currentWeather.sunrise ? new Date(`1970-01-01T${currentWeather.sunrise}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '—'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sunset className="text-primary w-3 h-3" />
                   <span className="text-xs text-muted-foreground">Sunset</span>
                 </div>
-                <span className="font-semibold text-card-foreground text-xs">{currentWeather.sunset ?? '—'}</span>
+                <span className="font-semibold text-card-foreground text-xs">{currentWeather.sunset ? new Date(`1970-01-01T${currentWeather.sunset}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '—'}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Daylight</span>
@@ -84,14 +84,14 @@ export function DetailedMetrics({
                   <Moon className="text-primary w-3 h-3" />
                   <span className="text-xs text-muted-foreground">Moonrise</span>
                 </div>
-                <span className="font-semibold text-card-foreground text-xs">{currentWeather.moonrise ?? '—'}</span>
+                <span className="font-semibold text-card-foreground text-xs">{currentWeather.moonrise ? new Date(`1970-01-01T${currentWeather.moonrise}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '—'}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Moon className="text-primary w-3 h-3" />
                   <span className="text-xs text-muted-foreground">Moonset</span>
                 </div>
-                <span className="font-semibold text-card-foreground text-xs">{currentWeather.moonset ?? '—'}</span>
+                <span className="font-semibold text-card-foreground text-xs">{currentWeather.moonset ? new Date(`1970-01-01T${currentWeather.moonset}:00`).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) : '—'}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Moon Phase</span>

@@ -42,9 +42,9 @@ export function TenDayForecast({ dailyForecast, weatherSources, isImperial = tru
 
   return (
     <section className="mb-8">
-      <Card className="bg-white rounded-2xl shadow-lg border border-neutral-100">
+      <Card className="bg-card rounded-2xl shadow-lg border border-border">
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold text-neutral-800 mb-6 flex items-center gap-2">
+          <h2 className="text-xl font-semibold text-card-foreground mb-6 flex items-center gap-2">
             <CalendarDays className="text-primary w-5 h-5" />
             10-Day Forecast
           </h2>
@@ -53,31 +53,31 @@ export function TenDayForecast({ dailyForecast, weatherSources, isImperial = tru
             {dailyForecast.map((day, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-50 transition-colors border border-neutral-100"
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
               >
                 <div className="flex items-center gap-3 flex-1">
-                  <div className="text-sm text-neutral-600 font-medium w-16">
+                  <div className="text-sm text-muted-foreground font-medium w-16">
                     {day.day}
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                     {getConditionIcon(day.condition)}
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-neutral-800">
+                    <div className="font-medium text-card-foreground">
                       {day.condition}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="text-xs text-neutral-500">
+                  <div className="text-xs text-muted-foreground">
                     {day.precipitation}%
                   </div>
                   <div className="text-right min-w-[60px]">
-                    <div className="text-lg font-semibold text-neutral-800">
+                    <div className="text-lg font-semibold text-card-foreground">
                       {isImperial ? day.highTemp : Math.round((day.highTemp - 32) * 5/9)}°
                     </div>
-                    <div className="text-sm text-neutral-500">
+                    <div className="text-sm text-muted-foreground">
                       {isImperial ? day.lowTemp : Math.round((day.lowTemp - 32) * 5/9)}°
                     </div>
                   </div>

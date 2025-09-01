@@ -62,15 +62,15 @@ export function LocationSearch({ onLocationSelect }: LocationSearchProps) {
           placeholder="Search for a city..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-12 pr-16 py-3 bg-white rounded-xl border border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+          className="w-full pl-12 pr-16 py-3 bg-input text-foreground rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground"
         />
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         <Button
           onClick={handleLocationDetection}
           disabled={isDetecting}
           variant="ghost"
           size="sm"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-primary transition-colors p-2"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-2"
         >
           {isDetecting ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -82,10 +82,10 @@ export function LocationSearch({ onLocationSelect }: LocationSearchProps) {
 
       {/* Search Results Dropdown */}
       {(searchQuery.length > 2 || isLoading) && (
-        <Card className="absolute top-full left-0 right-0 mt-2 z-50 shadow-lg border border-neutral-200">
+        <Card className="absolute top-full left-0 right-0 mt-2 z-50 shadow-lg border border-border bg-popover">
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="p-4 text-center text-neutral-600">
+              <div className="p-4 text-center text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
                 Searching...
               </div>
@@ -102,17 +102,17 @@ export function LocationSearch({ onLocationSelect }: LocationSearchProps) {
                       );
                       setSearchQuery("");
                     }}
-                    className="w-full text-left p-4 hover:bg-neutral-50 transition-colors border-b border-neutral-100 last:border-b-0"
+                    className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0"
                   >
-                    <div className="font-medium text-neutral-800">{location.name}</div>
-                    <div className="text-sm text-neutral-500">
+                    <div className="font-medium text-foreground">{location.name}</div>
+                    <div className="text-sm text-muted-foreground">
                       {location.state ? `${location.state}, ` : ''}{location.country}
                     </div>
                   </button>
                 ))}
               </div>
             ) : searchQuery.length > 2 ? (
-              <div className="p-4 text-center text-neutral-600">
+              <div className="p-4 text-center text-muted-foreground">
                 No locations found
               </div>
             ) : null}
