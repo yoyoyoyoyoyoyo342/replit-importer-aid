@@ -107,6 +107,7 @@ export const weatherApi = {
       current_weather: "true",
       hourly: [
         "temperature_2m",
+        "apparent_temperature",
         "precipitation_probability",
         "relative_humidity_2m",
         "visibility",
@@ -347,7 +348,7 @@ export const weatherApi = {
       windSpeed: Math.round((data?.current_weather?.windspeed ?? 0) * 0.621371),
       windDirection: Math.round(data?.current_weather?.winddirection ?? 0),
       visibility: Math.round((data?.hourly?.visibility?.[idx] ?? 0) / 1609.34),
-      feelsLike: Math.round(data?.hourly?.temperature_2m?.[idx] ?? data?.current_weather?.temperature ?? 0),
+      feelsLike: Math.round(data?.hourly?.apparent_temperature?.[idx] ?? data?.current_weather?.temperature ?? 0),
       uvIndex: Math.round(data?.hourly?.uv_index?.[idx] ?? 0),
       pressure: Math.round(data?.hourly?.pressure_msl?.[idx] ?? 0),
       sunrise: sunriseStr,
