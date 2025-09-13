@@ -20,11 +20,11 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
     return <Sun className="w-6 h-6 text-primary" />;
   };
   return (
-    <section className="mb-8">
+    <section className="mb-4 md:mb-8">
       <Card className="bg-card rounded-2xl shadow-lg border border-border">
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold text-card-foreground mb-6 flex items-center gap-2">
-            <Clock className="text-primary w-5 h-5" />
+        <CardContent className="p-3 md:p-4 lg:p-6">
+          <h2 className="text-lg md:text-xl font-semibold text-card-foreground mb-3 md:mb-6 flex items-center gap-2">
+            <Clock className="text-primary w-4 h-4 md:w-5 md:h-5" />
             24-Hour Forecast
           </h2>
 
@@ -32,21 +32,21 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
             {hourlyData.slice(0, 12).map((hour, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
+                className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
               >
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="text-sm text-muted-foreground font-medium w-16">
+                <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                  <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
                     {hour.time}
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                     {getConditionIcon(hour.condition)}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 md:gap-4 shrink-0">
                   <div className="text-xs text-muted-foreground">
                     {hour.precipitation}%
                   </div>
-                  <div className="text-lg font-semibold text-card-foreground min-w-[40px] text-right">
+                  <div className="text-sm md:text-lg font-semibold text-card-foreground min-w-[32px] md:min-w-[40px] text-right">
                     {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
                   </div>
                 </div>

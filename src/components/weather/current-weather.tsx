@@ -65,7 +65,7 @@ export function CurrentWeather({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4">
             {/* Main Temperature */}
             <div className="lg:col-span-2 flex items-center gap-3">
               <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -89,8 +89,8 @@ export function CurrentWeather({
             </div>
 
             {/* Weather Metrics - Ultra Compact */}
-            <div className="grid grid-cols-3 lg:grid-cols-1 gap-2">
-              <div className="bg-muted/50 rounded p-2 border border-border/50">
+            <div className="grid grid-cols-3 lg:grid-cols-1 gap-1 md:gap-2">
+              <div className="bg-muted/50 rounded p-1.5 md:p-2 border border-border/50">
                 <div className="flex items-center gap-1 mb-1">
                   <Wind className="text-primary w-2 h-2" />
                   <span className="text-xs text-muted-foreground">Wind</span>

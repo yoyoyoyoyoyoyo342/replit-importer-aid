@@ -106,7 +106,7 @@ export default function WeatherPage() {
   const handleRefresh = () => {
     refetch();
   };
-  return <div className="bg-background min-h-screen">
+  return <div className="bg-background min-h-screen overflow-x-hidden">
       <div className="container mx-auto px-3 py-2 max-w-5xl">
         {/* Header - Ultra Compact */}
         <header className="mb-4">
