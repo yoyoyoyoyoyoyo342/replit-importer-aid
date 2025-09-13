@@ -112,7 +112,7 @@ export default function WeatherPage() {
         <header className="mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
-              <img src="/favicon-192.png" alt="Rainz Logo" className="w-8 h-8" />
+              <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
               <div>
                 <h1 className="text-lg font-bold text-foreground">Rainz</h1>
                 <p className="text-muted-foreground text-xs">The peoples weather app.</p>

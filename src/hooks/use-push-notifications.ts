@@ -93,32 +93,30 @@ export function usePushNotifications() {
     if (permission !== 'granted') return;
 
     try {
-      // Fetch current weather data for notification
-      const response = await fetch(`${window.location.origin}/api/current-weather`);
-      const data: NotificationData = await response.json();
-
-      const pollenText = data.pollenAlerts.length > 0 
-        ? ` High pollen: ${data.pollenAlerts.join(', ')}`
-        : '';
-
-      const notificationBody = `${data.condition}, ${data.temperature}°F (H: ${data.highTemp}° L: ${data.lowTemp}°)${pollenText}`;
+      // Create a basic notification with general weather info
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      
+      const notificationBody = `Good morning! Check your weather app for today's forecast and pollen alerts. Time: ${timeString}`;
 
       if (registration && 'showNotification' in registration) {
         // Use service worker notification for better functionality
         await registration.showNotification('Daily Weather & Pollen Update', {
           body: notificationBody,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
+          icon: '/logo.png',
+          badge: '/logo.png',
           tag: 'daily-weather',
-          requireInteraction: true
+          requireInteraction: false
         });
       } else {
         // Fallback to basic notification
         new Notification('Daily Weather & Pollen Update', {
           body: notificationBody,
-          icon: '/favicon.ico'
+          icon: '/logo.png'
         });
       }
+      
+      console.log('Daily notification sent successfully');
     } catch (error) {
       console.error('Error sending daily notification:', error);
     }
@@ -136,25 +134,34 @@ export function usePushNotifications() {
 
     const notificationBody = `${data.condition}, ${data.temperature}°F (H: ${data.highTemp}° L: ${data.lowTemp}°)${pollenText}`;
 
-    if (registration && 'showNotification' in registration) {
-      await registration.showNotification('Weather & Pollen Update', {
-        body: notificationBody,
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: 'weather-update',
-        requireInteraction: false
+    try {
+      if (registration && 'showNotification' in registration) {
+        await registration.showNotification('Test Weather & Pollen Update', {
+          body: notificationBody,
+          icon: '/logo.png',
+          badge: '/logo.png',
+          tag: 'weather-test',
+          requireInteraction: false
+        });
+      } else {
+        new Notification('Test Weather & Pollen Update', {
+          body: notificationBody,
+          icon: '/logo.png'
+        });
+      }
+
+      toast({
+        title: "Test notification sent",
+        description: "Check your notifications to see the weather update.",
       });
-    } else {
-      new Notification('Weather & Pollen Update', {
-        body: notificationBody,
-        icon: '/favicon.ico'
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      toast({
+        title: "Notification failed",
+        description: "There was an error sending the test notification.",
+        variant: "destructive"
       });
     }
-
-    toast({
-      title: "Test notification sent",
-      description: "Check your notifications to see the weather update.",
-    });
   };
 
   return {

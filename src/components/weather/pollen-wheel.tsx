@@ -128,6 +128,8 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
     );
   }
 
+  const currentMonth = new Date().getMonth(); // 0-11
+  
   const allPollens: SeasonalPollen[] = [
     {
       name: "Alder",
@@ -173,6 +175,29 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
     }
   ];
 
+  // Add user allergies to pollen data if they track allergies not in the main list
+  const userAllergyPollens: SeasonalPollen[] = userAllergies
+    .filter(allergy => !allPollens.some(p => p.name.toLowerCase() === allergy.allergen.toLowerCase()))
+    .map(allergy => ({
+      name: allergy.allergen,
+      value: 3, // Default moderate level for tracked allergies
+      color: "hsl(330 70% 55%)", // Purple for user-added allergens
+      months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], // Year-round
+      season: "Year-round"
+    }));
+
+  // Combine standard and user pollens
+  const combinedPollens = [...allPollens, ...userAllergyPollens];
+  
+  // Filter to show seasonal pollens (current month ± 1 month for better coverage)
+  const seasonalPollens = combinedPollens.filter(pollen => {
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+    return pollen.months.includes(prevMonth) || 
+           pollen.months.includes(currentMonth) || 
+           pollen.months.includes(nextMonth);
+  });
+
   const getIntensityLabel = (value: number) => {
     if (value === 0) return "No risk";
     if (value <= 2) return "Low";
@@ -193,12 +218,12 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
   };
 
   const getTotalValue = () => {
-    return allPollens.reduce((sum, pollen) => sum + pollen.value, 0);
+    return seasonalPollens.reduce((sum, pollen) => sum + pollen.value, 0);
   };
 
   const getOverallLevel = () => {
     const total = getTotalValue();
-    const average = total / allPollens.length;
+    const average = seasonalPollens.length > 0 ? total / seasonalPollens.length : 0;
     return getIntensityLabel(Math.round(average));
   };
 
@@ -208,8 +233,8 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
   const innerRadius = 50;
   const strokeWidth = 30;
 
-  // Calculate segments
-  const total = allPollens.reduce((sum, pollen) => sum + Math.max(pollen.value, 0.5), 0);
+  // Calculate segments using seasonal pollens
+  const total = seasonalPollens.reduce((sum, pollen) => sum + Math.max(pollen.value, 0.5), 0);
   let currentAngle = -90; // Start at top
 
   return (
@@ -279,7 +304,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
               />
               
               {/* Pollen segments */}
-              {allPollens.map((pollen, index) => {
+              {seasonalPollens.map((pollen, index) => {
                 const segmentValue = Math.max(pollen.value, 0.5);
                 const segmentAngle = (segmentValue / total) * 360;
                 
@@ -398,7 +423,10 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
 
         {/* Detailed Pollen List */}
         <div className="space-y-2">
-          {allPollens.map((pollen) => {
+          <div className="text-sm font-medium text-muted-foreground mb-3">
+            Current Season Pollen ({seasonalPollens.length} active)
+          </div>
+          {seasonalPollens.map((pollen) => {
             const hasAlert = user && getUserAllergyAlert(pollen.name, pollen.value);
             const level = getIntensityLabel(pollen.value);
             
