@@ -107,19 +107,31 @@ export const weatherApi = {
       current_weather: "true",
       hourly: [
         "temperature_2m",
-        "apparent_temperature",
+        "apparent_temperature", 
         "precipitation_probability",
+        "precipitation",
+        "rain",
+        "showers",
+        "snowfall",
         "relative_humidity_2m",
         "visibility",
         "pressure_msl",
         "uv_index",
         "weathercode",
+        "cloud_cover",
+        "wind_speed_10m",
+        "wind_direction_10m",
+        "wind_gusts_10m"
       ].join(","),
       daily: [
         "weathercode",
         "temperature_2m_max",
         "temperature_2m_min",
         "precipitation_probability_max",
+        "precipitation_sum",
+        "rain_sum", 
+        "showers_sum",
+        "snowfall_sum",
         "sunrise",
         "sunset",
       ].join(","),
@@ -365,17 +377,27 @@ export const weatherApi = {
       };
     }
 
+    // Enhanced precipitation calculation
+    const currentPrecipProb = data?.hourly?.precipitation_probability?.[idx] ?? 0;
+    const currentPrecip = data?.hourly?.precipitation?.[idx] ?? 0;
+    const currentRain = data?.hourly?.rain?.[idx] ?? 0;
+    const currentShowers = data?.hourly?.showers?.[idx] ?? 0;
+    const currentSnow = data?.hourly?.snowfall?.[idx] ?? 0;
+    
+    // More accurate precipitation calculation
+    const totalPrecipitation = Math.round((currentPrecip + currentRain + currentShowers + currentSnow) * 10) / 10;
+
     const current: CurrentWeather = {
       temperature: Math.round(data?.current_weather?.temperature ?? 0),
       condition: weatherCodeToText(data?.current_weather?.weathercode),
       description: weatherCodeToText(data?.current_weather?.weathercode),
       humidity: Math.round(data?.hourly?.relative_humidity_2m?.[idx] ?? 0),
-      windSpeed: Math.round((data?.current_weather?.windspeed ?? 0) * 0.621371),
-      windDirection: Math.round(data?.current_weather?.winddirection ?? 0),
-      visibility: Math.round((data?.hourly?.visibility?.[idx] ?? 0) / 1609.34),
+      windSpeed: Math.round(data?.hourly?.wind_speed_10m?.[idx] ?? data?.current_weather?.windspeed * 0.621371 ?? 0),
+      windDirection: Math.round(data?.hourly?.wind_direction_10m?.[idx] ?? data?.current_weather?.winddirection ?? 0),
+      visibility: Math.round((data?.hourly?.visibility?.[idx] ?? 10000) / 1609.34 * 10) / 10,
       feelsLike: Math.round(data?.hourly?.apparent_temperature?.[idx] ?? data?.current_weather?.temperature ?? 0),
       uvIndex: Math.round(data?.hourly?.uv_index?.[idx] ?? 0),
-      pressure: Math.round(data?.hourly?.pressure_msl?.[idx] ?? 0),
+      pressure: Math.round((data?.hourly?.pressure_msl?.[idx] ?? 1013) * 0.02953),
       sunrise: sunriseStr,
       sunset: sunsetStr,
       daylight: daylightStr,
@@ -385,6 +407,10 @@ export const weatherApi = {
       aqi: currentAqi,
       aqiCategory: currentAqiCategory,
       pollenData: pollenData,
+      precipitation: totalPrecipitation,
+      precipitationProbability: currentPrecipProb,
+      cloudCover: Math.round(data?.hourly?.cloud_cover?.[idx] ?? 0),
+      windGusts: Math.round(data?.hourly?.wind_gusts_10m?.[idx] ?? 0),
     };
 
     console.log("Processed current weather:", {
@@ -399,24 +425,42 @@ export const weatherApi = {
 
     const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + 24).map((t: string, i: number) => {
       const j = idx + i;
+      // Enhanced precipitation calculation for hourly forecast
+      const precipProb = data?.hourly?.precipitation_probability?.[j] ?? 0;
+      const precip = data?.hourly?.precipitation?.[j] ?? 0;
+      const rain = data?.hourly?.rain?.[j] ?? 0;
+      const showers = data?.hourly?.showers?.[j] ?? 0;
+      const snow = data?.hourly?.snowfall?.[j] ?? 0;
+      const totalPrecip = Math.round((precip + rain + showers + snow) * 10) / 10;
+      
       return {
         time: new Date(t).toLocaleTimeString([], { hour: "2-digit" }),
         temperature: Math.round(data?.hourly?.temperature_2m?.[j] ?? 0),
         condition: weatherCodeToText(data?.hourly?.weathercode?.[j]),
-        precipitation: Math.round(data?.hourly?.precipitation_probability?.[j] ?? 0),
+        precipitation: Math.max(precipProb, totalPrecip > 0 ? Math.min(100, totalPrecip * 20) : 0),
         icon: "",
       };
     });
 
-    const daily: DailyForecast[] = (data?.daily?.time || []).slice(0, 10).map((d: string, i: number) => ({
-      day: new Date(d).toLocaleDateString([], { weekday: "short" }),
-      condition: weatherCodeToText(data?.daily?.weathercode?.[i]),
-      description: weatherCodeToText(data?.daily?.weathercode?.[i]),
-      highTemp: Math.round(data?.daily?.temperature_2m_max?.[i] ?? 0),
-      lowTemp: Math.round(data?.daily?.temperature_2m_min?.[i] ?? 0),
-      precipitation: Math.round(data?.daily?.precipitation_probability_max?.[i] ?? 0),
-      icon: "",
-    }));
+    const daily: DailyForecast[] = (data?.daily?.time || []).slice(0, 10).map((d: string, i: number) => {
+      // Enhanced precipitation calculation for daily forecast
+      const precipProb = data?.daily?.precipitation_probability_max?.[i] ?? 0;
+      const precipSum = data?.daily?.precipitation_sum?.[i] ?? 0;
+      const rainSum = data?.daily?.rain_sum?.[i] ?? 0;
+      const showersSum = data?.daily?.showers_sum?.[i] ?? 0;
+      const snowSum = data?.daily?.snowfall_sum?.[i] ?? 0;
+      const totalPrecip = precipSum + rainSum + showersSum + snowSum;
+      
+      return {
+        day: new Date(d).toLocaleDateString([], { weekday: "short" }),
+        condition: weatherCodeToText(data?.daily?.weathercode?.[i]),
+        description: weatherCodeToText(data?.daily?.weathercode?.[i]),
+        highTemp: Math.round(data?.daily?.temperature_2m_max?.[i] ?? 0),
+        lowTemp: Math.round(data?.daily?.temperature_2m_min?.[i] ?? 0),
+        precipitation: Math.max(precipProb, totalPrecip > 0 ? Math.min(100, totalPrecip * 5) : 0),
+        icon: "",
+      };
+    });
 
     const source: WeatherSource = {
       source: "Open-Meteo",

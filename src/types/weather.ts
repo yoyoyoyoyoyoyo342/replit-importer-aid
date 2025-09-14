@@ -37,6 +37,11 @@ export interface CurrentWeather {
     olive: number;
     ragweed: number;
   };
+  // Enhanced precipitation and weather fields
+  precipitation?: number;
+  precipitationProbability?: number;
+  cloudCover?: number;
+  windGusts?: number;
 }
 
 export interface HourlyForecast {

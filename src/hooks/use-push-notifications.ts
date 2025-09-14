@@ -70,6 +70,16 @@ export function usePushNotifications() {
   };
 
   const scheduleDailyNotifications = () => {
+    console.log('Scheduling daily notifications...');
+    
+    // Clear any existing intervals first
+    if ((window as any).weatherNotificationInterval) {
+      clearInterval((window as any).weatherNotificationInterval);
+    }
+    if ((window as any).weatherNotificationTimeout) {
+      clearTimeout((window as any).weatherNotificationTimeout);
+    }
+
     // Schedule notification for 8 AM daily
     const now = new Date();
     const scheduledTime = new Date();
@@ -81,12 +91,26 @@ export function usePushNotifications() {
     }
 
     const timeUntilNotification = scheduledTime.getTime() - now.getTime();
+    console.log(`Next notification in ${Math.round(timeUntilNotification / (1000 * 60 * 60))} hours`);
 
-    setTimeout(() => {
+    // For testing - also schedule a notification in 1 minute
+    const testTimeout = setTimeout(() => {
+      console.log('Sending test notification...');
+      sendDailyNotification();
+    }, 60 * 1000); // 1 minute from now
+    
+    (window as any).weatherNotificationTimeout = setTimeout(() => {
+      console.log('Sending daily notification...');
       sendDailyNotification();
       // Set up recurring daily notifications
-      setInterval(sendDailyNotification, 24 * 60 * 60 * 1000); // 24 hours
+      (window as any).weatherNotificationInterval = setInterval(() => {
+        console.log('Sending recurring daily notification...');
+        sendDailyNotification();
+      }, 24 * 60 * 60 * 1000); // 24 hours
     }, timeUntilNotification);
+
+    // Store test timeout for cleanup
+    (window as any).weatherTestTimeout = testTimeout;
   };
 
   const sendDailyNotification = async () => {

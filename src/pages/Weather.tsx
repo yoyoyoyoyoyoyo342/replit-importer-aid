@@ -12,6 +12,7 @@ import { CurrentWeather } from "@/components/weather/current-weather";
 import { HourlyForecast } from "@/components/weather/hourly-forecast";
 import { TenDayForecast } from "@/components/weather/ten-day-forecast";
 import { DetailedMetrics } from "@/components/weather/detailed-metrics";
+import { PollenWheel } from "@/components/weather/pollen-wheel";
 import { SettingsDialog } from "@/components/weather/settings-dialog";
 import { WeatherReportForm } from "@/components/weather/weather-report-form";
 import { WeatherResponse } from "@/types/weather";
@@ -186,13 +187,38 @@ export default function WeatherPage() {
                 </div>
               </div>}
 
-            <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
+            {/* Desktop Layout Grid - Only show on large screens */}
+            <div className="hidden lg:grid lg:grid-cols-12 gap-4 mb-6">
+              {/* Left: Main Weather - spans 4 columns */}
+              <div className="col-span-4">
+                <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
+              </div>
+              
+              {/* Center: Detailed Metrics - spans 4 columns */}
+              <div className="col-span-4">
+                <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
+              </div>
+              
+              {/* Right: Pollen Wheel - spans 4 columns */}
+              <div className="col-span-4">
+                {weatherData.mostAccurate.currentWeather.pollenData && (
+                  <PollenWheel pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Layout - Only show on small/medium screens */}
+            <div className="lg:hidden">
+              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
+              <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
+              {weatherData.mostAccurate.currentWeather.pollenData && (
+                <PollenWheel pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+              )}
+            </div>
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
 
             <TenDayForecast dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} isImperial={isImperial} />
-
-            <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 border-t border-border/50 mt-4">
