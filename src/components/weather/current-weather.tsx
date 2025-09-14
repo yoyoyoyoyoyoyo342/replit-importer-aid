@@ -2,7 +2,6 @@ import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
-import { PollenWheel } from "./pollen-wheel";
 
 interface CurrentWeatherProps {
   weatherData: WeatherSource[];
@@ -119,20 +118,9 @@ export function CurrentWeather({
               </div>
             </div>
 
-            {/* Pollen - Ultra Compact */}
-            <div className="bg-primary/5 border border-primary/20 rounded p-2">
-              <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
-                <div className="w-1 h-1 bg-primary rounded-full"></div>
-                Pollen
-              </h3>
-              {mostAccurate.currentWeather.pollenData ? (
-                <div className="text-xs">
-                  <PollenWheel pollenData={mostAccurate.currentWeather.pollenData} />
-                </div>
-              ) : (
-                <div className="text-xs text-muted-foreground">No data</div>
-              )}
-              <Button onClick={onRefresh} disabled={isLoading} variant="outline" size="sm" className="w-full mt-2 h-6 text-xs">
+            {/* Refresh Button */}
+            <div className="mt-2">
+              <Button onClick={onRefresh} disabled={isLoading} variant="outline" size="sm" className="w-full h-6 text-xs">
                 {isLoading ? <RefreshCw className="w-2 h-2 mr-1 animate-spin" /> : <RefreshCw className="w-2 h-2 mr-1" />}
                 Refresh
               </Button>
