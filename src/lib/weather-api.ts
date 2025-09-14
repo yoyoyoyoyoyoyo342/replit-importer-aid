@@ -191,21 +191,37 @@ export const weatherApi = {
       }, 0);
     }
 
-    // Sun times (today)
+    // Sun times (today) - Validate and safely parse dates
     const sunriseIso = data?.daily?.sunrise?.[0];
     const sunsetIso = data?.daily?.sunset?.[0];
-    const sunriseStr = sunriseIso
-      ? new Date(sunriseIso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-      : undefined;
-    const sunsetStr = sunsetIso
-      ? new Date(sunsetIso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-      : undefined;
+    
+    const parseTimeFromISO = (isoString: string | undefined) => {
+      if (!isoString) return undefined;
+      try {
+        const date = new Date(isoString);
+        return isNaN(date.getTime()) ? undefined : date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      } catch {
+        return undefined;
+      }
+    };
+    
+    const sunriseStr = parseTimeFromISO(sunriseIso);
+    const sunsetStr = parseTimeFromISO(sunsetIso);
+    
     let daylightStr: string | undefined = undefined;
     if (sunriseIso && sunsetIso) {
-      const diffMs = new Date(sunsetIso).getTime() - new Date(sunriseIso).getTime();
-      const h = Math.floor(diffMs / (1000 * 60 * 60));
-      const m = Math.round((diffMs - h * 3600000) / 60000);
-      daylightStr = `${h}h ${m}m`;
+      try {
+        const sunriseTime = new Date(sunriseIso);
+        const sunsetTime = new Date(sunsetIso);
+        if (!isNaN(sunriseTime.getTime()) && !isNaN(sunsetTime.getTime())) {
+          const diffMs = sunsetTime.getTime() - sunriseTime.getTime();
+          const h = Math.floor(diffMs / (1000 * 60 * 60));
+          const m = Math.round((diffMs - h * 3600000) / 60000);
+          daylightStr = `${h}h ${m}m`;
+        }
+      } catch {
+        daylightStr = undefined;
+      }
     }
 
     // Moon data (today)
@@ -344,9 +360,20 @@ export const weatherApi = {
         const moonResponse: any = await moonRes.json();
         if (moonResponse && moonResponse.length > 0) {
           const phase = moonResponse[0];
+          // Validate and safely parse dates
+          const parseTime = (timeStr: string) => {
+            if (!timeStr) return undefined;
+            try {
+              const date = new Date(timeStr);
+              return isNaN(date.getTime()) ? undefined : date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            } catch {
+              return undefined;
+            }
+          };
+          
           moonData = {
-            moonrise: phase.Moonrise ? new Date(phase.Moonrise).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : undefined,
-            moonset: phase.Moonset ? new Date(phase.Moonset).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : undefined,
+            moonrise: parseTime(phase.Moonrise),
+            moonset: parseTime(phase.Moonset),
             moonPhase: phase.Phase || "Unknown"
           };
         }

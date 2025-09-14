@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MessageSquare, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 interface WeatherReportFormProps {
   location: string;
@@ -18,8 +19,27 @@ export function WeatherReportForm({ location, currentCondition }: WeatherReportF
   const [report, setReport] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user, profile } = useAuth();
+
+  // Check if user has been registered for at least 3 months
+  const canReportWeather = () => {
+    if (!user || !profile?.created_at) return false;
+    
+    const accountAge = new Date().getTime() - new Date(profile.created_at).getTime();
+    const threeMonthsInMs = 90 * 24 * 60 * 60 * 1000; // 90 days
+    return accountAge >= threeMonthsInMs;
+  };
 
   const handleSubmit = async () => {
+    if (!canReportWeather()) {
+      toast({
+        title: "Account too new",
+        description: "You need to have an account for at least 3 months to report weather.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!accuracy || !report.trim()) {
       toast({
         title: "Please fill all fields",
@@ -44,6 +64,11 @@ export function WeatherReportForm({ location, currentCondition }: WeatherReportF
     setReport("");
     setIsSubmitting(false);
   };
+
+  // Don't show the button if user can't report weather
+  if (!user || !canReportWeather()) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
