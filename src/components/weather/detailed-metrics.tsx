@@ -109,11 +109,6 @@ export function DetailedMetrics({
             </CardContent>
           </Card>
         </div>
-        
-        {/* Pollen Index Card - only on mobile */}
-        <div className="lg:hidden">
-          <PollenCard pollenData={currentWeather.pollenData} />
-        </div>
       </div>
     </section>
   );
