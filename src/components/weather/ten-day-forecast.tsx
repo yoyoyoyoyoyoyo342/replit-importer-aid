@@ -44,11 +44,18 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
     (current.accuracy > prev.accuracy) ? current : prev
   );
 
-  // Get hourly data for a specific day (showing next 24 hours for simplicity)
+  // Get hourly data for a specific day
   const getHourlyForDay = (dayIndex: number) => {
-    // For demo purposes, show the first 24 hours of hourly data
-    // In a real app, you'd filter by the specific day
-    return hourlyForecast.slice(0, 24);
+    // Each day has 24 hours, so slice the appropriate 24-hour segment
+    const startIndex = dayIndex * 24;
+    const endIndex = startIndex + 24;
+    
+    // Make sure we don't exceed the available data
+    if (startIndex >= hourlyForecast.length) {
+      return [];
+    }
+    
+    return hourlyForecast.slice(startIndex, Math.min(endIndex, hourlyForecast.length));
   };
 
   const toggleDay = (index: number) => {
