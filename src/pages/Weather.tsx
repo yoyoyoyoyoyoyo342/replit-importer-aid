@@ -12,6 +12,7 @@ import { CurrentWeather } from "@/components/weather/current-weather";
 import { HourlyForecast } from "@/components/weather/hourly-forecast";
 import { TenDayForecast } from "@/components/weather/ten-day-forecast";
 import { DetailedMetrics } from "@/components/weather/detailed-metrics";
+import { PollenCard } from "@/components/weather/pollen-card";
 import { SettingsDialog } from "@/components/weather/settings-dialog";
 import { WeatherReportForm } from "@/components/weather/weather-report-form";
 import { WeatherResponse } from "@/types/weather";
@@ -193,21 +194,33 @@ export default function WeatherPage() {
                 <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
               </div>
               
-              {/* Right: Detailed Metrics with Pollen - spans 3 columns */}
+              {/* Right: Pollen Card - spans 3 columns */}
               <div className="col-span-3">
-                <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
+                {weatherData.mostAccurate.currentWeather.pollenData && (
+                  <div className="mb-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Mobile Layout - Only show on small/medium screens */}
             <div className="lg:hidden">
               <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
-              <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
             </div>
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
 
-            <TenDayForecast dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} isImperial={isImperial} />
+            <TenDayForecast 
+              dailyForecast={weatherData.mostAccurate.dailyForecast} 
+              weatherSources={weatherData.sources} 
+              hourlyForecast={weatherData.mostAccurate.hourlyForecast}
+              isImperial={isImperial} 
+            />
+
+            <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 border-t border-border/50 mt-4">

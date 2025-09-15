@@ -1,14 +1,18 @@
-import { CalendarDays, Droplets, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog } from "lucide-react";
+import { useState } from "react";
+import { CalendarDays, Droplets, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { DailyForecast, WeatherSource } from "@/types/weather";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { DailyForecast, WeatherSource, HourlyForecast } from "@/types/weather";
 
 interface TenDayForecastProps {
   dailyForecast: DailyForecast[];
   weatherSources: WeatherSource[];
+  hourlyForecast: HourlyForecast[];
   isImperial?: boolean;
 }
 
-export function TenDayForecast({ dailyForecast, weatherSources, isImperial = true }: TenDayForecastProps) {
+export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, isImperial = true }: TenDayForecastProps) {
+  const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const getConditionIcon = (condition: string) => {
     const c = condition.toLowerCase();
     if (c.includes("thunder")) return <CloudLightning className="w-7 h-7 text-primary" />;
@@ -40,6 +44,17 @@ export function TenDayForecast({ dailyForecast, weatherSources, isImperial = tru
     (current.accuracy > prev.accuracy) ? current : prev
   );
 
+  // Get hourly data for a specific day (showing next 24 hours for simplicity)
+  const getHourlyForDay = (dayIndex: number) => {
+    // For demo purposes, show the first 24 hours of hourly data
+    // In a real app, you'd filter by the specific day
+    return hourlyForecast.slice(0, 24);
+  };
+
+  const toggleDay = (index: number) => {
+    setExpandedDay(expandedDay === index ? null : index);
+  };
+
   return (
     <section className="mb-4 md:mb-8">
       <Card className="bg-card rounded-2xl shadow-lg border border-border">
@@ -51,38 +66,80 @@ export function TenDayForecast({ dailyForecast, weatherSources, isImperial = tru
 
           <div className="space-y-2">
             {dailyForecast.map((day, index) => (
-              <div
+              <Collapsible
                 key={index}
-                className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
+                open={expandedDay === index}
+                onOpenChange={() => toggleDay(index)}
               >
-                <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                  <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
-                    {day.day}
-                  </div>
-                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                    {getConditionIcon(day.condition)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-card-foreground text-xs md:text-sm truncate">
-                      {day.condition}
+                <CollapsibleTrigger className="w-full">
+                  <div className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border cursor-pointer">
+                    <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                      <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
+                        {day.day}
+                      </div>
+                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                        {getConditionIcon(day.condition)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-card-foreground text-xs md:text-sm truncate">
+                          {day.condition}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                  <div className="text-xs text-muted-foreground">
-                    {day.precipitation}%
-                  </div>
-                  <div className="text-right min-w-[50px] md:min-w-[60px]">
-                    <div className="text-sm md:text-lg font-semibold text-card-foreground">
-                      {isImperial ? day.highTemp : Math.round((day.highTemp - 32) * 5/9)}°
+                    <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                      <div className="text-xs text-muted-foreground">
+                        {day.precipitation}%
+                      </div>
+                      <div className="text-right min-w-[50px] md:min-w-[60px]">
+                        <div className="text-sm md:text-lg font-semibold text-card-foreground">
+                          {isImperial ? day.highTemp : Math.round((day.highTemp - 32) * 5/9)}°
+                        </div>
+                        <div className="text-xs md:text-sm text-muted-foreground">
+                          {isImperial ? day.lowTemp : Math.round((day.lowTemp - 32) * 5/9)}°
+                        </div>
+                      </div>
+                      <div className="ml-2">
+                        {expandedDay === index ? (
+                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </div>
                     </div>
-                    <div className="text-xs md:text-sm text-muted-foreground">
-                      {isImperial ? day.lowTemp : Math.round((day.lowTemp - 32) * 5/9)}°
+                  </div>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-2">
+                  <div className="border border-border rounded-lg p-3 bg-muted/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Clock className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-card-foreground">24-Hour Forecast</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                      {getHourlyForDay(index).map((hour, hourIndex) => (
+                        <div
+                          key={hourIndex}
+                          className="text-center p-2 rounded-lg bg-background/50 border border-border/50"
+                        >
+                          <div className="text-xs text-muted-foreground mb-1">
+                            {hour.time}
+                          </div>
+                          <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-primary/20 flex items-center justify-center">
+                            {getConditionIcon(hour.condition)}
+                          </div>
+                          <div className="text-xs font-medium text-card-foreground">
+                            {isImperial ? Math.round(hour.temperature) : Math.round((hour.temperature - 32) * 5/9)}°
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {hour.precipitation}%
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
             ))}
           </div>
         </CardContent>

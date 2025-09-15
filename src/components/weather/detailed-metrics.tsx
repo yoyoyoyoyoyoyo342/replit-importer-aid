@@ -1,7 +1,7 @@
 import { Sun, Sunrise, Sunset, Moon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrentWeather } from "@/types/weather";
-import { PollenWheel } from "./pollen-wheel";
+import { PollenCard } from "./pollen-card";
 
 interface DetailedMetricsProps {
   currentWeather: CurrentWeather;
@@ -13,13 +13,13 @@ export function DetailedMetrics({
   return (
     <section className="mb-4">
       <div className="grid grid-cols-1 gap-4">
-        {/* Pollen Index Card - at the top */}
-        {currentWeather.pollenData && (
-          <PollenWheel pollenData={currentWeather.pollenData} />
-        )}
-
-        {/* UV Index and Sun & Moon Times - moved to bottom */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Three cards side by side on desktop, stacked on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Pollen Index Card - only on desktop */}
+          <div className="hidden lg:block">
+            <PollenCard pollenData={currentWeather.pollenData} />
+          </div>
+          
           {/* UV Index Card */}
           <Card className="bg-card rounded border border-border">
             <CardContent className="p-4">
@@ -108,6 +108,11 @@ export function DetailedMetrics({
               </div>
             </CardContent>
           </Card>
+        </div>
+        
+        {/* Pollen Index Card - only on mobile */}
+        <div className="lg:hidden">
+          <PollenCard pollenData={currentWeather.pollenData} />
         </div>
       </div>
     </section>
