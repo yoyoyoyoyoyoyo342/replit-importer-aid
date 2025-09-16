@@ -46,11 +46,14 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
 
   // Get hourly data for a specific day
   const getHourlyForDay = (dayIndex: number) => {
-    // Each day has 24 hours, so slice the appropriate 24-hour segment
+    if (!hourlyForecast.length) return [];
+    
+    // Since hourly data is sequential starting from current time,
+    // each day gets 24 consecutive hours
     const startIndex = dayIndex * 24;
     const endIndex = startIndex + 24;
     
-    // Make sure we don't exceed the available data
+    // Make sure we don't exceed available data
     if (startIndex >= hourlyForecast.length) {
       return [];
     }

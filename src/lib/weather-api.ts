@@ -450,7 +450,9 @@ export const weatherApi = {
       idx
     });
 
-    const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + 24).map((t: string, i: number) => {
+    // Generate hourly forecast for 10 days (240 hours total)
+    const totalHours = Math.min(240, hourlyTimes.length - idx); // 10 days * 24 hours, but don't exceed available data
+    const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + totalHours).map((t: string, i: number) => {
       const j = idx + i;
       // Enhanced precipitation calculation for hourly forecast
       const precipProb = data?.hourly?.precipitation_probability?.[j] ?? 0;
