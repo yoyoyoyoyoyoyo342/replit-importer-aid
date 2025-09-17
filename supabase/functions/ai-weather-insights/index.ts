@@ -27,33 +27,50 @@ serve(async (req) => {
     let userPrompt = '';
 
     if (type === 'proactive_insights') {
-      systemPrompt = `You are an AI Weather Companion that provides personalized, actionable weather insights. You analyze weather data and provide 3-5 specific, practical recommendations that help users make informed decisions about their day.
+      const temp = weatherData.currentWeather.temperature;
+      const feelsLike = weatherData.currentWeather.feelsLike;
+      const condition = weatherData.currentWeather.condition;
+      const humidity = weatherData.currentWeather.humidity;
+      const windSpeed = weatherData.currentWeather.windSpeed;
+      const uvIndex = weatherData.currentWeather.uvIndex;
+      const visibility = weatherData.currentWeather.visibility;
+      const pressure = weatherData.currentWeather.pressure;
+      
+      systemPrompt = `You are an AI Weather Companion that provides personalized, actionable weather insights. You analyze real weather data and provide 3-5 specific, practical recommendations that help users make informed decisions about their day.
 
 Key Guidelines:
 - Focus on actionable advice (what to wear, when to travel, activities to plan/avoid)
 - Consider comfort, safety, and optimization of daily activities
-- Be concise but specific
+- Be concise but specific (each insight should be 15-25 words)
 - Include relevant emojis for visual appeal
 - Consider both immediate and near-future conditions
-- Adapt advice based on temperature unit preference (${isImperial ? 'Fahrenheit' : 'Celsius'})
+- Use ${isImperial ? 'Fahrenheit and mph' : 'Celsius and km/h'} units
+- Be specific about timing and conditions
 
-Weather Data Context:
-- Location: ${location}
-- Current Temperature: ${weatherData.currentWeather.temperature}°${isImperial ? 'F' : 'C'}
-- Condition: ${weatherData.currentWeather.condition}
-- Humidity: ${weatherData.currentWeather.humidity}%
-- Wind Speed: ${weatherData.currentWeather.windSpeed} ${isImperial ? 'mph' : 'km/h'}
-- UV Index: ${weatherData.currentWeather.uvIndex}
-- Feels Like: ${weatherData.currentWeather.feelsLike}°${isImperial ? 'F' : 'C'}`;
+Current Weather in ${location}:
+- Temperature: ${temp}°${isImperial ? 'F' : 'C'} (feels like ${feelsLike}°${isImperial ? 'F' : 'C'})
+- Condition: ${condition}
+- Humidity: ${humidity}%
+- Wind Speed: ${windSpeed} ${isImperial ? 'mph' : 'km/h'}
+- UV Index: ${uvIndex}/10
+- Visibility: ${visibility} ${isImperial ? 'miles' : 'km'}
+- Pressure: ${pressure} hPa`;
 
-      userPrompt = `Generate 3-5 specific, actionable weather insights for today in ${location}. Return ONLY a JSON array of insight strings, no other text.
+      userPrompt = `Based on the current weather in ${location}, generate 3-5 specific, actionable insights. Focus on what the user should do RIGHT NOW based on these conditions. Return ONLY a JSON array of strings.
+
+Current conditions to consider:
+- Temperature: ${temp}°${isImperial ? 'F' : 'C'} (feels like ${feelsLike}°${isImperial ? 'F' : 'C'})
+- Weather: ${condition}
+- Humidity: ${humidity}%
+- Wind: ${windSpeed} ${isImperial ? 'mph' : 'km/h'}
+- UV Index: ${uvIndex}/10
 
 Examples of good insights:
-- "🧥 Layer up! Temperature will drop 15°F this evening - perfect for a light jacket"
-- "☀️ UV index is high (8/10) - apply SPF 30+ if spending more than 20 minutes outdoors"
-- "🚗 Visibility might be reduced due to morning fog - allow extra commute time before 9 AM"
-- "🏃‍♂️ Perfect running weather! Cool 65°F with low humidity - ideal for outdoor exercise"
-- "📅 Rain likely after 3 PM - schedule outdoor activities for this morning"`;
+- "🧥 Feels ${feelsLike}°${isImperial ? 'F' : 'C'} - grab a light jacket for comfort!"
+- "☀️ UV ${uvIndex}/10 - apply SPF 30+ for outdoor activities"
+- "💨 Winds at ${windSpeed} ${isImperial ? 'mph' : 'km/h'} - secure loose items if heading out"
+- "💧 ${humidity}% humidity - stay hydrated and dress breathable"
+- "👁️ Visibility ${visibility} ${isImperial ? 'miles' : 'km'} - drive carefully if conditions are poor"`;
 
     } else if (type === 'chat') {
       systemPrompt = `You are an AI Weather Companion - friendly, knowledgeable, and helpful. You specialize in weather-related conversations and provide personalized advice based on current conditions.
