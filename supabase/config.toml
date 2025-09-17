@@ -2,3 +2,6 @@ project_id = "ohwtbkudpkfbakynikyj"
 
 [functions.aggregate-weather]
 verify_jwt = false
+
+[functions.ai-weather-insights]
+verify_jwt = true

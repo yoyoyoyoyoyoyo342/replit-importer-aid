@@ -45,15 +45,16 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
   const fetchRoutines = async () => {
     try {
       const { data, error } = await supabase
-        .from('user_routines')
+        .from('user_routines' as any)
         .select('*')
         .eq('user_id', user?.id)
         .order('time');
 
       if (error) throw error;
       
-      setRoutines(data || []);
-      onRoutineUpdate(data || []);
+      const routineData = data as unknown as UserRoutine[] || [];
+      setRoutines(routineData);
+      onRoutineUpdate(routineData);
     } catch (error) {
       console.error('Error fetching routines:', error);
     }
@@ -64,7 +65,7 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
 
     try {
       const { data, error } = await supabase
-        .from('user_routines')
+        .from('user_routines' as any)
         .insert([{
           user_id: user.id,
           name: newRoutine.name,
@@ -78,8 +79,9 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
 
       if (error) throw error;
 
-      setRoutines(prev => [...prev, data]);
-      onRoutineUpdate([...routines, data]);
+      const newData = data as unknown as UserRoutine;
+      setRoutines(prev => [...prev, newData]);
+      onRoutineUpdate([...routines, newData]);
       setNewRoutine({
         name: '',
         time: '',
@@ -106,7 +108,7 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
   const deleteRoutine = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('user_routines')
+        .from('user_routines' as any)
         .delete()
         .eq('id', id);
 

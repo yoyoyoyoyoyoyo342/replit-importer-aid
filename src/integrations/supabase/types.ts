@@ -116,6 +116,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_routines: {
+        Row: {
+          activity_type: string
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          time: string
+          updated_at: string
+          user_id: string
+          weather_sensitive: boolean
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          time: string
+          updated_at?: string
+          user_id: string
+          weather_sensitive?: boolean
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          time?: string
+          updated_at?: string
+          user_id?: string
+          weather_sensitive?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

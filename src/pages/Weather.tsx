@@ -19,6 +19,8 @@ import { WeatherResponse } from "@/types/weather";
 import { checkWeatherAlerts } from "@/lib/weather-alerts";
 import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { AIWeatherCompanion } from "@/components/weather/ai-weather-companion";
+import { UserRoutineTracker } from "@/components/weather/user-routine-tracker";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -27,6 +29,7 @@ export default function WeatherPage() {
   } | null>(null);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [userRoutines, setUserRoutines] = useState([]);
   const {
     toast
   } = useToast();
@@ -228,6 +231,19 @@ export default function WeatherPage() {
             />
 
             <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
+
+            {/* Revolutionary Features Section */}
+            <div className="grid lg:grid-cols-2 gap-6 mt-6">
+              {/* AI Weather Companion */}
+              <AIWeatherCompanion 
+                weatherData={weatherData.mostAccurate}
+                location={selectedLocation.name}
+                isImperial={isImperial}
+              />
+              
+              {/* User Routine Tracker */}
+              <UserRoutineTracker onRoutineUpdate={setUserRoutines} />
+            </div>
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 border-t border-border/50 mt-4">
