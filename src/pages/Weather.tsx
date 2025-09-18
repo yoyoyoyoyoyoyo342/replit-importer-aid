@@ -19,7 +19,7 @@ import { WeatherResponse } from "@/types/weather";
 import { checkWeatherAlerts } from "@/lib/weather-alerts";
 import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
-import { AIWeatherCompanion } from "@/components/weather/ai-weather-companion";
+import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { UserRoutineTracker } from "@/components/weather/user-routine-tracker";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -232,16 +232,8 @@ export default function WeatherPage() {
 
             <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
 
-            {/* Revolutionary Features Section */}
-            <div className="grid lg:grid-cols-2 gap-6 mt-6">
-              {/* AI Weather Companion */}
-              <AIWeatherCompanion 
-                weatherData={weatherData.mostAccurate}
-                location={selectedLocation.name}
-                isImperial={isImperial}
-              />
-              
-              {/* User Routine Tracker */}
+            {/* User Routine Tracker - Full Width */}
+            <div className="mt-6">
               <UserRoutineTracker onRoutineUpdate={setUserRoutines} />
             </div>
 
@@ -269,5 +261,14 @@ export default function WeatherPage() {
             </footer>
           </> : null}
       </div>
+      
+      {/* AI Chat Button - Floating */}
+      {weatherData && (
+        <AIChatButton 
+          weatherData={weatherData.mostAccurate}
+          location={selectedLocation.name}
+          isImperial={isImperial}
+        />
+      )}
     </div>;
 }
