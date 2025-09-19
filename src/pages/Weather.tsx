@@ -212,6 +212,13 @@ export default function WeatherPage() {
             {/* Mobile Layout - Only show on small/medium screens */}
             <div className="lg:hidden">
               <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
+              
+              {/* Pollen Index Card - only on mobile, above hourly forecast */}
+              {weatherData.mostAccurate.currentWeather.pollenData && (
+                <div className="mb-4">
+                  <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+                </div>
+              )}
             </div>
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
