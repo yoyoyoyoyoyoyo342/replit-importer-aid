@@ -27,13 +27,14 @@ serve(async (req) => {
     let userPrompt = '';
 
     if (type === 'proactive_insights') {
-      const temp = weatherData.currentWeather.temperature;
-      const feelsLike = weatherData.currentWeather.feelsLike;
+      // Convert temperatures if user prefers Celsius
+      const temp = isImperial ? weatherData.currentWeather.temperature : Math.round((weatherData.currentWeather.temperature - 32) * 5/9);
+      const feelsLike = isImperial ? weatherData.currentWeather.feelsLike : Math.round((weatherData.currentWeather.feelsLike - 32) * 5/9);
       const condition = weatherData.currentWeather.condition;
       const humidity = weatherData.currentWeather.humidity;
-      const windSpeed = weatherData.currentWeather.windSpeed;
+      const windSpeed = isImperial ? weatherData.currentWeather.windSpeed : Math.round(weatherData.currentWeather.windSpeed * 1.60934);
       const uvIndex = weatherData.currentWeather.uvIndex;
-      const visibility = weatherData.currentWeather.visibility;
+      const visibility = isImperial ? weatherData.currentWeather.visibility : Math.round(weatherData.currentWeather.visibility * 1.60934);
       const pressure = weatherData.currentWeather.pressure;
       
       systemPrompt = `You are an AI Weather Companion that provides personalized, actionable weather insights. You analyze real weather data and provide 3-5 specific, practical recommendations that help users make informed decisions about their day.
@@ -73,15 +74,21 @@ Examples of good insights:
 - "👁️ Visibility ${visibility} ${isImperial ? 'miles' : 'km'} - drive carefully if conditions are poor"`;
 
     } else if (type === 'chat') {
+      // Convert temperatures and units for chat context
+      const chatTemp = isImperial ? weatherData.currentWeather.temperature : Math.round((weatherData.currentWeather.temperature - 32) * 5/9);
+      const chatFeelsLike = isImperial ? weatherData.currentWeather.feelsLike : Math.round((weatherData.currentWeather.feelsLike - 32) * 5/9);
+      const chatWindSpeed = isImperial ? weatherData.currentWeather.windSpeed : Math.round(weatherData.currentWeather.windSpeed * 1.60934);
+      const chatVisibility = isImperial ? weatherData.currentWeather.visibility : Math.round(weatherData.currentWeather.visibility * 1.60934);
+      
       systemPrompt = `You are an AI Weather Companion - friendly, knowledgeable, and helpful. You specialize in weather-related conversations and provide personalized advice based on current conditions.
 
 Current Weather Context for ${location}:
-- Temperature: ${weatherData.currentWeather.temperature}°${isImperial ? 'F' : 'C'} (feels like ${weatherData.currentWeather.feelsLike}°${isImperial ? 'F' : 'C'})
+- Temperature: ${chatTemp}°${isImperial ? 'F' : 'C'} (feels like ${chatFeelsLike}°${isImperial ? 'F' : 'C'})
 - Condition: ${weatherData.currentWeather.condition}
 - Humidity: ${weatherData.currentWeather.humidity}%
-- Wind: ${weatherData.currentWeather.windSpeed} ${isImperial ? 'mph' : 'km/h'}
+- Wind: ${chatWindSpeed} ${isImperial ? 'mph' : 'km/h'}
 - UV Index: ${weatherData.currentWeather.uvIndex}
-- Visibility: ${weatherData.currentWeather.visibility} ${isImperial ? 'miles' : 'km'}
+- Visibility: ${chatVisibility} ${isImperial ? 'miles' : 'km'}
 
 Guidelines:
 - Be conversational and helpful
