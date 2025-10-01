@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { UserRoutineTracker } from "@/components/weather/user-routine-tracker";
+import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -110,8 +111,9 @@ export default function WeatherPage() {
   const handleRefresh = () => {
     refetch();
   };
-  return <div className="bg-background min-h-screen overflow-x-hidden">
-      <div className="container mx-auto px-3 py-2 max-w-5xl">
+  return <div className="min-h-screen overflow-x-hidden relative">
+      <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} />
+      <div className="container mx-auto px-3 py-2 max-w-5xl relative z-10">
         {/* Header - Ultra Compact */}
         <header className="mb-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -190,23 +192,9 @@ export default function WeatherPage() {
                 </div>
               </div>}
 
-            {/* Desktop Layout Grid - Only show on large screens */}
-            <div className="hidden lg:grid lg:grid-cols-8 gap-4 mb-6">
-              {/* Left: Main Weather - spans 5 columns */}
-              <div className="col-span-5">
-                <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
-              </div>
-              
-              {/* Right: Pollen Card - spans 3 columns */}
-              <div className="col-span-3">
-                {weatherData.mostAccurate.currentWeather.pollenData && (
-                  <div className="mb-4">
-                    <div className="grid grid-cols-1 gap-4">
-                      <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Desktop Layout - Only show on large screens */}
+            <div className="hidden lg:block mb-6">
+              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
             </div>
 
             {/* Mobile Layout - Only show on small/medium screens */}
