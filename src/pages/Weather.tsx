@@ -115,7 +115,7 @@ export default function WeatherPage() {
       <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} />
       <div className="container mx-auto px-3 py-2 max-w-5xl relative z-10">
         {/* Header - Ultra Compact */}
-        <header className="mb-4">
+        <header className="mb-4 glass-header rounded-lg p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
               <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
@@ -226,7 +226,7 @@ export default function WeatherPage() {
             </div>
 
             {/* Footer - Ultra Compact */}
-            <footer className="text-center py-2 border-t border-border/50 mt-4">
+            <footer className="text-center py-2 mt-4 glass-header rounded-lg p-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div className="text-muted-foreground text-xs">
                   Data from{" "}
