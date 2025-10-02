@@ -50,7 +50,7 @@ export function CurrentWeather({
 
   return (
     <section className="mb-4">
-      <Card className="bg-card border border-border shadow-sm">
+      <Card className="border border-border shadow-sm">
         <CardContent className="p-3">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">

@@ -431,7 +431,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
             const level = getIntensityLabel(pollen.value);
             
             return (
-              <div key={pollen.name} className="flex items-center justify-between p-3 rounded-lg border bg-card">
+              <div key={pollen.name} className="flex items-center justify-between p-3 rounded-lg border glass-card">
                 <div className="flex items-center space-x-3">
                   {hasAlert && <AlertTriangle className="w-4 h-4 text-destructive" />}
                   <div>

@@ -21,7 +21,7 @@ export function DetailedMetrics({
           </div>
           
           {/* UV Index Card */}
-          <Card className="bg-card rounded border border-border">
+          <Card className="rounded border border-border">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-primary/20 rounded-lg">
@@ -51,7 +51,7 @@ export function DetailedMetrics({
           </Card>
 
           {/* Sun & Moon Times Combined Card */}
-          <Card className="bg-card rounded border border-border">
+          <Card className="rounded border border-border">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-primary/20 rounded-lg">

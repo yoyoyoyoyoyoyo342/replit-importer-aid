@@ -167,7 +167,7 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
                   <div className={`rounded-lg p-3 ${
                     message.role === 'user' 
                       ? 'bg-primary text-primary-foreground' 
-                      : 'bg-card border border-border'
+                      : 'glass-card border border-border'
                   }`}>
                     <p className="text-sm leading-relaxed">{message.content}</p>
                     {message.insights && message.insights.length > 0 && (
@@ -189,7 +189,7 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-card border border-border rounded-lg p-3">
+                <div className="glass-card border border-border rounded-lg p-3">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>

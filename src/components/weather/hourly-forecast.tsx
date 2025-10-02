@@ -21,7 +21,7 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
   };
   return (
     <section className="mb-4 md:mb-8">
-      <Card className="bg-card rounded-2xl shadow-lg border border-border">
+      <Card className="rounded-2xl shadow-lg border border-border">
         <CardContent className="p-3 md:p-4 lg:p-6">
           <h2 className="text-lg md:text-xl font-semibold text-card-foreground mb-3 md:mb-6 flex items-center gap-2">
             <Clock className="text-primary w-4 h-4 md:w-5 md:h-5" />

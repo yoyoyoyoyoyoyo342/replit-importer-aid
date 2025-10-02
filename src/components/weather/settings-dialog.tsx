@@ -128,7 +128,7 @@ export function SettingsDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-neutral-600 hover:text-primary hover:bg-white rounded-xl">
+        <Button variant="ghost" size="icon" className="text-neutral-600 hover:text-primary rounded-xl">
           <Settings className="w-5 h-5" />
         </Button>
       </DialogTrigger>
@@ -209,7 +209,7 @@ export function SettingsDialog({
                   type="time"
                   value={profile.notification_time}
                   onChange={(e) => handleTimeChange(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-input bg-background rounded-md"
+                  className="w-full px-3 py-2 text-sm border border-input rounded-md glass-card"
                 />
               </div>
             )}

@@ -67,7 +67,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
 
   return (
     <section className="mb-4 md:mb-8">
-      <Card className="bg-card rounded-2xl shadow-lg border border-border">
+      <Card className="rounded-2xl shadow-lg border border-border">
         <CardContent className="p-3 md:p-4 lg:p-6">
           <h2 className="text-lg md:text-xl font-semibold text-card-foreground mb-3 md:mb-6 flex items-center gap-2">
             <CalendarDays className="text-primary w-4 h-4 md:w-5 md:h-5" />
@@ -130,7 +130,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
                       {getHourlyForDay(index).map((hour, hourIndex) => (
                         <div
                           key={hourIndex}
-                          className="text-center p-2 rounded-lg bg-background/50 border border-border/50"
+                          className="text-center p-2 rounded-lg glass-card border border-border/50"
                         >
                           <div className="text-xs text-muted-foreground mb-1">
                             {hour.time}

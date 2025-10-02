@@ -236,7 +236,7 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
         )}
 
         {isAddingRoutine && (
-          <div className="space-y-3 p-4 bg-card border border-border rounded-lg">
+          <div className="space-y-3 p-4 glass-card border border-border rounded-lg">
             <Input
               placeholder="Routine name (e.g., Morning Jog, Commute to Work)"
               value={newRoutine.name}

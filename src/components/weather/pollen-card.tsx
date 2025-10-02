@@ -17,7 +17,7 @@ export function PollenCard({ pollenData }: PollenCardProps) {
   if (!pollenData) return null;
 
   return (
-    <Card className="bg-card rounded border border-border">
+    <Card className="rounded border border-border">
       <CardContent className="p-4">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-primary/20 rounded-lg">
