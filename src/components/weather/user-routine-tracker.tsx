@@ -16,6 +16,7 @@ interface UserRoutine {
   location: string;
   activity_type: 'outdoor' | 'indoor' | 'commute' | 'exercise' | 'other';
   weather_sensitive: boolean;
+  days_of_week: string[]; // Array of day names like ["Monday", "Wednesday", "Friday"]
   created_at: string;
 }
 
@@ -31,7 +32,8 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
     time: '',
     location: '',
     activity_type: 'other' as const,
-    weather_sensitive: true
+    weather_sensitive: true,
+    days_of_week: [] as string[]
   });
   const { user } = useAuth();
   const { toast } = useToast();
@@ -61,7 +63,7 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
   };
 
   const addRoutine = async () => {
-    if (!newRoutine.name || !newRoutine.time || !user) return;
+    if (!newRoutine.name || !newRoutine.time || newRoutine.days_of_week.length === 0 || !user) return;
 
     try {
       const { data, error } = await supabase
@@ -72,7 +74,8 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
           time: newRoutine.time,
           location: newRoutine.location,
           activity_type: newRoutine.activity_type,
-          weather_sensitive: newRoutine.weather_sensitive
+          weather_sensitive: newRoutine.weather_sensitive,
+          days_of_week: newRoutine.days_of_week
         }])
         .select()
         .single();
@@ -87,7 +90,8 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
         time: '',
         location: '',
         activity_type: 'other',
-        weather_sensitive: true
+        weather_sensitive: true,
+        days_of_week: []
       });
       setIsAddingRoutine(false);
 
@@ -210,6 +214,15 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
                     </>
                   )}
                 </div>
+                {routine.days_of_week && routine.days_of_week.length > 0 && (
+                  <div className="flex gap-1 mt-1">
+                    {routine.days_of_week.map(day => (
+                      <span key={day} className="text-xs px-1.5 py-0.5 bg-primary/10 text-primary rounded">
+                        {day.slice(0, 3)}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <Button
@@ -272,6 +285,38 @@ export function UserRoutineTracker({ onRoutineUpdate }: UserRoutineTrackerProps)
               value={newRoutine.location}
               onChange={(e) => setNewRoutine(prev => ({ ...prev, location: e.target.value }))}
             />
+            
+            {/* Day selection */}
+            <div>
+              <label className="text-sm text-muted-foreground mb-2 block">Select Days</label>
+              <div className="grid grid-cols-4 gap-2">
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                  const fullDayName = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][index];
+                  const isSelected = newRoutine.days_of_week.includes(fullDayName);
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      onClick={() => {
+                        setNewRoutine(prev => ({
+                          ...prev,
+                          days_of_week: isSelected
+                            ? prev.days_of_week.filter(d => d !== fullDayName)
+                            : [...prev.days_of_week, fullDayName]
+                        }));
+                      }}
+                      className={`px-3 py-2 rounded-md text-xs font-medium transition-colors ${
+                        isSelected
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <div className="flex gap-2">
               <Button onClick={addRoutine} size="sm" className="flex-1">

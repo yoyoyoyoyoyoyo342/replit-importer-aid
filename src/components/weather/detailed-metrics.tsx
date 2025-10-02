@@ -13,12 +13,8 @@ export function DetailedMetrics({
   return (
     <section className="mb-4">
       <div className="grid grid-cols-1 gap-4">
-        {/* Three cards side by side on desktop, stacked on mobile */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Pollen Index Card - only on desktop */}
-          <div className="hidden lg:block">
-            <PollenCard pollenData={currentWeather.pollenData} />
-          </div>
+        {/* Two cards side by side on desktop, stacked on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           
           {/* UV Index Card */}
           <Card className="rounded border border-border">

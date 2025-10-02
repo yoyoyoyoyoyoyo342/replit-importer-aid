@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, message, weatherData, location, isImperial, conversationHistory } = await req.json();
+    const { type, message, weatherData, location, isImperial, conversationHistory, userRoutines } = await req.json();
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
@@ -47,6 +47,10 @@ Key Guidelines:
 - Consider both immediate and near-future conditions
 - Use ${isImperial ? 'Fahrenheit and mph' : 'Celsius and km/h'} units
 - Be specific about timing and conditions
+${userRoutines && userRoutines.length > 0 ? `
+- IMPORTANT: Tailor advice to the user's daily routines:
+${userRoutines.map((r: any) => `  * ${r.name} at ${r.time} on ${r.days_of_week.join(', ')} - ${r.activity_type} activity`).join('\n')}
+- Consider which routines happen today and provide weather-specific advice for them` : ''}
 
 Current Weather in ${location}:
 - Temperature: ${temp}°${isImperial ? 'F' : 'C'} (feels like ${feelsLike}°${isImperial ? 'F' : 'C'})
@@ -89,11 +93,16 @@ Current Weather Context for ${location}:
 - Wind: ${chatWindSpeed} ${isImperial ? 'mph' : 'km/h'}
 - UV Index: ${weatherData.currentWeather.uvIndex}
 - Visibility: ${chatVisibility} ${isImperial ? 'miles' : 'km'}
+${userRoutines && userRoutines.length > 0 ? `
+User's Daily Routines:
+${userRoutines.map((r: any) => `- ${r.name} at ${r.time} on ${r.days_of_week.join(', ')} (${r.activity_type} activity)`).join('\n')}
+Consider these routines when providing weather advice.` : ''}
 
 Guidelines:
 - Be conversational and helpful
 - Provide specific, actionable advice
 - Reference current weather conditions when relevant
+- Consider the user's routines and tailor advice accordingly
 - Use emojis appropriately
 - If asked about non-weather topics, gently redirect to weather
 - Consider user's location and current conditions in all responses

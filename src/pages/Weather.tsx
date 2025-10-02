@@ -117,7 +117,7 @@ export default function WeatherPage() {
         {/* Header - Ultra Compact */}
         <header className="mb-4 glass-header rounded-lg p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-1">
               <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
               <div>
                 <h1 className="text-lg font-bold text-foreground">Rainz</h1>
@@ -148,6 +148,13 @@ export default function WeatherPage() {
             </div>
           </div>
         </header>
+        
+        {/* Pollen Index - Always visible below header */}
+        {weatherData?.mostAccurate?.currentWeather?.pollenData && (
+          <div className="mb-4">
+            <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+          </div>
+        )}
 
         {/* Loading Overlay */}
         <LoadingOverlay isOpen={isLoading && !weatherData} />
@@ -200,13 +207,6 @@ export default function WeatherPage() {
             {/* Mobile Layout - Only show on small/medium screens */}
             <div className="lg:hidden">
               <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
-              
-              {/* Pollen Index Card - only on mobile, above hourly forecast */}
-              {weatherData.mostAccurate.currentWeather.pollenData && (
-                <div className="mb-4">
-                  <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
-                </div>
-              )}
             </div>
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />

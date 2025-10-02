@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { WeatherSource } from "@/types/weather";
+import { useAuth } from "@/hooks/use-auth";
 
 interface Message {
   id: string;
@@ -35,8 +36,27 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [userRoutines, setUserRoutines] = useState<any[]>([]);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Fetch user routines
+  useEffect(() => {
+    const fetchRoutines = async () => {
+      if (!user) return;
+      try {
+        const { data } = await supabase
+          .from('user_routines' as any)
+          .select('*')
+          .eq('user_id', user.id);
+        if (data) setUserRoutines(data);
+      } catch (error) {
+        console.error('Error fetching routines:', error);
+      }
+    };
+    fetchRoutines();
+  }, [user]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -59,7 +79,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
           type: 'proactive_insights',
           weatherData,
           location,
-          isImperial
+          isImperial,
+          userRoutines
         }
       });
 
@@ -101,7 +122,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
           weatherData,
           location,
           isImperial,
-          conversationHistory: messages.slice(-5) // Last 5 messages for context
+          conversationHistory: messages.slice(-5), // Last 5 messages for context
+          userRoutines
         }
       });
 
