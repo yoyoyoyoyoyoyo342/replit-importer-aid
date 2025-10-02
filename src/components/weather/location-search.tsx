@@ -60,7 +60,7 @@ export function LocationSearch({
   };
   return <div className="relative flex-1 max-w-md">
       <div className="relative">
-        <Input type="text" placeholder="Search for a city..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-16 py-3 bg-input text-foreground border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground rounded-3xl" />
+        <Input type="text" placeholder="Search for a city..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-16 py-3 bg-input text-foreground border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground rounded-xl" />
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         <Button onClick={handleLocationDetection} disabled={isDetecting} variant="ghost" size="sm" className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-2">
           {isDetecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
