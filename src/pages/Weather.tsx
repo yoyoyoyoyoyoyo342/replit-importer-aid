@@ -139,22 +139,15 @@ export default function WeatherPage() {
                   Sign In
                 </Button>}
               
-              {weatherData && (
-                <WeatherReportForm 
-                  location={selectedLocation?.name || "Unknown"} 
-                  currentCondition={weatherData.mostAccurate.currentWeather.condition}
-                />
-              )}
+              {weatherData && <WeatherReportForm location={selectedLocation?.name || "Unknown"} currentCondition={weatherData.mostAccurate.currentWeather.condition} />}
             </div>
           </div>
         </header>
         
         {/* Pollen Index - Always visible below header */}
-        {weatherData?.mostAccurate?.currentWeather?.pollenData && (
-          <div className="mb-4">
+        {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
             <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
-          </div>
-        )}
+          </div>}
 
         {/* Loading Overlay */}
         <LoadingOverlay isOpen={isLoading && !weatherData} />
@@ -211,12 +204,7 @@ export default function WeatherPage() {
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
 
-            <TenDayForecast 
-              dailyForecast={weatherData.mostAccurate.dailyForecast} 
-              weatherSources={weatherData.sources} 
-              hourlyForecast={weatherData.mostAccurate.hourlyForecast}
-              isImperial={isImperial} 
-            />
+            <TenDayForecast dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} hourlyForecast={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
 
             <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
 
@@ -232,7 +220,7 @@ export default function WeatherPage() {
                   Data from{" "}
                   <span className="font-medium text-foreground">OpenWeatherMap</span>,{" "}
                   <span className="font-medium text-foreground">Open-meteo</span>, and{" "}
-                  <span className="font-medium text-foreground">WeatherAPI. We are not to be held accountable for any inaccuracies or wrong claims</span>
+                  <span className="font-medium text-foreground">WeatherAPI. We are not to be held accountable for any inaccuracies or wrong claims.</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>
@@ -251,12 +239,6 @@ export default function WeatherPage() {
       </div>
       
       {/* AI Chat Button - Floating */}
-      {weatherData && (
-        <AIChatButton 
-          weatherData={weatherData.mostAccurate}
-          location={selectedLocation.name}
-          isImperial={isImperial}
-        />
-      )}
+      {weatherData && <AIChatButton weatherData={weatherData.mostAccurate} location={selectedLocation.name} isImperial={isImperial} />}
     </div>;
 }
