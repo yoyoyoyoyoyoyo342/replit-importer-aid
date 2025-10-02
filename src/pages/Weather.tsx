@@ -156,9 +156,7 @@ export default function WeatherPage() {
         {!selectedLocation ? <Card className="bg-card border border-border text-center py-6">
             <CardContent>
               <CloudSun className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <h2 className="text-sm font-semibold text-foreground mb-1">
-                Welcome to Pear Weather
-              </h2>
+              <h2 className="text-sm font-semibold text-foreground mb-1">Welcome to Rainz</h2>
               <p className="text-muted-foreground text-xs">
                 Search for a location above or allow location access
               </p>
