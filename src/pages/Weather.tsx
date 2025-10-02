@@ -121,7 +121,7 @@ export default function WeatherPage() {
               <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
               <div>
                 <h1 className="text-lg font-bold text-foreground">Rainz</h1>
-                <p className="text-muted-foreground text-xs">The peoples weather app.</p>
+                <p className="text-xs text-slate-950">Aiming to be the best weather app.</p>
               </div>
             </div>
 
