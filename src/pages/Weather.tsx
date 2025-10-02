@@ -221,12 +221,7 @@ export default function WeatherPage() {
                   <span className="font-medium text-foreground">WeatherAPI. We are not to be held accountable for any inaccuracies or wrong claims.</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>
-                    Updated:{" "}
-                    <span className="text-foreground">
-                      {lastUpdated ? `${Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60))}m ago` : "now"}
-                    </span>
-                  </span>
+                  
                   <Button onClick={handleRefresh} variant="ghost" size="sm" className="text-primary hover:text-primary/80 h-5 px-1 text-xs">
                     🔄
                   </Button>
