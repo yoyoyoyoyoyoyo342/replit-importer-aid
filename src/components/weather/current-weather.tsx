@@ -2,7 +2,6 @@ import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
-
 interface CurrentWeatherProps {
   weatherData: WeatherSource[];
   mostAccurate: WeatherSource;
@@ -11,7 +10,6 @@ interface CurrentWeatherProps {
   lastUpdated: Date | null;
   isImperial?: boolean;
 }
-
 export function CurrentWeather({
   weatherData,
   mostAccurate,
@@ -31,7 +29,6 @@ export function CurrentWeather({
     if (c.includes("cloud")) return <Cloud className="w-5 h-5 text-primary" />;
     return <Sun className="w-5 h-5 text-primary" />;
   };
-
   const formatWindSpeed = (speed: number) => {
     if (isImperial) {
       return `${speed} mph`;
@@ -39,7 +36,6 @@ export function CurrentWeather({
       return `${Math.round(speed * 1.609)} km/h`;
     }
   };
-
   const formatVisibility = (visibility: number) => {
     if (isImperial) {
       return `${visibility} mi`;
@@ -47,9 +43,7 @@ export function CurrentWeather({
       return `${Math.round(visibility * 1.609)} km`;
     }
   };
-
-  return (
-    <section className="mb-4">
+  return <section className="mb-4">
       <Card className="border border-border shadow-sm">
         <CardContent className="p-3">
           <div className="flex items-center justify-between mb-3">
@@ -59,9 +53,7 @@ export function CurrentWeather({
                 {mostAccurate.location.split(',')[0]}
               </span>
             </div>
-            <div className="text-xs text-muted-foreground">
-              {lastUpdated ? Math.floor((Date.now() - lastUpdated.getTime()) / (1000 * 60)) + 'm ago' : 'now'}
-            </div>
+            
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4">
@@ -128,6 +120,5 @@ export function CurrentWeather({
           </div>
         </CardContent>
       </Card>
-    </section>
-  );
+    </section>;
 }
