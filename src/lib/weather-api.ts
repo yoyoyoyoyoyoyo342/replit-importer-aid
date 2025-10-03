@@ -230,8 +230,12 @@ export const weatherApi = {
     const moonriseIso = data?.daily?.moonrise?.[0];
     const moonsetIso = data?.daily?.moonset?.[0];
     
+    console.log("Moon data from API:", { moonriseIso, moonsetIso });
+    
     const moonriseStr = parseTimeFromISO(moonriseIso);
     const moonsetStr = parseTimeFromISO(moonsetIso);
+    
+    console.log("Parsed moon times:", { moonriseStr, moonsetStr });
     
     // Calculate moon phase from date
     const getMoonPhaseFromDate = () => {
