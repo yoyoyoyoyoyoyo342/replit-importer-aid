@@ -134,6 +134,8 @@ export const weatherApi = {
         "snowfall_sum",
         "sunrise",
         "sunset",
+        "moonrise",
+        "moonset",
       ].join(","),
       timezone: "auto",
       temperature_unit: "fahrenheit",

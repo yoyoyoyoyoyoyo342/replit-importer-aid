@@ -143,11 +143,6 @@ export default function WeatherPage() {
             </div>
           </div>
         </header>
-        
-        {/* Pollen Index - Always visible below header */}
-        {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
-            <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
-          </div>}
 
         {/* Loading Overlay */}
         <LoadingOverlay isOpen={isLoading && !weatherData} />
@@ -199,6 +194,11 @@ export default function WeatherPage() {
             <div className="lg:hidden">
               <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
             </div>
+
+            {/* Pollen Index - Above 24-hour forecast */}
+            {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
+                <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+              </div>}
 
             <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
 
