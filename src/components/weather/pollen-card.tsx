@@ -36,7 +36,7 @@ export function PollenCard({ pollenData }: PollenCardProps) {
   };
 
   return (
-    <Card className={`rounded border ${getBorderColor()} bg-gradient-to-br ${getGradientColors()} backdrop-blur-xl`}>
+    <Card className="rounded border border-border/30">
       <CardContent className="p-4">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 bg-primary/20 rounded-lg">

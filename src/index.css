@@ -99,10 +99,10 @@
 @layer components {
   .glass-card {
     position: relative;
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 0 6px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.08), 
                 inset 3px 3px 0.5px -3px rgba(0,0,0,0.9), 
                 inset -3px -3px 0.5px -3px rgba(0,0,0,0.85), 
@@ -115,10 +115,10 @@
   
   .glass-card-strong {
     position: relative;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(30px) saturate(200%);
     -webkit-backdrop-filter: blur(30px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 0 8px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.08), 
                 inset 3px 3px 0.5px -3.5px rgba(255,255,255,0.09), 
                 inset -3px -3px 0.5px -3.5px rgba(255,255,255,0.85), 
