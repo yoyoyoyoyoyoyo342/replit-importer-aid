@@ -19,6 +19,7 @@ import { WeatherResponse } from "@/types/weather";
 import { checkWeatherAlerts } from "@/lib/weather-alerts";
 import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { UserRoutineTracker } from "@/components/weather/user-routine-tracker";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
@@ -31,14 +32,9 @@ export default function WeatherPage() {
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [userRoutines, setUserRoutines] = useState([]);
-  const {
-    toast
-  } = useToast();
-  const {
-    user,
-    profile,
-    loading: authLoading
-  } = useAuth();
+  const { toast } = useToast();
+  const { user, profile, loading: authLoading } = useAuth();
+  const { visibleCards, loading: preferencesLoading } = useUserPreferences();
 
   // Initialize push notifications
   usePushNotifications();
@@ -196,20 +192,35 @@ export default function WeatherPage() {
             </div>
 
             {/* Pollen Index - Above 24-hour forecast */}
-            {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
+            {visibleCards.pollen && weatherData?.mostAccurate?.currentWeather?.pollenData && (
+              <div className="mb-4">
                 <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
-              </div>}
+              </div>
+            )}
 
-            <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
+            {visibleCards.hourly && (
+              <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
+            )}
 
-            <TenDayForecast dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} hourlyForecast={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
+            {visibleCards.tenDay && (
+              <TenDayForecast 
+                dailyForecast={weatherData.mostAccurate.dailyForecast} 
+                weatherSources={weatherData.sources} 
+                hourlyForecast={weatherData.mostAccurate.hourlyForecast} 
+                isImperial={isImperial} 
+              />
+            )}
 
-            <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
+            {visibleCards.detailedMetrics && (
+              <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
+            )}
 
             {/* User Routine Tracker - Full Width */}
-            <div className="mt-6">
-              <UserRoutineTracker onRoutineUpdate={setUserRoutines} />
-            </div>
+            {visibleCards.routines && (
+              <div className="mt-6">
+                <UserRoutineTracker onRoutineUpdate={setUserRoutines} />
+              </div>
+            )}
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 mt-4 glass-header rounded-lg p-4">

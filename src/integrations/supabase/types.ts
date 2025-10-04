@@ -116,6 +116,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          card_order: Json
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+          visible_cards: Json
+        }
+        Insert: {
+          card_order?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          visible_cards?: Json
+        }
+        Update: {
+          card_order?: Json
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          visible_cards?: Json
+        }
+        Relationships: []
+      }
       user_routines: {
         Row: {
           activity_type: string

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Globe, Bell, TestTube, Clock, LogOut, User } from "lucide-react";
+import { Settings, Globe, Bell, TestTube, Clock, LogOut, User, Eye, RotateCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useAuth } from "@/hooks/use-auth";
+import { useUserPreferences } from "@/hooks/use-user-preferences";
 
 interface SettingsDialogProps {
   isImperial: boolean;
@@ -30,7 +31,16 @@ export function SettingsDialog({
   const { user, profile, signOut, updateProfile } = useAuth();
   const { toast } = useToast();
   const { permission, requestPermission, sendTestNotification, isSupported } = usePushNotifications();
+  const { visibleCards, updateVisibility, resetToDefaults } = useUserPreferences();
   const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const cardLabels = {
+    pollen: "Pollen Index",
+    hourly: "24-Hour Forecast",
+    tenDay: "10-Day Forecast",
+    detailedMetrics: "Detailed Metrics",
+    routines: "User Routines",
+  };
 
   const handleNotificationToggle = async (enabled: boolean) => {
     if (!profile) return;
@@ -236,6 +246,44 @@ export function SettingsDialog({
               )}
             </div>
           </div>
+
+          {/* Card Visibility - Only for authenticated users */}
+          {user && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-medium">Card Visibility</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetToDefaults}
+                    className="h-8 text-xs"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Reset
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Choose which weather cards to display
+                </p>
+                <div className="space-y-2">
+                  {Object.entries(cardLabels).map(([key, label]) => (
+                    <div key={key} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30">
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">{label}</span>
+                      </div>
+                      <Switch
+                        checked={visibleCards[key as keyof typeof visibleCards]}
+                        onCheckedChange={(checked) => updateVisibility(key as keyof typeof visibleCards, checked)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
