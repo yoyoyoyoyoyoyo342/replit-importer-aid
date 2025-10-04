@@ -5,3 +5,7 @@ verify_jwt = false
 
 [functions.ai-weather-insights]
 verify_jwt = true
+
+[functions.fetch-moon-data]
+verify_jwt = false
+

@@ -224,61 +224,65 @@ export const weatherApi = {
       }
     }
 
-    // Calculate moon data (moonrise/moonset calculation based on lunar position)
-    const calculateMoonTimes = (sunrise: Date, sunset: Date) => {
-      const now = new Date();
-      const lunarCycle = 29.53058867;
-      const knownNewMoon = new Date('2000-01-06');
-      const daysSinceKnown = (now.getTime() - knownNewMoon.getTime()) / (1000 * 60 * 60 * 24);
-      const phase = ((daysSinceKnown % lunarCycle) / lunarCycle);
-      
-      // Calculate approximate moonrise and moonset based on moon phase
-      // New moon: rises/sets with sun
-      // Full moon: rises at sunset, sets at sunrise
-      const dayLength = sunset.getTime() - sunrise.getTime();
-      const moonriseOffset = phase * dayLength;
-      const moonsetOffset = (phase + 0.5) % 1 * dayLength;
-      
-      const moonrise = new Date(sunrise.getTime() + moonriseOffset);
-      const moonset = new Date(sunrise.getTime() + moonsetOffset);
-      
-      return {
-        moonrise: moonrise.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-        moonset: moonset.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
-        phase: phase
-      };
-    };
-    
-    const getMoonPhaseName = (phase: number): string => {
-      if (phase < 0.0625 || phase >= 0.9375) return "New Moon";
-      if (phase < 0.1875) return "Waxing Crescent";
-      if (phase < 0.3125) return "First Quarter";
-      if (phase < 0.4375) return "Waxing Gibbous";
-      if (phase < 0.5625) return "Full Moon";
-      if (phase < 0.6875) return "Waning Gibbous";
-      if (phase < 0.8125) return "Last Quarter";
-      return "Waning Crescent";
-    };
-    
+    // Fetch moon data from edge function
     let moonriseStr: string | undefined;
     let moonsetStr: string | undefined;
     let moonPhaseStr: string | undefined;
     
-    if (sunriseIso && sunsetIso) {
-      try {
-        const sunriseTime = new Date(sunriseIso);
-        const sunsetTime = new Date(sunsetIso);
-        if (!isNaN(sunriseTime.getTime()) && !isNaN(sunsetTime.getTime())) {
-          const moonData = calculateMoonTimes(sunriseTime, sunsetTime);
-          moonriseStr = moonData.moonrise;
-          moonsetStr = moonData.moonset;
-          moonPhaseStr = getMoonPhaseName(moonData.phase);
+    try {
+      const moonResponse = await supabase.functions.invoke('fetch-moon-data', {
+        body: { lat, lon }
+      });
+      
+      if (moonResponse.data && !moonResponse.error) {
+        moonriseStr = moonResponse.data.moonrise || undefined;
+        moonsetStr = moonResponse.data.moonset || undefined;
+        moonPhaseStr = moonResponse.data.moonPhase || undefined;
+        console.log('Moon data fetched successfully:', moonResponse.data);
+      } else {
+        console.log('Moon data not available, using fallback calculation');
+        
+        // Fallback to calculated moon data if API fails
+        if (sunriseIso && sunsetIso) {
+          const sunriseTime = new Date(sunriseIso);
+          const sunsetTime = new Date(sunsetIso);
+          if (!isNaN(sunriseTime.getTime()) && !isNaN(sunsetTime.getTime())) {
+            const now = new Date();
+            const lunarCycle = 29.53058867;
+            const knownNewMoon = new Date('2000-01-06');
+            const daysSinceKnown = (now.getTime() - knownNewMoon.getTime()) / (1000 * 60 * 60 * 24);
+            const phase = ((daysSinceKnown % lunarCycle) / lunarCycle);
+            
+            const dayLength = sunsetTime.getTime() - sunriseTime.getTime();
+            const moonriseOffset = phase * dayLength;
+            const moonsetOffset = (phase + 0.5) % 1 * dayLength;
+            
+            const moonrise = new Date(sunriseTime.getTime() + moonriseOffset);
+            const moonset = new Date(sunriseTime.getTime() + moonsetOffset);
+            
+            moonriseStr = moonrise.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            moonsetStr = moonset.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            
+            const getMoonPhaseName = (phase: number): string => {
+              if (phase < 0.0625 || phase >= 0.9375) return "New Moon";
+              if (phase < 0.1875) return "Waxing Crescent";
+              if (phase < 0.3125) return "First Quarter";
+              if (phase < 0.4375) return "Waxing Gibbous";
+              if (phase < 0.5625) return "Full Moon";
+              if (phase < 0.6875) return "Waning Gibbous";
+              if (phase < 0.8125) return "Last Quarter";
+              return "Waning Crescent";
+            };
+            
+            moonPhaseStr = getMoonPhaseName(phase);
+          }
         }
-      } catch {
-        moonriseStr = undefined;
-        moonsetStr = undefined;
-        moonPhaseStr = undefined;
       }
+    } catch (moonError) {
+      console.log('Failed to fetch moon data:', moonError);
+      moonriseStr = undefined;
+      moonsetStr = undefined;
+      moonPhaseStr = undefined;
     }
 
     // Air Quality (US AQI) - fetch nearest hour
