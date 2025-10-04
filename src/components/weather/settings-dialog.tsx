@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Globe, Bell, TestTube, Clock, LogOut, User } from "lucide-react";
+import { Settings, Globe, Bell, TestTube, Clock, LogOut, User, Moon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -235,6 +235,33 @@ export function SettingsDialog({
                 </Button>
               )}
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Moon Data API */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Moon Data API</Label>
+            <div className="flex items-center gap-2">
+              <Moon className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm">Configure moon phase API key</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Add your moon data API key to get accurate moonrise and moonset times
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                toast({
+                  title: "Moon Data API",
+                  description: "Contact support to configure moon data API access",
+                });
+              }}
+              className="w-full"
+            >
+              Configure API Key
+            </Button>
           </div>
         </div>
       </DialogContent>

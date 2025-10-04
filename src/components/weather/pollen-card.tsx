@@ -34,7 +34,7 @@ export function PollenCard({ pollenData }: PollenCardProps) {
   };
 
   return (
-    <div className="p-4">
+    <div className="glass-card rounded-2xl shadow-lg border border-border p-4">
       <PollenWheel pollenData={pollenData} />
     </div>
   );
