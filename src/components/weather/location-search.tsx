@@ -58,7 +58,7 @@ export function LocationSearch({
       setIsDetecting(false);
     }
   };
-  return <div className="relative flex-1 max-w-md">
+  return <div className="relative flex-1 max-w-md z-[9999]">
       <div className="relative">
         <Input type="text" placeholder="Search for a city..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-16 py-3 bg-input text-black border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-black rounded-xl" />
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
@@ -68,7 +68,7 @@ export function LocationSearch({
       </div>
 
       {/* Search Results Dropdown */}
-      {(searchQuery.length > 2 || isLoading) && <Card className="absolute top-full left-0 right-0 mt-2 z-[999] shadow-lg border border-border bg-popover">
+      {(searchQuery.length > 2 || isLoading) && <Card className="absolute top-full left-0 right-0 mt-2 z-[9999] shadow-lg border border-border bg-popover">
           <CardContent className="p-0">
             {isLoading ? <div className="p-4 text-center text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
