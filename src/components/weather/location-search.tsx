@@ -68,7 +68,7 @@ export function LocationSearch({
       </div>
 
       {/* Search Results Dropdown */}
-      {(searchQuery.length > 2 || isLoading) && <Card className="absolute top-full left-0 right-0 mt-2 z-[100] shadow-lg border border-border bg-popover">
+      {(searchQuery.length > 2 || isLoading) && <Card className="absolute top-full left-0 right-0 mt-2 z-[999] shadow-lg border border-border bg-popover">
           <CardContent className="p-0">
             {isLoading ? <div className="p-4 text-center text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
