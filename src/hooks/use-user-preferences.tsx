@@ -88,23 +88,23 @@ export function useUserPreferences() {
     try {
       const { error } = await supabase
         .from("user_preferences")
-        .update({ visible_cards: newVisibility as any })
-        .eq("user_id", user.id);
+        .upsert({ 
+          user_id: user.id,
+          visible_cards: newVisibility as any,
+          card_order: cardOrder as any,
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) {
         console.error("Error updating visibility:", error);
         toast({
           title: "Failed to save preferences",
-          description: "Please try again.",
+          description: error.message,
           variant: "destructive",
         });
         // Revert on error
         setVisibleCards(visibleCards);
-      } else {
-        toast({
-          title: "Preferences saved",
-          description: `${cardType} card ${visible ? "shown" : "hidden"}`,
-        });
       }
     } catch (error) {
       console.error("Error in updateVisibility:", error);
@@ -119,14 +119,19 @@ export function useUserPreferences() {
     try {
       const { error } = await supabase
         .from("user_preferences")
-        .update({ card_order: newOrder as any })
-        .eq("user_id", user.id);
+        .upsert({ 
+          user_id: user.id,
+          visible_cards: visibleCards as any,
+          card_order: newOrder as any,
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) {
         console.error("Error updating order:", error);
         toast({
           title: "Failed to save order",
-          description: "Please try again.",
+          description: error.message,
           variant: "destructive",
         });
         // Revert on error
@@ -146,17 +151,19 @@ export function useUserPreferences() {
     try {
       const { error } = await supabase
         .from("user_preferences")
-        .update({
+        .upsert({
+          user_id: user.id,
           visible_cards: DEFAULT_VISIBILITY as any,
           card_order: DEFAULT_ORDER as any,
-        })
-        .eq("user_id", user.id);
+        }, {
+          onConflict: 'user_id'
+        });
 
       if (error) {
         console.error("Error resetting preferences:", error);
         toast({
           title: "Failed to reset preferences",
-          description: "Please try again.",
+          description: error.message,
           variant: "destructive",
         });
       } else {
