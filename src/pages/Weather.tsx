@@ -34,7 +34,7 @@ export default function WeatherPage() {
   const [userRoutines, setUserRoutines] = useState([]);
   const { toast } = useToast();
   const { user, profile, loading: authLoading } = useAuth();
-  const { visibleCards, loading: preferencesLoading } = useUserPreferences();
+  const { visibleCards, cardOrder, loading: preferencesLoading } = useUserPreferences();
 
   // Initialize push notifications
   usePushNotifications();
@@ -111,7 +111,7 @@ export default function WeatherPage() {
       <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} />
       <div className="container mx-auto px-3 py-2 max-w-5xl relative z-10">
         {/* Header - Ultra Compact */}
-        <header className="mb-4 glass-header rounded-lg p-4">
+        <header className="mb-4 glass-header rounded-lg p-4 relative z-[1000]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2 flex-1">
               <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
@@ -191,36 +191,57 @@ export default function WeatherPage() {
               <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
             </div>
 
-            {/* Pollen Index - Above 24-hour forecast */}
-            {visibleCards.pollen && weatherData?.mostAccurate?.currentWeather?.pollenData && (
-              <div className="mb-4">
-                <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
-              </div>
-            )}
-
-            {visibleCards.hourly && (
-              <HourlyForecast hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} />
-            )}
-
-            {visibleCards.tenDay && (
-              <TenDayForecast 
-                dailyForecast={weatherData.mostAccurate.dailyForecast} 
-                weatherSources={weatherData.sources} 
-                hourlyForecast={weatherData.mostAccurate.hourlyForecast} 
-                isImperial={isImperial} 
-              />
-            )}
-
-            {visibleCards.detailedMetrics && (
-              <DetailedMetrics currentWeather={weatherData.mostAccurate.currentWeather} />
-            )}
-
-            {/* User Routine Tracker - Full Width */}
-            {visibleCards.routines && (
-              <div className="mt-6">
-                <UserRoutineTracker onRoutineUpdate={setUserRoutines} />
-              </div>
-            )}
+            {/* Weather Cards in User's Preferred Order */}
+            {cardOrder.map((cardType) => {
+              if (!visibleCards[cardType]) return null;
+              
+              switch (cardType) {
+                case "pollen":
+                  return weatherData?.mostAccurate?.currentWeather?.pollenData ? (
+                    <div key="pollen" className="mb-4">
+                      <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+                    </div>
+                  ) : null;
+                
+                case "hourly":
+                  return (
+                    <HourlyForecast 
+                      key="hourly"
+                      hourlyData={weatherData.mostAccurate.hourlyForecast} 
+                      isImperial={isImperial} 
+                    />
+                  );
+                
+                case "tenDay":
+                  return (
+                    <TenDayForecast 
+                      key="tenDay"
+                      dailyForecast={weatherData.mostAccurate.dailyForecast} 
+                      weatherSources={weatherData.sources} 
+                      hourlyForecast={weatherData.mostAccurate.hourlyForecast} 
+                      isImperial={isImperial} 
+                    />
+                  );
+                
+                case "detailedMetrics":
+                  return (
+                    <DetailedMetrics 
+                      key="detailedMetrics"
+                      currentWeather={weatherData.mostAccurate.currentWeather} 
+                    />
+                  );
+                
+                case "routines":
+                  return (
+                    <div key="routines" className="mt-6">
+                      <UserRoutineTracker onRoutineUpdate={setUserRoutines} />
+                    </div>
+                  );
+                
+                default:
+                  return null;
+              }
+            })}
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 mt-4 glass-header rounded-lg p-4">

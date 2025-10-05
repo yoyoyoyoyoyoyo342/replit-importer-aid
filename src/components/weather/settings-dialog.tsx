@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Globe, Bell, TestTube, Clock, LogOut, User, Eye, RotateCcw } from "lucide-react";
+import { Settings, Globe, Bell, TestTube, Clock, LogOut, User, Eye, RotateCcw, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ export function SettingsDialog({
   const { user, profile, signOut, updateProfile } = useAuth();
   const { toast } = useToast();
   const { permission, requestPermission, sendTestNotification, isSupported } = usePushNotifications();
-  const { visibleCards, updateVisibility, resetToDefaults } = useUserPreferences();
+  const { visibleCards, cardOrder, updateVisibility, updateOrder, resetToDefaults } = useUserPreferences();
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const cardLabels = {
@@ -133,6 +133,21 @@ export function SettingsDialog({
         description: "Please try again.",
       });
     }
+  };
+
+  const moveCard = (index: number, direction: 'up' | 'down') => {
+    const newOrder = [...cardOrder];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex < 0 || targetIndex >= newOrder.length) return;
+    
+    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
+    updateOrder(newOrder);
+    
+    toast({
+      title: "Card order updated",
+      description: "Your card layout has been saved",
+    });
   };
 
   return (
@@ -265,18 +280,39 @@ export function SettingsDialog({
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Choose which weather cards to display
+                  Toggle visibility and reorder cards
                 </p>
                 <div className="space-y-2">
-                  {Object.entries(cardLabels).map(([key, label]) => (
-                    <div key={key} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30">
-                      <div className="flex items-center gap-2">
+                  {cardOrder.map((cardKey, index) => (
+                    <div key={cardKey} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30 border border-transparent hover:border-border">
+                      <div className="flex flex-col gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                          onClick={() => moveCard(index, 'up')}
+                          disabled={index === 0}
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-4 w-4 p-0 hover:bg-transparent"
+                          onClick={() => moveCard(index, 'down')}
+                          disabled={index === cardOrder.length - 1}
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
+                      </div>
+                      <GripVertical className="w-4 h-4 text-muted-foreground" />
+                      <div className="flex items-center gap-2 flex-1">
                         <Eye className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm">{label}</span>
+                        <span className="text-sm">{cardLabels[cardKey]}</span>
                       </div>
                       <Switch
-                        checked={visibleCards[key as keyof typeof visibleCards]}
-                        onCheckedChange={(checked) => updateVisibility(key as keyof typeof visibleCards, checked)}
+                        checked={visibleCards[cardKey]}
+                        onCheckedChange={(checked) => updateVisibility(cardKey, checked)}
                       />
                     </div>
                   ))}
