@@ -160,21 +160,19 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
   };
 
   return (
-    <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="p-2 bg-primary/10 rounded-full">
-            <Brain className="w-5 h-5 text-primary" />
-          </div>
-          AI Weather Companion
-          <Badge variant="secondary" className="ml-auto text-xs">
-            <Sparkles className="w-3 h-3 mr-1" />
-            Beta
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <ScrollArea className="h-80 pr-4" ref={scrollAreaRef}>
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-2 bg-primary/10 rounded-full">
+          <Brain className="w-5 h-5 text-primary" />
+        </div>
+        <h3 className="text-lg font-semibold">AI Weather Companion</h3>
+        <Badge variant="secondary" className="ml-auto text-xs">
+          <Sparkles className="w-3 h-3 mr-1" />
+          Beta
+        </Badge>
+      </div>
+      
+      <ScrollArea className="h-96 lg:h-[500px] pr-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.map((message) => (
               <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -223,29 +221,28 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
           </div>
         </ScrollArea>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-4">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask about weather, get recommendations, or chat..."
-            className="flex-1"
+            className="flex-1 h-12 lg:h-14 text-base"
             disabled={isLoading}
           />
           <Button 
             onClick={sendMessage} 
             disabled={!input.trim() || isLoading}
-            size="sm"
-            className="px-3"
+            size="lg"
+            className="px-6 h-12 lg:h-14"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground text-center">
+        <div className="text-xs text-muted-foreground text-center mt-2">
           Your AI companion learns from your preferences and provides personalized weather insights
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

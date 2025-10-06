@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Globe, Bell, TestTube, Clock, LogOut, User, Eye, RotateCcw, GripVertical } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -30,7 +30,6 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 
@@ -92,11 +91,9 @@ export function SettingsDialog({
   onUnitsChange, 
   mostAccurate 
 }: SettingsDialogProps) {
-  const { user, profile, signOut, updateProfile } = useAuth();
+  const { user, signOut } = useAuth();
   const { toast } = useToast();
-  const { permission, requestPermission, sendTestNotification, isSupported } = usePushNotifications();
   const { visibleCards, cardOrder, updateVisibility, updateOrder, resetToDefaults } = useUserPreferences();
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const cardLabels = {
     pollen: "Pollen Index",
@@ -104,87 +101,6 @@ export function SettingsDialog({
     tenDay: "10-Day Forecast",
     detailedMetrics: "Detailed Metrics",
     routines: "User Routines",
-  };
-
-  const handleNotificationToggle = async (enabled: boolean) => {
-    if (!profile) return;
-    
-    try {
-      if (enabled && permission !== 'granted') {
-        const granted = await requestPermission();
-        if (!granted) {
-          toast({
-            variant: "destructive",
-            title: "Permission Required",
-            description: "Please enable notifications in your browser settings.",
-          });
-          return;
-        }
-      }
-
-      await updateProfile({
-        notification_enabled: enabled
-      });
-
-      toast({
-        title: enabled ? "Notifications Enabled" : "Notifications Disabled",
-        description: enabled ? "You'll receive daily weather and pollen updates" : "Daily notifications have been turned off",
-      });
-
-      if (enabled) {
-        setShowTimePicker(true);
-      }
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to update settings",
-        description: "Please try again.",
-      });
-    }
-  };
-
-  const handleTimeChange = async (time: string) => {
-    if (!profile) return;
-    
-    try {
-      await updateProfile({
-        notification_time: time
-      });
-
-      toast({
-        title: "Notification time updated",
-        description: `Daily updates will be sent at ${time}`,
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to update time",
-        description: "Please try again.",
-      });
-    }
-  };
-
-  const handleTestNotification = async () => {
-    if (!mostAccurate) return;
-    
-    const pollenAlerts = [];
-    if (mostAccurate.currentWeather.pollenData) {
-      const { pollenData } = mostAccurate.currentWeather;
-      if (pollenData.grass > 2) pollenAlerts.push('Grass');
-      if (pollenData.mugwort > 2) pollenAlerts.push('Mugwort');
-      if (pollenData.alder > 2) pollenAlerts.push('Alder');
-      if (pollenData.birch > 2) pollenAlerts.push('Birch');
-      if (pollenData.olive > 2) pollenAlerts.push('Olive');
-      if (pollenData.ragweed > 2) pollenAlerts.push('Ragweed');
-    }
-
-    await sendTestNotification({
-      temperature: mostAccurate.currentWeather.temperature,
-      condition: mostAccurate.currentWeather.condition,
-      highTemp: mostAccurate.dailyForecast[0]?.highTemp || 0,
-      lowTemp: mostAccurate.dailyForecast[0]?.lowTemp || 0,
-      pollenAlerts
-    });
   };
 
   const handleSignOut = async () => {
@@ -278,61 +194,6 @@ export function SettingsDialog({
             </p>
           </div>
 
-          <Separator />
-
-          {/* Notifications */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">Daily Notifications</Label>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Weather & pollen alerts</span>
-              </div>
-              <Switch
-                checked={profile?.notification_enabled || false}
-                onCheckedChange={handleNotificationToggle}
-                disabled={!isSupported || permission === 'denied' || !profile}
-              />
-            </div>
-            
-            {/* Time Picker */}
-            {profile?.notification_enabled && (
-              <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium">Notification Time</Label>
-                </div>
-                <input
-                  type="time"
-                  value={profile.notification_time}
-                  onChange={(e) => handleTimeChange(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-input rounded-md glass-card"
-                />
-              </div>
-            )}
-            
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">
-                {profile?.notification_enabled ? `Daily updates at ${profile.notification_time}` : "Enable to receive daily weather and pollen updates"}
-              </p>
-              {permission === 'denied' && (
-                <p className="text-xs text-destructive">
-                  Notifications blocked. Please enable in browser settings.
-                </p>
-              )}
-              {mostAccurate && profile?.notification_enabled && permission === 'granted' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleTestNotification}
-                  className="w-full mt-2"
-                >
-                  <TestTube className="w-3 h-3 mr-2" />
-                  Send Test Notification
-                </Button>
-              )}
-            </div>
-          </div>
 
           {/* Card Visibility - Only for authenticated users */}
           {user && (

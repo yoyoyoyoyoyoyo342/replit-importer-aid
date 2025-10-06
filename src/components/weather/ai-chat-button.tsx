@@ -27,21 +27,21 @@ export function AIChatButton({ weatherData, location, isImperial }: AIChatButton
 
       {/* Chat Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="flex items-center justify-between">
+        <DialogContent className="max-w-4xl w-[95vw] lg:w-[80vw] max-h-[90vh] p-0">
+          <DialogHeader className="p-4 pb-0">
+            <DialogTitle className="flex items-center justify-between text-lg">
               <span>AI Weather Companion</span>
               <Button
                 onClick={() => setIsOpen(false)}
                 variant="ghost"
                 size="icon"
-                className="w-6 h-6"
+                className="w-8 h-8"
               >
                 <X className="w-4 h-4" />
               </Button>
             </DialogTitle>
           </DialogHeader>
-          <div className="p-6 pt-2">
+          <div className="p-4 pt-2">
             <AIWeatherCompanion 
               weatherData={weatherData}
               location={location}
