@@ -1,5 +1,22 @@
 import { useState } from "react";
-import { Settings, Globe, Bell, TestTube, Clock, LogOut, User, Eye, RotateCcw, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
+import { Settings, Globe, Bell, TestTube, Clock, LogOut, User, Eye, RotateCcw, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +38,53 @@ interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
   mostAccurate?: any;
+}
+
+function SortableCardItem({ 
+  cardKey, 
+  label, 
+  visible, 
+  onVisibilityChange 
+}: { 
+  cardKey: string;
+  label: string;
+  visible: boolean;
+  onVisibilityChange: (checked: boolean) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: cardKey });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 border border-border cursor-move"
+    >
+      <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+        <GripVertical className="w-4 h-4 text-muted-foreground" />
+      </div>
+      <div className="flex items-center gap-2 flex-1">
+        <Eye className="w-4 h-4 text-muted-foreground" />
+        <span className="text-sm">{label}</span>
+      </div>
+      <Switch
+        checked={visible}
+        onCheckedChange={onVisibilityChange}
+      />
+    </div>
+  );
 }
 
 export function SettingsDialog({ 
@@ -135,19 +199,27 @@ export function SettingsDialog({
     }
   };
 
-  const moveCard = (index: number, direction: 'up' | 'down') => {
-    const newOrder = [...cardOrder];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    
-    if (targetIndex < 0 || targetIndex >= newOrder.length) return;
-    
-    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
-    updateOrder(newOrder);
-    
-    toast({
-      title: "Card order updated",
-      description: "Your card layout has been saved",
-    });
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = cardOrder.indexOf(active.id as any);
+      const newIndex = cardOrder.indexOf(over.id as any);
+      const newOrder = arrayMove(cardOrder, oldIndex, newIndex);
+      updateOrder(newOrder);
+      
+      toast({
+        title: "Card order updated",
+        description: "Your card layout has been saved",
+      });
+    }
   };
 
   return (
@@ -280,43 +352,30 @@ export function SettingsDialog({
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Toggle visibility and reorder cards
+                  Drag to reorder, toggle visibility
                 </p>
-                <div className="space-y-2">
-                  {cardOrder.map((cardKey, index) => (
-                    <div key={cardKey} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30 border border-transparent hover:border-border">
-                      <div className="flex flex-col gap-0.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={() => moveCard(index, 'up')}
-                          disabled={index === 0}
-                        >
-                          <ArrowUp className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 p-0 hover:bg-transparent"
-                          onClick={() => moveCard(index, 'down')}
-                          disabled={index === cardOrder.length - 1}
-                        >
-                          <ArrowDown className="w-3 h-3" />
-                        </Button>
-                      </div>
-                      <GripVertical className="w-4 h-4 text-muted-foreground" />
-                      <div className="flex items-center gap-2 flex-1">
-                        <Eye className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-sm">{cardLabels[cardKey]}</span>
-                      </div>
-                      <Switch
-                        checked={visibleCards[cardKey]}
-                        onCheckedChange={(checked) => updateVisibility(cardKey, checked)}
-                      />
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={cardOrder}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2">
+                      {cardOrder.map((cardKey) => (
+                        <SortableCardItem
+                          key={cardKey}
+                          cardKey={cardKey}
+                          label={cardLabels[cardKey]}
+                          visible={visibleCards[cardKey]}
+                          onVisibilityChange={(checked) => updateVisibility(cardKey, checked)}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             </>
           )}

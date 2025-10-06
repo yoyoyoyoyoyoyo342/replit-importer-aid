@@ -83,6 +83,8 @@ export function useUserPreferences() {
     if (!user) return;
 
     const newVisibility = { ...visibleCards, [cardType]: visible };
+    
+    // Optimistically update UI
     setVisibleCards(newVisibility);
 
     try {
@@ -105,15 +107,20 @@ export function useUserPreferences() {
         });
         // Revert on error
         setVisibleCards(visibleCards);
+      } else {
+        console.log("Visibility saved successfully:", newVisibility);
       }
     } catch (error) {
       console.error("Error in updateVisibility:", error);
+      // Revert on error
+      setVisibleCards(visibleCards);
     }
   };
 
   const updateOrder = async (newOrder: CardType[]) => {
     if (!user) return;
 
+    // Optimistically update UI
     setCardOrder(newOrder);
 
     try {
@@ -136,9 +143,13 @@ export function useUserPreferences() {
         });
         // Revert on error
         setCardOrder(cardOrder);
+      } else {
+        console.log("Order saved successfully:", newOrder);
       }
     } catch (error) {
       console.error("Error in updateOrder:", error);
+      // Revert on error
+      setCardOrder(cardOrder);
     }
   };
 
