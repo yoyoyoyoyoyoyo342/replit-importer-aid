@@ -1,7 +1,9 @@
-import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog } from "lucide-react";
+import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
+import { useState } from "react";
+import { LocationCard } from "./location-card";
 interface CurrentWeatherProps {
   weatherData: WeatherSource[];
   mostAccurate: WeatherSource;
@@ -18,6 +20,7 @@ export function CurrentWeather({
   lastUpdated,
   isImperial = true
 }: CurrentWeatherProps) {
+  const [showLocationCard, setShowLocationCard] = useState(false);
   const getConditionIcon = (condition: string) => {
     const c = condition.toLowerCase();
     if (c.includes("thunder")) return <CloudLightning className="w-5 h-5 text-primary" />;
@@ -110,15 +113,27 @@ export function CurrentWeather({
               </div>
             </div>
 
-            {/* Refresh Button */}
-            <div className="mt-2">
-              <Button onClick={onRefresh} disabled={isLoading} variant="outline" size="sm" className="w-full h-6 text-xs">
+            {/* Action Buttons */}
+            <div className="mt-2 flex gap-2">
+              <Button onClick={onRefresh} disabled={isLoading} variant="outline" size="sm" className="flex-1 h-6 text-xs">
                 {isLoading ? <RefreshCw className="w-2 h-2 mr-1 animate-spin" /> : <RefreshCw className="w-2 h-2 mr-1" />}
                 Refresh
+              </Button>
+              <Button onClick={() => setShowLocationCard(true)} variant="outline" size="sm" className="flex-1 h-6 text-xs">
+                <Camera className="w-2 h-2 mr-1" />
+                Location Card
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+      
+      <LocationCard 
+        open={showLocationCard} 
+        onOpenChange={setShowLocationCard}
+        temperature={mostAccurate.currentWeather.temperature}
+        location={mostAccurate.location}
+        isImperial={isImperial}
+      />
     </section>;
 }
