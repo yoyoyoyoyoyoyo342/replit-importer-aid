@@ -20,7 +20,9 @@ serve(async (req) => {
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    console.log('Finding landmark for location:', location);
+    // Clean up location string - extract just the city name
+    const cityName = location.split(',')[0].trim();
+    console.log('Finding landmark for city:', cityName);
 
     // Step 1: Use ChatGPT to identify the most famous landmark
     const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -34,14 +36,14 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a travel expert. When given a location, respond with ONLY the name of the single most famous, iconic landmark in that location. Do not include any other text, explanations, or punctuation. Just the landmark name."
+            content: "You are a travel expert. When given a city name, respond with ONLY the name of the single most famous, iconic landmark in that city. Just the landmark name, nothing else."
           },
           {
             role: "user",
-            content: `What is the most famous landmark in ${location}?`
+            content: `Most famous landmark in ${cityName}`
           }
         ],
-        max_tokens: 50
+        max_tokens: 20
       })
     });
 
@@ -55,9 +57,9 @@ serve(async (req) => {
     const landmarkName = gptData.choices[0].message.content.trim();
     console.log('Identified landmark:', landmarkName);
 
-    // Step 2: Search Wikimedia Commons for images of this landmark
-    const searchQuery = encodeURIComponent(`${landmarkName} ${location}`);
-    const wikimediaSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=${searchQuery}&gsrlimit=5&prop=imageinfo&iiprop=url|size&iiurlwidth=1024`;
+    // Step 2: Search Wikimedia Commons for images
+    const searchQuery = encodeURIComponent(`${landmarkName} ${cityName}`);
+    const wikimediaSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=${searchQuery}&gsrlimit=10&prop=imageinfo&iiprop=url&iiurlwidth=1024`;
     
     console.log('Searching Wikimedia for:', landmarkName);
     const wikiResponse = await fetch(wikimediaSearchUrl);
