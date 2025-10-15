@@ -401,7 +401,7 @@ export const weatherApi = {
       condition: weatherCodeToText(data?.current_weather?.weathercode),
       description: weatherCodeToText(data?.current_weather?.weathercode),
       humidity: Math.round(data?.hourly?.relative_humidity_2m?.[idx] ?? 0),
-      windSpeed: Math.round(data?.hourly?.wind_speed_10m?.[idx] ?? data?.current_weather?.windspeed * 0.621371 ?? 0),
+      windSpeed: Math.round(data?.hourly?.wind_speed_10m?.[idx] ?? (data?.current_weather?.windspeed ?? 0) * 0.621371),
       windDirection: Math.round(data?.hourly?.wind_direction_10m?.[idx] ?? data?.current_weather?.winddirection ?? 0),
       visibility: Math.round((data?.hourly?.visibility?.[idx] ?? 10000) / 1609.34 * 10) / 10,
       feelsLike: Math.round(data?.hourly?.apparent_temperature?.[idx] ?? data?.current_weather?.temperature ?? 0),
