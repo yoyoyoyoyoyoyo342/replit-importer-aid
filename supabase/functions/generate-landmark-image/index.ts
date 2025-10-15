@@ -30,7 +30,7 @@ serve(async (req) => {
     const cityName = location.split(',')[0].trim();
     console.log('Finding landmark for city:', cityName);
 
-    // Step 1: Use ChatGPT to identify the most famous landmark
+    // Step 1: Use GPT-5 Mini to identify the most famous real landmark
     const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -38,18 +38,18 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-5-mini-2025-08-07",
         messages: [
           {
             role: "system",
-            content: "You are a strict geography expert. When given a city or town name, respond with ONLY the exact name of the single most famous landmark that is physically located WITHIN that specific city's boundaries. Do NOT return landmarks from nearby cities, surrounding regions, or neighboring areas. The landmark must be inside the actual city limits. If the location is too small to have a notable landmark, respond with 'Town Hall' or 'Main Street'. Just the landmark name, nothing else."
+            content: "You are a precise geography and architecture expert with access to verified landmark databases. Your task is CRITICAL: return ONLY landmarks that physically exist and can be verified. When given a city name, you must:\n\n1. Identify ONE real landmark physically located INSIDE that city's boundaries\n2. The landmark MUST be verifiable (real building, monument, or structure)\n3. It MUST be within the actual city limits, NOT in nearby towns or suburbs\n4. If you are not 100% certain the landmark exists in that exact city, respond with 'City Center' or 'Town Square'\n5. Return ONLY the landmark name, nothing else\n\nDo NOT invent landmarks. Do NOT return landmarks from nearby areas. Accuracy is critical."
           },
           {
             role: "user",
-            content: `What is the most famous landmark that is physically located INSIDE the city boundaries of ${cityName} (not in nearby areas or surrounding region)? Provide only the landmark name.`
+            content: `What is the single most iconic landmark that PHYSICALLY EXISTS and is located INSIDE the city boundaries of ${cityName}? Only return the name if you are absolutely certain it's a real landmark in that exact city.`
           }
         ],
-        max_tokens: 30
+        max_completion_tokens: 30
       })
     });
 
