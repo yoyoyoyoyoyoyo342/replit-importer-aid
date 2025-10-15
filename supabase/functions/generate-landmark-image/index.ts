@@ -16,8 +16,11 @@ serve(async (req) => {
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
     if (!lovableApiKey) {
+      console.error('LOVABLE_API_KEY not configured');
       throw new Error('LOVABLE_API_KEY not configured');
     }
+
+    console.log('Generating image with prompt:', prompt);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -40,19 +43,32 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('API error:', response.status, errorText);
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`API request failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('API response:', JSON.stringify(data));
+    console.log('Full API response:', JSON.stringify(data, null, 2));
     
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      console.error('No image in response. Full response:', JSON.stringify(data));
-      throw new Error('No image generated');
+    // Try different possible paths for the image
+    let imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageUrl && data.choices?.[0]?.message?.images?.[0]) {
+      console.log('Trying alternative image path');
+      imageUrl = data.choices[0].message.images[0];
+    }
+    
+    if (!imageUrl && data.data?.[0]?.url) {
+      console.log('Trying data array path');
+      imageUrl = data.data[0].url;
     }
 
+    if (!imageUrl) {
+      console.error('No image found in response. Response keys:', Object.keys(data));
+      console.error('Choices:', data.choices);
+      throw new Error('No image generated - check logs for response structure');
+    }
+
+    console.log('Successfully generated image');
     return new Response(
       JSON.stringify({ image: imageUrl }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -60,7 +76,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error generating landmark image:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Unknown error' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

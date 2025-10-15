@@ -9,3 +9,6 @@ verify_jwt = true
 [functions.fetch-moon-data]
 verify_jwt = false
 
+[functions.generate-landmark-image]
+verify_jwt = false
+

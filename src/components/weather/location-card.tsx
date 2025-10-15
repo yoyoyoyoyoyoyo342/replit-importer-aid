@@ -29,15 +29,26 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
   const generateLandmarkImage = async () => {
     setIsGenerating(true);
     try {
-      const prompt = `A beautiful, iconic landmark or famous building in ${cityName}, professional photography, high quality, scenic view, blue hour lighting`;
+      const prompt = `Generate a photorealistic image of the most iconic landmark or famous building in ${cityName}. Beautiful photography, scenic view, blue hour lighting, high quality.`;
+      
+      console.log('Generating landmark for:', cityName);
       
       const { data, error } = await supabase.functions.invoke('generate-landmark-image', {
         body: { prompt }
       });
 
-      if (error) throw error;
+      console.log('Landmark response:', data, 'Error:', error);
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+      
       if (data?.image) {
+        console.log('Setting landmark image');
         setLandmarkImage(data.image);
+      } else {
+        console.error('No image in response data');
       }
     } catch (error) {
       console.error('Error generating landmark:', error);
