@@ -104,7 +104,7 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
           </div>
 
           {/* Location Display */}
-          <div className="absolute bottom-12 left-8 right-8">
+          <div className="absolute bottom-20 left-8 right-8">
             <div className="flex items-center gap-3 mb-2">
               <MapPin className="w-10 h-10 text-white drop-shadow-lg" fill="white" />
               <div className="text-5xl font-black text-white drop-shadow-2xl leading-tight">
@@ -112,22 +112,21 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
               </div>
             </div>
             <div className="text-lg text-white/80 font-medium mt-2">
-              {location.split(',').slice(1).join(',').trim() || 'Weather Card'}
+              {location.split(',').slice(1).join(',').trim() || 'Rainz'}
             </div>
           </div>
 
           {/* Download Button */}
           <Button
             onClick={handleDownload}
-            size="sm"
-            className="absolute top-6 right-6 bg-white/20 backdrop-blur-md border-2 border-white/40 text-white hover:bg-white/30"
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-md border-2 border-white/40 text-white hover:bg-white/30"
           >
             <Download className="w-4 h-4 mr-2" />
-            Download
+            Download Card
           </Button>
 
           {/* Decorative Bottom Pattern */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
         </div>
       </DialogContent>
     </Dialog>
