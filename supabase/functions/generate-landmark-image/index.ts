@@ -12,69 +12,88 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const { location } = await req.json();
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!openaiApiKey) {
+      console.error('OPENAI_API_KEY not configured');
+      throw new Error('OPENAI_API_KEY not configured');
     }
 
-    console.log('Generating image with prompt:', prompt);
+    console.log('Finding landmark for location:', location);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Step 1: Use ChatGPT to identify the most famous landmark
+    const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
+        Authorization: `Bearer ${openaiApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
+        model: "gpt-4o-mini",
         messages: [
           {
+            role: "system",
+            content: "You are a travel expert. When given a location, respond with ONLY the name of the single most famous, iconic landmark in that location. Do not include any other text, explanations, or punctuation. Just the landmark name."
+          },
+          {
             role: "user",
-            content: prompt
+            content: `What is the most famous landmark in ${location}?`
           }
         ],
-        modalities: ["image", "text"]
+        max_tokens: 50
       })
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API error:', response.status, errorText);
-      throw new Error(`API request failed: ${response.status} - ${errorText}`);
+    if (!gptResponse.ok) {
+      const errorText = await gptResponse.text();
+      console.error('OpenAI API error:', gptResponse.status, errorText);
+      throw new Error(`OpenAI request failed: ${gptResponse.status}`);
     }
 
-    const data = await response.json();
-    console.log('Full API response:', JSON.stringify(data, null, 2));
+    const gptData = await gptResponse.json();
+    const landmarkName = gptData.choices[0].message.content.trim();
+    console.log('Identified landmark:', landmarkName);
+
+    // Step 2: Search Wikimedia Commons for images of this landmark
+    const searchQuery = encodeURIComponent(`${landmarkName} ${location}`);
+    const wikimediaSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=${searchQuery}&gsrlimit=5&prop=imageinfo&iiprop=url|size&iiurlwidth=1024`;
     
-    // Try different possible paths for the image
-    let imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    console.log('Searching Wikimedia for:', landmarkName);
+    const wikiResponse = await fetch(wikimediaSearchUrl);
     
-    if (!imageUrl && data.choices?.[0]?.message?.images?.[0]) {
-      console.log('Trying alternative image path');
-      imageUrl = data.choices[0].message.images[0];
+    if (!wikiResponse.ok) {
+      throw new Error('Wikimedia search failed');
     }
+
+    const wikiData = await wikiResponse.json();
+    const pages = wikiData.query?.pages;
     
-    if (!imageUrl && data.data?.[0]?.url) {
-      console.log('Trying data array path');
-      imageUrl = data.data[0].url;
+    if (!pages) {
+      throw new Error('No images found on Wikimedia Commons');
+    }
+
+    // Get the first valid image
+    let imageUrl = null;
+    for (const pageId in pages) {
+      const page = pages[pageId];
+      if (page.imageinfo && page.imageinfo[0]?.thumburl) {
+        imageUrl = page.imageinfo[0].thumburl;
+        break;
+      }
     }
 
     if (!imageUrl) {
-      console.error('No image found in response. Response keys:', Object.keys(data));
-      console.error('Choices:', data.choices);
-      throw new Error('No image generated - check logs for response structure');
+      throw new Error('No suitable images found');
     }
 
-    console.log('Successfully generated image');
+    console.log('Successfully found image:', imageUrl);
     return new Response(
-      JSON.stringify({ image: imageUrl }),
+      JSON.stringify({ image: imageUrl, landmark: landmarkName }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error generating landmark image:', error);
+    console.error('Error finding landmark image:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Unknown error' }),
       { 
