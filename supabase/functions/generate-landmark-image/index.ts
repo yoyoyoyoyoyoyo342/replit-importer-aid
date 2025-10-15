@@ -42,14 +42,14 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a travel expert. When given a city name, respond with ONLY the name of the single most famous, iconic landmark in that city. Just the landmark name, nothing else."
+            content: "You are a strict travel expert with encyclopedic knowledge of world landmarks. When given a city name, respond with ONLY the exact name of the single most famous, real, verifiable landmark that actually exists in that city. This must be an iconic monument, building, or structure that can be photographed. If the city is very small or obscure, return a landmark from the nearest major city. Be precise and accurate - only return real landmarks that definitely exist. Just the landmark name, nothing else."
           },
           {
             role: "user",
-            content: `Most famous landmark in ${cityName}`
+            content: `What is the single most iconic, photographable landmark that actually exists in ${cityName}? Provide only the exact landmark name.`
           }
         ],
-        max_tokens: 20
+        max_tokens: 30
       })
     });
 
