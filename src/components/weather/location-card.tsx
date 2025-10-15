@@ -70,27 +70,30 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
       const response = await fetch(dataUrl);
       const blob = await response.blob();
       
-      // Check if Web Share API is available (mobile devices)
-      if (navigator.share && navigator.canShare) {
-        const file = new File([blob], `${cityName}-weather-card.png`, { type: 'image/png' });
-        
-        if (navigator.canShare({ files: [file] })) {
+      // Try Web Share API first (mobile)
+      if (navigator.share) {
+        try {
+          const file = new File([blob], `${cityName}-weather-card.png`, { type: 'image/png' });
           await navigator.share({
             files: [file],
             title: `${cityName} Weather Card`,
-            text: `Weather card for ${cityName}`
           });
           return;
+        } catch (shareError) {
+          console.log('Share failed, falling back to download:', shareError);
         }
       }
       
-      // Fallback for desktop - download as file
+      // Fallback: direct download
       const link = document.createElement('a');
       link.download = `${cityName}-weather-card.png`;
       link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (error) {
       console.error('Error downloading card:', error);
+      alert('Failed to download image. Please try again.');
     }
   };
 
