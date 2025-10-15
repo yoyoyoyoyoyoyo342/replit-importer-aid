@@ -1,5 +1,5 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { MapPin, Download, Sparkles } from "lucide-react";
+import { MapPin, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toPng } from 'html-to-image';
 import { useEffect, useState, useRef } from 'react';
@@ -29,7 +29,7 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
   const generateLandmarkImage = async () => {
     setIsGenerating(true);
     try {
-      const prompt = `Generate a photorealistic image of the most iconic landmark or famous building in ${cityName}. Beautiful photography, scenic view, blue hour lighting, high quality.`;
+      const prompt = `Iconic landmark in ${cityName}, photorealistic, high quality`;
       
       console.log('Generating landmark for:', cityName);
       
@@ -95,14 +95,6 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
               <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
             </div>
           )}
-
-          {/* Sparkle Decorations */}
-          <div className="absolute top-20 right-16 animate-pulse">
-            <Sparkles className="w-8 h-8 text-white/40" />
-          </div>
-          <div className="absolute bottom-32 right-24 animate-pulse delay-75">
-            <Sparkles className="w-6 h-6 text-white/30" />
-          </div>
 
           {/* Temperature Display */}
           <div className="absolute top-12 left-8">
