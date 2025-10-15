@@ -85,9 +85,9 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
               <img 
                 src={landmarkImage} 
                 alt={`${cityName} landmark`}
-                className="w-full h-full object-cover opacity-40"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-blue-600/90 via-blue-500/70 to-blue-400/60"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
             </div>
           ) : (
             <div className="absolute inset-0 opacity-20">

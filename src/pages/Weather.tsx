@@ -86,11 +86,28 @@ export default function WeatherPage() {
           latitude,
           longitude
         } = position.coords;
-        setSelectedLocation({
-          lat: latitude,
-          lon: longitude,
-          name: "Current Location"
-        });
+        
+        // Reverse geocode to get city name
+        try {
+          const geocodeResponse = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const geocodeData = await geocodeResponse.json();
+          const cityName = geocodeData.city || geocodeData.locality || geocodeData.principalSubdivision || "Current Location";
+          
+          setSelectedLocation({
+            lat: latitude,
+            lon: longitude,
+            name: cityName
+          });
+        } catch (geocodeError) {
+          console.log("Reverse geocoding failed, using coordinates only");
+          setSelectedLocation({
+            lat: latitude,
+            lon: longitude,
+            name: "Current Location"
+          });
+        }
       } catch (error) {
         console.log("Location detection failed, user will need to search manually");
       }
