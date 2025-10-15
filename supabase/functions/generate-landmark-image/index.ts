@@ -42,11 +42,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a strict travel expert with encyclopedic knowledge of world landmarks. When given a city name, respond with ONLY the exact name of the single most famous, real, verifiable landmark that actually exists in that city. This must be an iconic monument, building, or structure that can be photographed. If the city is very small or obscure, return a landmark from the nearest major city. Be precise and accurate - only return real landmarks that definitely exist. Just the landmark name, nothing else."
+            content: "You are a strict geography expert. When given a city or town name, respond with ONLY the exact name of the single most famous landmark that is physically located WITHIN that specific city's boundaries. Do NOT return landmarks from nearby cities, surrounding regions, or neighboring areas. The landmark must be inside the actual city limits. If the location is too small to have a notable landmark, respond with 'Town Hall' or 'Main Street'. Just the landmark name, nothing else."
           },
           {
             role: "user",
-            content: `What is the single most iconic, photographable landmark that actually exists in ${cityName}? Provide only the exact landmark name.`
+            content: `What is the most famous landmark that is physically located INSIDE the city boundaries of ${cityName} (not in nearby areas or surrounding region)? Provide only the landmark name.`
           }
         ],
         max_tokens: 30
