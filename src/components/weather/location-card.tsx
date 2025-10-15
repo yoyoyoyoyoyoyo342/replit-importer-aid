@@ -21,10 +21,10 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
-    if (open && !landmarkImage) {
+    if (location && !landmarkImage) {
       generateLandmarkImage();
     }
-  }, [open, location]);
+  }, [location]);
 
   const generateLandmarkImage = async () => {
     setIsGenerating(true);
