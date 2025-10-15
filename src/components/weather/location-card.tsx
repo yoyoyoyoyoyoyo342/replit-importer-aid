@@ -66,6 +66,25 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
         pixelRatio: 2,
       });
       
+      // Convert data URL to blob
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      
+      // Check if Web Share API is available (mobile devices)
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], `${cityName}-weather-card.png`, { type: 'image/png' });
+        
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: `${cityName} Weather Card`,
+            text: `Weather card for ${cityName}`
+          });
+          return;
+        }
+      }
+      
+      // Fallback for desktop - download as file
       const link = document.createElement('a');
       link.download = `${cityName}-weather-card.png`;
       link.href = dataUrl;
