@@ -29,9 +29,10 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
   const generateLandmarkImage = async () => {
     setIsGenerating(true);
     try {
-      const prompt = `Iconic landmark in ${cityName}, photorealistic, high quality`;
+      // Use full location for more accurate results
+      const prompt = `Photorealistic image of an iconic, well-known landmark specifically in ${location}. Must be a real, famous landmark from this exact location. Ultra high quality, professional photography.`;
       
-      console.log('Generating landmark for:', cityName);
+      console.log('Generating landmark for:', location);
       
       const { data, error } = await supabase.functions.invoke('generate-landmark-image', {
         body: { prompt }
