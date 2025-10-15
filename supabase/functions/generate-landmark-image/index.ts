@@ -37,10 +37,19 @@ serve(async (req) => {
       })
     });
 
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API error:', response.status, errorText);
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
     const data = await response.json();
+    console.log('API response:', JSON.stringify(data));
+    
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
+      console.error('No image in response. Full response:', JSON.stringify(data));
       throw new Error('No image generated');
     }
 
