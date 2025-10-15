@@ -14,10 +14,16 @@ serve(async (req) => {
   try {
     const { location } = await req.json();
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
     if (!openaiApiKey) {
       console.error('OPENAI_API_KEY not configured');
       throw new Error('OPENAI_API_KEY not configured');
+    }
+
+    if (!lovableApiKey) {
+      console.error('LOVABLE_API_KEY not configured');
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Clean up location string - extract just the city name
@@ -57,45 +63,49 @@ serve(async (req) => {
     const landmarkName = gptData.choices[0].message.content.trim();
     console.log('Identified landmark:', landmarkName);
 
-    // Step 2: Search Wikimedia Commons for images
-    const searchQuery = encodeURIComponent(`${landmarkName} ${cityName}`);
-    const wikimediaSearchUrl = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrsearch=${searchQuery}&gsrlimit=10&prop=imageinfo&iiprop=url&iiurlwidth=1024`;
-    
-    console.log('Searching Wikimedia for:', landmarkName);
-    const wikiResponse = await fetch(wikimediaSearchUrl);
-    
-    if (!wikiResponse.ok) {
-      throw new Error('Wikimedia search failed');
+    // Step 2: Generate a high-quality image using Lovable AI
+    const imagePrompt = `Professional high-quality photograph of ${landmarkName} in ${cityName}. Photorealistic, beautiful lighting, iconic view, architectural photography, ultra detailed, 8k resolution.`;
+    console.log('Generating image with prompt:', imagePrompt);
+
+    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${lovableApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-image-preview",
+        messages: [
+          {
+            role: "user",
+            content: imagePrompt
+          }
+        ],
+        modalities: ["image", "text"]
+      })
+    });
+
+    if (!imageResponse.ok) {
+      const errorText = await imageResponse.text();
+      console.error('Image generation error:', imageResponse.status, errorText);
+      throw new Error(`Image generation failed: ${imageResponse.status}`);
     }
 
-    const wikiData = await wikiResponse.json();
-    const pages = wikiData.query?.pages;
-    
-    if (!pages) {
-      throw new Error('No images found on Wikimedia Commons');
-    }
-
-    // Get the first valid image
-    let imageUrl = null;
-    for (const pageId in pages) {
-      const page = pages[pageId];
-      if (page.imageinfo && page.imageinfo[0]?.thumburl) {
-        imageUrl = page.imageinfo[0].thumburl;
-        break;
-      }
-    }
+    const imageData = await imageResponse.json();
+    const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
-      throw new Error('No suitable images found');
+      console.error('No image found in response');
+      throw new Error('No image generated');
     }
 
-    console.log('Successfully found image:', imageUrl);
+    console.log('Successfully generated image for:', landmarkName);
     return new Response(
       JSON.stringify({ image: imageUrl, landmark: landmarkName }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error finding landmark image:', error);
+    console.error('Error generating landmark image:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Unknown error' }),
       { 
