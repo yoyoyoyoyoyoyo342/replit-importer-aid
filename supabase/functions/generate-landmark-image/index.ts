@@ -21,12 +21,13 @@ serve(async (req) => {
       throw new Error('HUGGING_FACE_ACCESS_TOKEN not configured');
     }
 
-    // Clean up location string - extract just the city name
+    // Use full location for better context
+    const fullLocation = location.trim();
     const cityName = location.split(',')[0].trim();
-    console.log('Generating image for city:', cityName);
+    console.log('Generating image for location:', fullLocation);
 
-    // Generate a high-quality image directly using city name
-    const imagePrompt = `Give me a famous landmark or iconic building in ${cityName}. Show the most recognizable architectural landmark that this city is known for. Professional photograph, photorealistic, beautiful lighting, ultra detailed, 8k resolution.`;
+    // Generate a high-quality image with very specific location context
+    const imagePrompt = `A famous landmark or iconic building that is actually located in ${fullLocation}. This must be a real, recognizable architectural landmark specifically from this exact location. Do not show generic buildings or landmarks from other places. Professional photograph, photorealistic, beautiful lighting, architectural detail, 8k resolution. The landmark must be authentically from ${fullLocation}, not from anywhere else.`;
     console.log('Generating image with prompt:', imagePrompt);
 
     const hf = new HfInference(huggingFaceToken);
