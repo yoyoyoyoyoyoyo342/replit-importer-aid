@@ -20,6 +20,7 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
   const cardRef = useRef<HTMLDivElement>(null);
   const [landmarkImage, setLandmarkImage] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [landmarkName, setLandmarkName] = useState<string>('');
 
   useEffect(() => {
     if (location && !landmarkImage) {
@@ -44,7 +45,8 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
       }
       
       if (data?.image) {
-        console.log('Found landmark image:', data.landmark);
+        console.log('Found landmark:', data.landmark, 'Image length:', data.image.length);
+        setLandmarkName(data.landmark);
         setLandmarkImage(data.image);
       } else {
         console.error('No image in response data');
@@ -106,13 +108,25 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
           </DialogDescription>
         </VisuallyHidden>
         <div ref={cardRef} className="relative w-full aspect-[3/4] bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 overflow-hidden">
+          {/* Loading Indicator */}
+          {isGenerating && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10">
+              <div className="text-white text-lg font-semibold">Generating landmark...</div>
+            </div>
+          )}
+
           {/* Landmark Image Background */}
           {landmarkImage ? (
             <div className="absolute inset-0">
               <img 
                 src={landmarkImage} 
-                alt={`${cityName} landmark`}
+                alt={`${landmarkName || cityName} landmark`}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.error('Image failed to load');
+                  e.currentTarget.style.display = 'none';
+                }}
+                onLoad={() => console.log('Image loaded successfully')}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
             </div>
