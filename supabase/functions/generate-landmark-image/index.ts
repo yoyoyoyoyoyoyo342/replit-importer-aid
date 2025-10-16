@@ -35,9 +35,18 @@ serve(async (req) => {
       model: 'black-forest-labs/FLUX.1-schnell',
     });
 
-    // Convert the blob to a base64 string
+    // Convert the blob to a base64 string in chunks to avoid stack overflow
     const arrayBuffer = await image.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const uint8Array = new Uint8Array(arrayBuffer);
+    let binaryString = '';
+    const chunkSize = 8192;
+    
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      const chunk = uint8Array.subarray(i, i + chunkSize);
+      binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    
+    const base64 = btoa(binaryString);
     const imageUrl = `data:image/png;base64,${base64}`;
 
     console.log('Successfully generated image for:', cityName);
