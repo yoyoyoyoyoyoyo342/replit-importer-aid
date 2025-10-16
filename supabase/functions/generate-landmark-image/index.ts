@@ -26,7 +26,7 @@ serve(async (req) => {
     console.log('Generating image for city:', cityName);
 
     // Generate a high-quality image directly using city name
-    const imagePrompt = `Professional high-quality photograph of iconic landmark in ${cityName}. Famous architecture, photorealistic, beautiful lighting, iconic view, architectural photography, ultra detailed, 8k resolution, postcard quality.`;
+    const imagePrompt = `Give me a famous landmark or iconic building in ${cityName}. Show the most recognizable architectural landmark that this city is known for. Professional photograph, photorealistic, beautiful lighting, ultra detailed, 8k resolution.`;
     console.log('Generating image with prompt:', imagePrompt);
 
     const hf = new HfInference(huggingFaceToken);
