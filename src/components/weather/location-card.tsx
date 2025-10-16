@@ -1,4 +1,5 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { MapPin, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toPng } from 'html-to-image';
@@ -98,6 +99,12 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 overflow-hidden border-0">
+        <VisuallyHidden>
+          <DialogTitle>{cityName} Weather Card</DialogTitle>
+          <DialogDescription>
+            Download a weather card for {cityName} showing current temperature and location
+          </DialogDescription>
+        </VisuallyHidden>
         <div ref={cardRef} className="relative w-full aspect-[3/4] bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 overflow-hidden">
           {/* Landmark Image Background */}
           {landmarkImage ? (

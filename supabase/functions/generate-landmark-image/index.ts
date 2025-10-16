@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { HfInference } from "https://esm.sh/@huggingface/inference@2.3.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,16 +15,16 @@ serve(async (req) => {
   try {
     const { location } = await req.json();
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
     if (!openaiApiKey) {
       console.error('OPENAI_API_KEY not configured');
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    if (!lovableApiKey) {
-      console.error('LOVABLE_API_KEY not configured');
-      throw new Error('LOVABLE_API_KEY not configured');
+    if (!huggingFaceToken) {
+      console.error('HUGGING_FACE_ACCESS_TOKEN not configured');
+      throw new Error('HUGGING_FACE_ACCESS_TOKEN not configured');
     }
 
     // Clean up location string - extract just the city name
@@ -63,41 +64,20 @@ serve(async (req) => {
     const landmarkName = gptData.choices[0].message.content.trim();
     console.log('Identified landmark:', landmarkName);
 
-    // Step 2: Generate a high-quality image using Lovable AI
+    // Step 2: Generate a high-quality image using Hugging Face FLUX
     const imagePrompt = `Professional high-quality photograph of ${landmarkName} in ${cityName}. Photorealistic, beautiful lighting, iconic view, architectural photography, ultra detailed, 8k resolution.`;
     console.log('Generating image with prompt:', imagePrompt);
 
-    const imageResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${lovableApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: imagePrompt
-          }
-        ],
-        modalities: ["image", "text"]
-      })
+    const hf = new HfInference(huggingFaceToken);
+    const image = await hf.textToImage({
+      inputs: imagePrompt,
+      model: 'black-forest-labs/FLUX.1-schnell',
     });
 
-    if (!imageResponse.ok) {
-      const errorText = await imageResponse.text();
-      console.error('Image generation error:', imageResponse.status, errorText);
-      throw new Error(`Image generation failed: ${imageResponse.status}`);
-    }
-
-    const imageData = await imageResponse.json();
-    const imageUrl = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      console.error('No image found in response');
-      throw new Error('No image generated');
-    }
+    // Convert the blob to a base64 string
+    const arrayBuffer = await image.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const imageUrl = `data:image/png;base64,${base64}`;
 
     console.log('Successfully generated image for:', landmarkName);
     return new Response(
