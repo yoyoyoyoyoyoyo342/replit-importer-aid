@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { HfInference } from "https://esm.sh/@huggingface/inference@2.3.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,16 +13,16 @@ serve(async (req) => {
 
   try {
     const { location } = await req.json();
-    const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
+    const unsplashToken = Deno.env.get('UNSPLASH_ACCESS_KEY');
 
-    if (!huggingFaceToken) {
-      console.error('HUGGING_FACE_ACCESS_TOKEN not configured');
-      throw new Error('HUGGING_FACE_ACCESS_TOKEN not configured');
+    if (!unsplashToken) {
+      console.error('UNSPLASH_ACCESS_KEY not configured');
+      throw new Error('UNSPLASH_ACCESS_KEY not configured');
     }
 
     const fullLocation = location.trim();
     const cityName = location.split(',')[0].trim().toLowerCase();
-    console.log('Generating landmark for:', fullLocation);
+    console.log('Fetching real photo for:', fullLocation);
 
     // Known landmarks for major cities with detailed descriptions
     const landmarkDatabase: Record<string, { name: string; description: string }> = {
@@ -83,42 +82,61 @@ serve(async (req) => {
       'ørestad syd': { name: 'Bella Sky Hotel towers', description: 'two modern leaning glass towers connected by sky bridge, dramatic 15-degree tilt, contemporary Scandinavian architecture, 76 meters tall, distinctive angular design, Copenhagen landmark' }
     };
 
-    let imagePrompt: string;
+    
+    let searchQuery: string;
     const landmark = landmarkDatabase[cityName];
     
     if (landmark) {
-      console.log('Using known landmark:', landmark.name);
-      imagePrompt = `Professional photograph of ${landmark.name}, ${landmark.description}, located in ${fullLocation}. Iconic view, architectural photography, golden hour lighting, photorealistic, ultra detailed, 8k resolution. This is the real famous ${landmark.name} landmark.`;
+      console.log('Searching Unsplash for:', landmark.name);
+      searchQuery = `${landmark.name} landmark architecture`;
     } else {
-      console.log('Using generic cityscape for:', cityName);
-      imagePrompt = `Beautiful ${cityName} cityscape, iconic architecture, city center view, professional photograph, warm golden hour lighting, photorealistic, ultra detailed, 8k resolution`;
+      console.log('Searching generic cityscape for:', cityName);
+      searchQuery = `${cityName} cityscape architecture landmark`;
     }
     
-    console.log('Generating image with FLUX.1-schnell:', imagePrompt);
+    // Search Unsplash for real photos
+    const unsplashResponse = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=5&orientation=portrait&content_filter=high`,
+      {
+        headers: {
+          'Authorization': `Client-ID ${unsplashToken}`,
+        },
+      }
+    );
 
-    const hf = new HfInference(huggingFaceToken);
-    const image = await hf.textToImage({
-      inputs: imagePrompt,
-      model: 'black-forest-labs/FLUX.1-schnell',
-    });
-
-    // Convert the blob to a base64 string in chunks to avoid stack overflow
-    const arrayBuffer = await image.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    let binaryString = '';
-    const chunkSize = 8192;
-    
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.subarray(i, i + chunkSize);
-      binaryString += String.fromCharCode.apply(null, Array.from(chunk));
+    if (!unsplashResponse.ok) {
+      const errorText = await unsplashResponse.text();
+      console.error('Unsplash API error:', unsplashResponse.status, errorText);
+      throw new Error(`Unsplash API error: ${unsplashResponse.status}`);
     }
-    
-    const base64 = btoa(binaryString);
-    const imageUrl = `data:image/png;base64,${base64}`;
 
-    console.log('Successfully generated image for:', cityName);
+    const unsplashData = await unsplashResponse.json();
+    console.log('Found', unsplashData.results?.length || 0, 'photos');
+
+    if (!unsplashData.results || unsplashData.results.length === 0) {
+      console.log('No photos found, returning fallback');
+      return new Response(
+        JSON.stringify({ 
+          image: null, 
+          landmark: landmark?.name || cityName,
+          error: 'No photos found'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get the first high-quality photo
+    const photo = unsplashData.results[0];
+    const imageUrl = photo.urls.regular; // High quality but not too large
+    
+    console.log('Successfully found photo for:', landmark?.name || cityName);
     return new Response(
-      JSON.stringify({ image: imageUrl, landmark: cityName }),
+      JSON.stringify({ 
+        image: imageUrl, 
+        landmark: landmark?.name || cityName,
+        photographer: photo.user.name,
+        photographerUrl: photo.user.links.html
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

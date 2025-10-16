@@ -33,13 +33,13 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
     setIsGenerating(true);
     setHasError(false);
     try {
-      console.log('Finding landmark for:', location);
+      console.log('Finding real photo for:', location);
       
       const { data, error } = await supabase.functions.invoke('generate-landmark-image', {
         body: { location }
       });
 
-      console.log('Landmark response:', data, 'Error:', error);
+      console.log('Photo response:', data, 'Error:', error);
 
       if (error) {
         console.error('Supabase function error:', error);
@@ -48,15 +48,15 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
       }
       
       if (data?.image) {
-        console.log('Found landmark:', data.landmark, 'Image length:', data.image.length);
+        console.log('Found photo:', data.landmark, 'URL:', data.image.substring(0, 50) + '...');
         setLandmarkName(data.landmark);
         setLandmarkImage(data.image);
       } else {
-        console.error('No image in response data');
+        console.log('No photo found, using gradient fallback');
         setHasError(true);
       }
     } catch (error) {
-      console.error('Error finding landmark:', error);
+      console.error('Error finding photo:', error);
       setHasError(true);
     } finally {
       setIsGenerating(false);
@@ -126,7 +126,7 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
           {/* Loading Indicator */}
           {isGenerating && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-10">
-              <div className="text-white text-lg font-semibold">Generating landmark...</div>
+              <div className="text-white text-lg font-semibold">Finding real photo...</div>
             </div>
           )}
 
