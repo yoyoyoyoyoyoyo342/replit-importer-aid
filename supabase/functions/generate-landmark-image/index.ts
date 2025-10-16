@@ -11,133 +11,84 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Known landmarks for major cities - define at the top
+  const landmarkDatabase: Record<string, { name: string; description: string }> = {
+    'copenhagen': { name: 'Little Mermaid statue', description: 'Copenhagen Denmark' },
+    'paris': { name: 'Eiffel Tower', description: 'Paris France' },
+    'london': { name: 'Big Ben', description: 'London UK' },
+    'new york': { name: 'Statue of Liberty', description: 'New York USA' },
+    'rome': { name: 'Colosseum', description: 'Rome Italy' },
+    'tokyo': { name: 'Tokyo Tower', description: 'Tokyo Japan' },
+    'sydney': { name: 'Sydney Opera House', description: 'Sydney Australia' },
+    'dubai': { name: 'Burj Khalifa', description: 'Dubai UAE' },
+    'barcelona': { name: 'Sagrada Familia', description: 'Barcelona Spain' },
+    'berlin': { name: 'Brandenburg Gate', description: 'Berlin Germany' },
+    'amsterdam': { name: 'Amsterdam canal houses', description: 'Amsterdam Netherlands' },
+    'prague': { name: 'Prague Castle', description: 'Prague Czech Republic' },
+    'moscow': { name: 'Saint Basils Cathedral', description: 'Moscow Russia' },
+    'istanbul': { name: 'Hagia Sophia', description: 'Istanbul Turkey' },
+    'athens': { name: 'Parthenon', description: 'Athens Greece' },
+    'venice': { name: 'Rialto Bridge', description: 'Venice Italy' },
+    'singapore': { name: 'Marina Bay Sands', description: 'Singapore' },
+    'hong kong': { name: 'Victoria Harbour', description: 'Hong Kong' },
+    'beijing': { name: 'Forbidden City', description: 'Beijing China' },
+    'san francisco': { name: 'Golden Gate Bridge', description: 'San Francisco USA' },
+    'miami': { name: 'South Beach', description: 'Miami USA' },
+    'las vegas': { name: 'Las Vegas Strip', description: 'Las Vegas USA' },
+    'chicago': { name: 'Cloud Gate Bean', description: 'Chicago USA' },
+    'los angeles': { name: 'Hollywood Sign', description: 'Los Angeles USA' },
+    'seattle': { name: 'Space Needle', description: 'Seattle USA' },
+    'boston': { name: 'Faneuil Hall', description: 'Boston USA' },
+    'washington': { name: 'Washington Monument', description: 'Washington DC USA' },
+    'philadelphia': { name: 'Liberty Bell', description: 'Philadelphia USA' },
+    'toronto': { name: 'CN Tower', description: 'Toronto Canada' },
+    'vancouver': { name: 'Stanley Park', description: 'Vancouver Canada' },
+    'montreal': { name: 'Notre-Dame Basilica', description: 'Montreal Canada' },
+    'rio de janeiro': { name: 'Christ the Redeemer', description: 'Rio Brazil' },
+    'buenos aires': { name: 'Obelisco', description: 'Buenos Aires Argentina' },
+    'mexico city': { name: 'Palacio de Bellas Artes', description: 'Mexico City Mexico' },
+    'mumbai': { name: 'Gateway of India', description: 'Mumbai India' },
+    'delhi': { name: 'India Gate', description: 'Delhi India' },
+    'bangkok': { name: 'Wat Arun', description: 'Bangkok Thailand' },
+    'seoul': { name: 'N Seoul Tower', description: 'Seoul Korea' },
+    'melbourne': { name: 'Flinders Street Station', description: 'Melbourne Australia' },
+    'auckland': { name: 'Sky Tower', description: 'Auckland New Zealand' },
+    'cairo': { name: 'Great Pyramid of Giza', description: 'Cairo Egypt' },
+    'cape town': { name: 'Table Mountain', description: 'Cape Town South Africa' },
+    'lisbon': { name: 'Belem Tower', description: 'Lisbon Portugal' },
+    'vienna': { name: 'Schonbrunn Palace', description: 'Vienna Austria' },
+    'brussels': { name: 'Atomium', description: 'Brussels Belgium' },
+    'zurich': { name: 'Grossmunster', description: 'Zurich Switzerland' },
+    'stockholm': { name: 'Stockholm City Hall', description: 'Stockholm Sweden' },
+    'oslo': { name: 'Oslo Opera House', description: 'Oslo Norway' },
+    'helsinki': { name: 'Helsinki Cathedral', description: 'Helsinki Finland' },
+    'dublin': { name: 'Hapenny Bridge', description: 'Dublin Ireland' },
+    'edinburgh': { name: 'Edinburgh Castle', description: 'Edinburgh Scotland' },
+    'maidenhead': { name: 'Maidenhead Railway Bridge', description: 'Maidenhead UK' },
+    'ørestad': { name: 'Bella Sky Hotel', description: 'Copenhagen Denmark' },
+    'ørestad syd': { name: 'Bella Sky Hotel', description: 'Copenhagen Denmark' }
+  };
+
   try {
     const { location } = await req.json();
     const unsplashToken = Deno.env.get('UNSPLASH_ACCESS_KEY');
-    const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
     if (!unsplashToken) {
       console.error('UNSPLASH_ACCESS_KEY not configured');
       throw new Error('UNSPLASH_ACCESS_KEY not configured');
     }
 
-    if (!huggingFaceToken) {
-      console.error('HUGGING_FACE_ACCESS_TOKEN not configured');
-      throw new Error('HUGGING_FACE_ACCESS_TOKEN not configured');
-    }
-
     const fullLocation = location.trim();
-    const cityName = location.split(',')[0].trim();
-    console.log('Step 1: Identifying landmark using LLM for:', fullLocation);
+    const cityName = location.split(',')[0].trim().toLowerCase();
+    console.log('Finding photo for:', fullLocation);
 
-    // Step 1: Use Hugging Face LLM to identify the most famous landmark
-    const llmResponse = await fetch('https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${huggingFaceToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: `What is the most famous landmark in ${cityName}? Reply with ONLY the landmark name, nothing else.`,
-        parameters: {
-          max_new_tokens: 50,
-          temperature: 0.3,
-          return_full_text: false
-        }
-      }),
-    });
-
-    if (!llmResponse.ok) {
-      const errorText = await llmResponse.text();
-      console.error('Hugging Face LLM API error:', llmResponse.status, errorText);
-      // Fallback to database if LLM fails
-      const landmark = landmarkDatabase[cityName.toLowerCase()];
-      if (landmark) {
-        console.log('LLM failed, using database:', landmark.name);
-      } else {
-        throw new Error(`Hugging Face LLM API error: ${llmResponse.status}`);
-      }
-    }
-
-    let landmarkName = cityName;
+    // Get landmark from database
+    const landmark = landmarkDatabase[cityName];
+    const searchQuery = landmark 
+      ? `${landmark.name} landmark architecture ${landmark.description}`
+      : `${cityName} cityscape landmark architecture`;
     
-    if (llmResponse.ok) {
-      const llmData = await llmResponse.json();
-      const llmResult = llmData[0]?.generated_text?.trim() || '';
-      console.log('LLM identified landmark:', llmResult);
-      
-      // Clean up the response - extract just the landmark name
-      landmarkName = llmResult
-        .replace(/^(The |A |An )/i, '')
-        .replace(/\.$/, '')
-        .replace(/landmark$/i, '')
-        .replace(/in .+$/i, '')
-        .trim();
-      
-      console.log('Cleaned landmark name:', landmarkName);
-    }
-    
-    // Step 2: Search Unsplash for the identified landmark
-    const searchQuery = `${landmarkName} ${cityName} landmark architecture`;
-    console.log('Step 2: Searching Unsplash for:', searchQuery);
-
-    // Known landmarks for major cities with detailed descriptions
-    const landmarkDatabase: Record<string, { name: string; description: string }> = {
-      'copenhagen': { name: 'The Little Mermaid statue at Langelinie pier', description: 'small bronze and granite sculpture of a mermaid sitting on a rock, created by Edvard Eriksen in 1913, beside the water with harbor background, iconic Danish fairytale monument' },
-      'paris': { name: 'Eiffel Tower', description: 'massive wrought-iron lattice tower standing 330 meters tall, designed by Gustave Eiffel in 1889, brown-orange color, puddle iron construction, viewed from Trocadéro Gardens' },
-      'london': { name: 'Big Ben Clock Tower', description: 'Elizabeth Tower with neo-Gothic architecture, 96 meters tall, golden clock faces, ornate Victorian stonework, four-sided illuminated clock dials, Houses of Parliament, Westminster' },
-      'new york': { name: 'Statue of Liberty', description: 'colossal neoclassical copper statue, 93 meters tall with pedestal, green patina oxidized copper, holding torch and tablet, crown with seven spikes, Liberty Island, New York Harbor' },
-      'rome': { name: 'Roman Colosseum', description: 'massive ancient amphitheater with three tiers of arched openings, weathered travertine limestone, elliptical structure 189 meters long, iconic Roman ruins, Flavian dynasty architecture from 80 AD' },
-      'tokyo': { name: 'Tokyo Tower', description: 'bright orange and white lattice steel tower, 333 meters tall, inspired by Eiffel Tower design, main observation deck, red-orange international orange color, landmark against city skyline' },
-      'sydney': { name: 'Sydney Opera House', description: 'modernist expressionist building with distinctive white sail-shaped roof shells, designed by Jørn Utzon, multi-venue performing arts center, harbor location, gleaming white ceramic tiles' },
-      'dubai': { name: 'Burj Khalifa', description: 'supertall skyscraper 828 meters high, neo-futurism architecture with Y-shaped floor plan, glass and steel exterior, bundled tube structural system, tallest building in world, modern Dubai skyline' },
-      'barcelona': { name: 'Sagrada Familia basilica', description: 'Antoni Gaudí masterpiece with soaring spires and organic forms, Gothic and Art Nouveau style, intricate stone facades depicting nativity and passion, unfinished cathedral with construction cranes, Barcelona' },
-      'berlin': { name: 'Brandenburg Gate', description: 'neoclassical triumphal arch with six Doric columns, sandstone construction, topped with Quadriga sculpture of goddess Victoria in chariot, 26 meters tall, Pariser Platz, symbol of German unity' },
-      'amsterdam': { name: 'Amsterdam canal houses', description: 'narrow 17th century Dutch Golden Age townhouses with ornate gables, red brick facades, large windows, leaning forward, alongside tree-lined canals, colorful boats, typical Amsterdam architecture' },
-      'prague': { name: 'Prague Castle', description: 'sprawling castle complex with Gothic St. Vitus Cathedral spires, Romanesque and Baroque palace buildings, stone walls and towers, overlooking red-roofed Old Town, Czech Republic landmark' },
-      'moscow': { name: 'Saint Basil\'s Cathedral', description: 'colorful Russian Orthodox church with nine onion-shaped domes in red, green, blue, and gold, intricate patterns, Muscovite style architecture from 1561, Red Square, uniquely vibrant medieval fortress' },
-      'istanbul': { name: 'Hagia Sophia', description: 'massive Byzantine-Ottoman architectural masterpiece with enormous central dome 31 meters diameter, four minarets, red brick and stone exterior, Islamic calligraphy, former cathedral and mosque' },
-      'athens': { name: 'Parthenon temple', description: 'ancient Greek Doric temple on Acropolis hill, white marble columns, pediments with sculptures, 447 BC construction, weathered ancient ruins, classical Greek architecture, Athens skyline backdrop' },
-      'venice': { name: 'Rialto Bridge', description: 'iconic white limestone arch bridge across Grand Canal, Renaissance architecture with central portico, shops along sides, stone balustrades, single-span arch design from 1591' },
-      'singapore': { name: 'Marina Bay Sands', description: 'luxury integrated resort with three 55-story towers connected by 340-meter SkyPark rooftop, distinctive ship-shaped top deck with infinity pool, modern glass and steel architecture' },
-      'hong kong': { name: 'Victoria Harbour skyline', description: 'dramatic cityscape with modern glass skyscrapers reflecting in harbor waters, ICC tower, Bank of China, IFC towers, neon lights, mountains backdrop, dense urban forest of high-rises' },
-      'beijing': { name: 'Forbidden City', description: 'massive imperial palace complex with traditional Chinese palatial architecture, yellow glazed roof tiles, red walls, 980 buildings, Meridian Gate entrance, Hall of Supreme Harmony, Ming dynasty design' },
-      'san francisco': { name: 'Golden Gate Bridge', description: 'iconic Art Deco suspension bridge with international orange vermillion color, 2737 meters long, two main cables, Art Deco towers 227 meters tall, spanning San Francisco Bay' },
-      'miami': { name: 'South Beach Art Deco District', description: 'pastel-colored Art Deco buildings from 1930s, streamline moderne architecture, white and pink facades, neon signs, Ocean Drive, tropical palm trees, Miami Beach architectural style' },
-      'las vegas': { name: 'Las Vegas Strip at night', description: 'famous boulevard lined with enormous casino resort hotels, bright neon lights and LED displays, Bellagio fountains, Luxor pyramid, Eiffel Tower replica, spectacular nighttime illumination' },
-      'chicago': { name: 'Cloud Gate sculpture in Millennium Park', description: 'massive reflective stainless steel bean-shaped sculpture by Anish Kapoor, 10 meters tall, highly polished mirror-finish surface reflecting Chicago skyline and visitors, public art landmark' },
-      'los angeles': { name: 'Hollywood Sign on Mount Lee', description: 'iconic white block letters spelling HOLLYWOOD on hillside, each letter 13 meters tall, metal construction, Santa Monica Mountains, Los Angeles landmark visible across city' },
-      'seattle': { name: 'Space Needle', description: 'futuristic observation tower with flying saucer-shaped top, 184 meters tall, built for 1962 World\'s Fair, rotating restaurant, white and orange colored structure, Seattle Center' },
-      'boston': { name: 'Faneuil Hall Marketplace', description: 'historic brick building with copper grasshopper weathervane, Georgian colonial architecture, marketplace from 1742, meeting hall and shops, red brick facades, Boston Freedom Trail' },
-      'washington': { name: 'Washington Monument', description: 'tall white marble obelisk, 169 meters high, neoclassical design, aluminum pyramid capstone, National Mall, reflecting pool, classical Egyptian-inspired American memorial' },
-      'philadelphia': { name: 'Liberty Bell', description: 'iconic cracked bronze bell with visible crack, inscribed with biblical verse, symbol of American independence, housed in glass pavilion, Independence Mall, Philadelphia' },
-      'toronto': { name: 'CN Tower', description: 'concrete communications tower 553 meters tall, distinctive needle design, observation decks with glass floor, revolving restaurant, Toronto skyline landmark, tallest freestanding structure in Western Hemisphere' },
-      'vancouver': { name: 'Stanley Park seawall', description: 'scenic waterfront pathway around urban park, mountains and ocean views, dense temperate rainforest, totem poles, Lions Gate Bridge backdrop, Vancouver harbor and North Shore mountains' },
-      'montreal': { name: 'Notre-Dame Basilica', description: 'stunning Gothic Revival church interior with brilliant blue vaulted ceiling covered in golden stars, intricate wood carvings, stained glass windows, ornate altar, dramatic blue and gold color scheme' },
-      'rio de janeiro': { name: 'Christ the Redeemer statue', description: 'massive Art Deco statue of Jesus Christ with outstretched arms, 30 meters tall, white soapstone and reinforced concrete, atop Corcovado mountain, overlooking Rio de Janeiro and Guanabara Bay' },
-      'buenos aires': { name: 'Obelisco de Buenos Aires', description: 'white concrete obelisk monument 67 meters tall, located on Avenida 9 de Julio, erected 1936, neoclassical design, city center landmark, Argentine national symbol' },
-      'mexico city': { name: 'Palacio de Bellas Artes', description: 'magnificent art nouveau and art deco palace with white Carrara marble exterior, ornate copper dome with orange tiles, stained glass curtain depicting Mexican volcanoes, cultural center' },
-      'mumbai': { name: 'Gateway of India', description: 'Indo-Saracenic arch monument 26 meters tall, yellow basalt and reinforced concrete, overlooking Arabian Sea, built 1924, Mumbai Harbor, intricate latticework, colonial architecture' },
-      'delhi': { name: 'India Gate', description: 'war memorial arch 42 meters tall, red and yellow sandstone, inspired by Arc de Triomphe, names of 70000 soldiers inscribed, eternal flame Amar Jawan Jyoti, Rajpath boulevard' },
-      'bangkok': { name: 'Wat Arun Temple of Dawn', description: 'Buddhist temple with towering central prang spire 70 meters tall, decorated with colorful Chinese porcelain and seashells, Khmer-style architecture, beside Chao Phraya River, ornate Thai design' },
-      'seoul': { name: 'N Seoul Tower on Namsan Mountain', description: 'communication and observation tower 236 meters tall, distinctive tower design with observation deck, LED displays, cable car access, panoramic Seoul city views, iconic mountain-top landmark' },
-      'melbourne': { name: 'Flinders Street Station', description: 'grand Victorian-era railway station with distinctive yellow facade, green copper dome, arched entrance, Edwardian Baroque architecture from 1909, Melbourne city landmark, clocks at entrance' },
-      'auckland': { name: 'Sky Tower', description: 'telecommunications and observation tower 328 meters tall, concrete structure with observation decks, distinctive needle design, tallest freestanding structure in Southern Hemisphere, Auckland skyline' },
-      'cairo': { name: 'Great Pyramid of Giza', description: 'ancient Egyptian pyramid 139 meters tall, massive limestone blocks, smooth casing stones partially remaining, 4500 years old, Giza plateau, Sahara desert backdrop, one of Seven Wonders' },
-      'cape town': { name: 'Table Mountain', description: 'iconic flat-topped mountain 1085 meters high, sandstone cliffs, plateau summit, cable car, overlooking Cape Town and Atlantic Ocean, dramatic natural landmark, cloudy tablecloth phenomenon' },
-      'lisbon': { name: 'Belém Tower', description: 'fortified limestone tower with Manueline architecture, decorative battlements, Renaissance loggia, built 1519 on Tagus River, white stone construction, ornate balconies, Portuguese maritime symbol' },
-      'vienna': { name: 'Schönbrunn Palace', description: 'magnificent Baroque imperial palace with 1441 rooms, yellow ochre facades, formal gardens, Gloriette hilltop structure, rococo interiors, Habsburg summer residence, Vienna landmark' },
-      'brussels': { name: 'Atomium', description: 'unique modernist building shaped like iron crystal molecule magnified 165 billion times, nine steel spheres connected by tubes, 102 meters tall, built for 1958 World\'s Fair, silver metallic finish' },
-      'zurich': { name: 'Grossmünster twin towers', description: 'Romanesque Protestant church with distinctive twin towers, stone construction from 12th century, neo-Gothic tops added 1487, overlooking Limmat River, Zurich Old Town landmark' },
-      'stockholm': { name: 'Stockholm City Hall', description: 'red brick building with 106-meter tower topped by three golden crowns, National Romantic architecture, waterfront location, Blue Hall interior, Nobel Prize banquet venue' },
-      'oslo': { name: 'Oslo Opera House', description: 'modern white marble and glass building rising from Oslo Fjord, angular sloping roof for walking, Carrara marble and white granite, contemporary Scandinavian architecture, waterfront landmark' },
-      'helsinki': { name: 'Helsinki Cathedral', description: 'neoclassical white cathedral with green domes, symmetrical design, Corinthian columns, grand staircase, Senate Square, bright white facade against sky, Lutheran church, Helsinki symbol' },
-      'dublin': { name: 'Ha\'penny Bridge', description: 'cast-iron pedestrian bridge with graceful arch across River Liffey, white-painted metal, built 1816, ornate lamp posts, officially Wellington Bridge, iconic Dublin landmark' },
-      'edinburgh': { name: 'Edinburgh Castle on Castle Rock', description: 'historic fortress perched on volcanic rock outcrop, medieval and early modern architecture, stone walls and battlements, Scottish Crown Jewels location, dominating Edinburgh skyline' },
-      'maidenhead': { name: 'Maidenhead Railway Bridge', description: 'elegant brick railway bridge across River Thames with wide flat arches, designed by Isambard Kingdom Brunel 1838, red brick construction, graceful engineering, Great Western Railway' },
-      'ørestad': { name: 'Bella Sky Hotel towers', description: 'two modern leaning glass towers connected by sky bridge, dramatic 15-degree tilt, contemporary Scandinavian architecture, 76 meters tall, distinctive angular design, Copenhagen landmark' },
-      'ørestad syd': { name: 'Bella Sky Hotel towers', description: 'two modern leaning glass towers connected by sky bridge, dramatic 15-degree tilt, contemporary Scandinavian architecture, 76 meters tall, distinctive angular design, Copenhagen landmark' }
-    };
+    console.log('Searching Unsplash for:', searchQuery);
 
     
     // Search Unsplash for real photos
@@ -164,7 +115,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           image: null, 
-          landmark: landmarkName,
+          landmark: landmark?.name || cityName,
           error: 'No photos found'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -175,11 +126,11 @@ serve(async (req) => {
     const photo = unsplashData.results[0];
     const imageUrl = photo.urls.regular; // High quality but not too large
     
-    console.log('Successfully found photo for:', landmarkName);
+    console.log('Successfully found photo for:', landmark?.name || cityName);
     return new Response(
       JSON.stringify({ 
         image: imageUrl, 
-        landmark: landmarkName,
+        landmark: landmark?.name || cityName,
         photographer: photo.user.name,
         photographerUrl: photo.user.links.html
       }),
