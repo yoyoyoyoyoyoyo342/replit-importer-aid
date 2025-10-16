@@ -14,15 +14,72 @@ serve(async (req) => {
   try {
     const { location } = await req.json();
     const unsplashToken = Deno.env.get('UNSPLASH_ACCESS_KEY');
+    const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
     if (!unsplashToken) {
       console.error('UNSPLASH_ACCESS_KEY not configured');
       throw new Error('UNSPLASH_ACCESS_KEY not configured');
     }
 
+    if (!huggingFaceToken) {
+      console.error('HUGGING_FACE_ACCESS_TOKEN not configured');
+      throw new Error('HUGGING_FACE_ACCESS_TOKEN not configured');
+    }
+
     const fullLocation = location.trim();
-    const cityName = location.split(',')[0].trim().toLowerCase();
-    console.log('Fetching real photo for:', fullLocation);
+    const cityName = location.split(',')[0].trim();
+    console.log('Step 1: Identifying landmark using LLM for:', fullLocation);
+
+    // Step 1: Use Hugging Face LLM to identify the most famous landmark
+    const llmResponse = await fetch('https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${huggingFaceToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: `What is the most famous landmark in ${cityName}? Reply with ONLY the landmark name, nothing else.`,
+        parameters: {
+          max_new_tokens: 50,
+          temperature: 0.3,
+          return_full_text: false
+        }
+      }),
+    });
+
+    if (!llmResponse.ok) {
+      const errorText = await llmResponse.text();
+      console.error('Hugging Face LLM API error:', llmResponse.status, errorText);
+      // Fallback to database if LLM fails
+      const landmark = landmarkDatabase[cityName.toLowerCase()];
+      if (landmark) {
+        console.log('LLM failed, using database:', landmark.name);
+      } else {
+        throw new Error(`Hugging Face LLM API error: ${llmResponse.status}`);
+      }
+    }
+
+    let landmarkName = cityName;
+    
+    if (llmResponse.ok) {
+      const llmData = await llmResponse.json();
+      const llmResult = llmData[0]?.generated_text?.trim() || '';
+      console.log('LLM identified landmark:', llmResult);
+      
+      // Clean up the response - extract just the landmark name
+      landmarkName = llmResult
+        .replace(/^(The |A |An )/i, '')
+        .replace(/\.$/, '')
+        .replace(/landmark$/i, '')
+        .replace(/in .+$/i, '')
+        .trim();
+      
+      console.log('Cleaned landmark name:', landmarkName);
+    }
+    
+    // Step 2: Search Unsplash for the identified landmark
+    const searchQuery = `${landmarkName} ${cityName} landmark architecture`;
+    console.log('Step 2: Searching Unsplash for:', searchQuery);
 
     // Known landmarks for major cities with detailed descriptions
     const landmarkDatabase: Record<string, { name: string; description: string }> = {
@@ -83,17 +140,6 @@ serve(async (req) => {
     };
 
     
-    let searchQuery: string;
-    const landmark = landmarkDatabase[cityName];
-    
-    if (landmark) {
-      console.log('Searching Unsplash for:', landmark.name);
-      searchQuery = `${landmark.name} landmark architecture`;
-    } else {
-      console.log('Searching generic cityscape for:', cityName);
-      searchQuery = `${cityName} cityscape architecture landmark`;
-    }
-    
     // Search Unsplash for real photos
     const unsplashResponse = await fetch(
       `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=5&orientation=portrait&content_filter=high`,
@@ -118,7 +164,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           image: null, 
-          landmark: landmark?.name || cityName,
+          landmark: landmarkName,
           error: 'No photos found'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -129,11 +175,11 @@ serve(async (req) => {
     const photo = unsplashData.results[0];
     const imageUrl = photo.urls.regular; // High quality but not too large
     
-    console.log('Successfully found photo for:', landmark?.name || cityName);
+    console.log('Successfully found photo for:', landmarkName);
     return new Response(
       JSON.stringify({ 
         image: imageUrl, 
-        landmark: landmark?.name || cityName,
+        landmark: landmarkName,
         photographer: photo.user.name,
         photographerUrl: photo.user.links.html
       }),
