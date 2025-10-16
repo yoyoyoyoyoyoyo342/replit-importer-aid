@@ -22,56 +22,79 @@ serve(async (req) => {
     }
 
     const fullLocation = location.trim();
-    const cityName = location.split(',')[0].trim();
-    console.log('Step 1: Identifying landmark for:', fullLocation);
+    const cityName = location.split(',')[0].trim().toLowerCase();
+    console.log('Generating landmark for:', fullLocation);
 
-    // Step 1: Use Hugging Face LLM to identify the most famous landmark
-    const landmarkIdentifyResponse = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${huggingFaceToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: `What is THE most famous, iconic, and recognizable landmark or building in ${fullLocation}? Reply with ONLY the landmark name and a brief architectural description in this exact format: "Name: [landmark name], Description: [brief description]". If this is a very small town with no famous landmarks, reply with exactly "FALLBACK"`,
-        parameters: {
-          max_new_tokens: 150,
-          temperature: 0.7,
-          return_full_text: false
-        }
-      }),
-    });
+    // Known landmarks for major cities
+    const landmarkDatabase: Record<string, { name: string; description: string }> = {
+      'copenhagen': { name: 'The Little Mermaid statue', description: 'bronze statue on a rock by the waterside' },
+      'paris': { name: 'Eiffel Tower', description: 'iconic iron lattice tower' },
+      'london': { name: 'Big Ben', description: 'famous clock tower' },
+      'new york': { name: 'Statue of Liberty', description: 'neoclassical sculpture' },
+      'rome': { name: 'Colosseum', description: 'ancient amphitheater' },
+      'tokyo': { name: 'Tokyo Tower', description: 'red lattice tower' },
+      'sydney': { name: 'Sydney Opera House', description: 'distinctive sail-shaped building' },
+      'dubai': { name: 'Burj Khalifa', description: 'tallest building in the world' },
+      'barcelona': { name: 'Sagrada Familia', description: 'Gaudi\'s unfinished basilica' },
+      'berlin': { name: 'Brandenburg Gate', description: 'neoclassical triumphal arch' },
+      'amsterdam': { name: 'Amsterdam Canal Houses', description: 'historic canal architecture' },
+      'prague': { name: 'Prague Castle', description: 'historic castle complex' },
+      'moscow': { name: 'Saint Basil\'s Cathedral', description: 'colorful onion-domed church' },
+      'istanbul': { name: 'Hagia Sophia', description: 'Byzantine-Ottoman architecture' },
+      'athens': { name: 'Parthenon', description: 'ancient Greek temple' },
+      'venice': { name: 'Rialto Bridge', description: 'iconic bridge over Grand Canal' },
+      'singapore': { name: 'Marina Bay Sands', description: 'luxury hotel with rooftop infinity pool' },
+      'hong kong': { name: 'Victoria Harbour', description: 'skyline with skyscrapers' },
+      'beijing': { name: 'Forbidden City', description: 'imperial palace complex' },
+      'san francisco': { name: 'Golden Gate Bridge', description: 'iconic suspension bridge' },
+      'miami': { name: 'South Beach', description: 'art deco architecture and beach' },
+      'las vegas': { name: 'Las Vegas Strip', description: 'iconic casino hotels' },
+      'chicago': { name: 'Cloud Gate', description: 'reflective bean sculpture' },
+      'los angeles': { name: 'Hollywood Sign', description: 'iconic white letters on hillside' },
+      'seattle': { name: 'Space Needle', description: 'futuristic observation tower' },
+      'boston': { name: 'Faneuil Hall', description: 'historic meeting hall' },
+      'washington': { name: 'Washington Monument', description: 'marble obelisk' },
+      'philadelphia': { name: 'Liberty Bell', description: 'historic bell' },
+      'toronto': { name: 'CN Tower', description: 'concrete communications tower' },
+      'vancouver': { name: 'Stanley Park', description: 'urban park with seawall' },
+      'montreal': { name: 'Notre-Dame Basilica', description: 'Gothic Revival church' },
+      'rio de janeiro': { name: 'Christ the Redeemer', description: 'art deco statue' },
+      'buenos aires': { name: 'Obelisk', description: 'historic monument' },
+      'mexico city': { name: 'Palacio de Bellas Artes', description: 'art nouveau palace' },
+      'mumbai': { name: 'Gateway of India', description: 'arch monument' },
+      'delhi': { name: 'India Gate', description: 'war memorial arch' },
+      'bangkok': { name: 'Wat Arun', description: 'Buddhist temple' },
+      'seoul': { name: 'N Seoul Tower', description: 'communication tower on mountain' },
+      'melbourne': { name: 'Flinders Street Station', description: 'Victorian railway station' },
+      'auckland': { name: 'Sky Tower', description: 'telecommunications tower' },
+      'cairo': { name: 'Great Pyramid of Giza', description: 'ancient pyramid' },
+      'cape town': { name: 'Table Mountain', description: 'flat-topped mountain' },
+      'lisbon': { name: 'Belém Tower', description: 'fortified tower' },
+      'vienna': { name: 'Schönbrunn Palace', description: 'baroque palace' },
+      'brussels': { name: 'Atomium', description: 'modernist building' },
+      'zurich': { name: 'Grossmünster', description: 'romanesque church' },
+      'stockholm': { name: 'City Hall', description: 'red brick building with tower' },
+      'oslo': { name: 'Oslo Opera House', description: 'modern white marble building' },
+      'helsinki': { name: 'Helsinki Cathedral', description: 'white neoclassical cathedral' },
+      'dublin': { name: 'Ha\'penny Bridge', description: 'pedestrian iron bridge' },
+      'edinburgh': { name: 'Edinburgh Castle', description: 'historic fortress' },
+      'maidenhead': { name: 'Maidenhead Bridge', description: 'historic Thames bridge' },
+      'ørestad': { name: 'Bella Sky Hotel', description: 'modern leaning twin towers' },
+      'ørestad syd': { name: 'Bella Sky Hotel', description: 'modern leaning twin towers' }
+    };
 
-    if (!landmarkIdentifyResponse.ok) {
-      const errorText = await landmarkIdentifyResponse.text();
-      console.error('Hugging Face LLM API error:', landmarkIdentifyResponse.status, errorText);
-      throw new Error(`Hugging Face LLM API error: ${landmarkIdentifyResponse.status}`);
-    }
-
-    const landmarkData = await landmarkIdentifyResponse.json();
-    const landmarkInfo = landmarkData[0]?.generated_text?.trim() || '';
-    console.log('Hugging Face identified landmark:', landmarkInfo);
-
-    // Step 2: Generate image prompt based on LLM response
     let imagePrompt: string;
+    const landmark = landmarkDatabase[cityName];
     
-    if (landmarkInfo.includes('FALLBACK') || landmarkInfo.length < 10) {
-      // Fallback for small towns without famous landmarks
-      console.log('Using fallback generic cityscape for:', cityName);
-      imagePrompt = `Beautiful ${cityName} cityscape, charming local architecture, town center view, professional photograph, warm golden hour lighting, photorealistic, ultra detailed, 8k resolution`;
+    if (landmark) {
+      console.log('Using known landmark:', landmark.name);
+      imagePrompt = `Professional photograph of ${landmark.name}, ${landmark.description}, located in ${fullLocation}. Iconic view, architectural photography, golden hour lighting, photorealistic, ultra detailed, 8k resolution. This is the real famous ${landmark.name} landmark.`;
     } else {
-      // Extract landmark name and description
-      const nameMatch = landmarkInfo.match(/Name:\s*([^,]+)/i);
-      const descMatch = landmarkInfo.match(/Description:\s*(.+)/i);
-      
-      const landmarkName = nameMatch ? nameMatch[1].trim() : landmarkInfo.split(',')[0];
-      const description = descMatch ? descMatch[1].trim() : 'iconic architecture';
-      
-      console.log('Generating image for landmark:', landmarkName);
-      imagePrompt = `Professional photograph of ${landmarkName}, ${description}, located in ${fullLocation}. Iconic view, architectural photography, golden hour lighting, photorealistic, ultra detailed, 8k resolution. This is the real ${landmarkName} landmark.`;
+      console.log('Using generic cityscape for:', cityName);
+      imagePrompt = `Beautiful ${cityName} cityscape, iconic architecture, city center view, professional photograph, warm golden hour lighting, photorealistic, ultra detailed, 8k resolution`;
     }
     
-    console.log('Step 2: Generating image with FLUX.1-schnell:', imagePrompt);
+    console.log('Generating image with FLUX.1-schnell:', imagePrompt);
 
     const hf = new HfInference(huggingFaceToken);
     const image = await hf.textToImage({
