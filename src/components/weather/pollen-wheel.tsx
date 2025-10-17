@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/language-context";
 
 interface PollenData {
   alder: number;
@@ -43,6 +44,7 @@ const SEVERITY_LEVELS = ['mild', 'moderate', 'severe'];
 
 export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const activeUserId = userId || user?.id;
   const [userAllergies, setUserAllergies] = useState<UserAllergy[]>([]);
   const [isAddingAllergy, setIsAddingAllergy] = useState(false);
@@ -84,14 +86,14 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
     
     if (error) {
       if (error.code === '23505') {
-        toast.error('You already have this allergy tracked');
+        toast.error(t('pollen.alreadyTracked'));
       } else {
-        toast.error('Failed to add allergy');
+        toast.error(t('pollen.addFailed'));
       }
       return;
     }
     
-    toast.success('Allergy added successfully');
+    toast.success(t('pollen.addSuccess'));
     setNewAllergen("");
     setNewSeverity("moderate");
     setIsAddingAllergy(false);
@@ -105,11 +107,11 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
       .eq('id', id);
     
     if (error) {
-      toast.error('Failed to remove allergy');
+      toast.error(t('pollen.removeFailed'));
       return;
     }
     
-    toast.success('Allergy removed');
+    toast.success(t('pollen.removeSuccess'));
     fetchUserAllergies();
   };
 
@@ -117,13 +119,13 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
     return (
       <Card className="h-full">
         <CardHeader>
-          <CardTitle className="text-lg">Pollen Index</CardTitle>
-          <CardDescription>Live seasonal allergy data</CardDescription>
+          <CardTitle className="text-lg">{t('pollen.pollenIndex')}</CardTitle>
+          <CardDescription>{t('pollen.liveData')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
-            <div>No pollen data available</div>
-            <div className="text-xs mt-1">Location data required</div>
+            <div>{t('pollen.noData')}</div>
+            <div className="text-xs mt-1">{t('pollen.locationRequired')}</div>
           </div>
         </CardContent>
       </Card>
@@ -139,42 +141,42 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
       value: pollenData.alder || 0,
       color: "hsl(25 95% 53%)",
       months: [0, 1, 2, 3],
-      season: "Early Spring"
+      season: t('pollen.earlySpring')
     },
     {
       name: "Birch",
       value: pollenData.birch || 0,
       color: "hsl(142 71% 45%)",
       months: [2, 3, 4],
-      season: "Spring"
+      season: t('pollen.spring')
     },
     {
       name: "Grass",
       value: pollenData.grass || 0,
       color: "hsl(120 60% 50%)",
       months: [4, 5, 6, 7, 8],
-      season: "Late Spring/Summer"
+      season: t('pollen.lateSpring')
     },
     {
       name: "Mugwort",
       value: pollenData.mugwort || 0,
       color: "hsl(280 70% 55%)",
       months: [6, 7, 8],
-      season: "Late Summer"
+      season: t('pollen.lateSummer')
     },
     {
       name: "Olive",
       value: pollenData.olive || 0,
       color: "hsl(47 96% 53%)",
       months: [3, 4, 5],
-      season: "Spring/Summer"
+      season: t('pollen.springSummer')
     },
     {
       name: "Ragweed",
       value: pollenData.ragweed || 0,
       color: "hsl(15 80% 50%)",
       months: [7, 8, 9, 10],
-      season: "Fall"
+      season: t('pollen.autumn')
     }
   ];
 
@@ -192,11 +194,11 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
   });
 
   const getIntensityLabel = (value: number) => {
-    if (value === 0) return "No risk";
-    if (value <= 2) return "Low";
-    if (value <= 5) return "Medium";
-    if (value <= 8) return "High";
-    return "Very High";
+    if (value === 0) return t('pollen.noRisk');
+    if (value <= 2) return t('pollen.low');
+    if (value <= 5) return t('pollen.medium');
+    if (value <= 8) return t('pollen.high');
+    return t('pollen.veryHigh');
   };
 
   const getUserAllergyAlert = (pollenName: string, value: number): boolean => {
@@ -238,46 +240,46 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <div>
-          <CardTitle className="text-lg">Pollen Index</CardTitle>
-          <CardDescription>Live seasonal allergy data</CardDescription>
+          <CardTitle className="text-lg">{t('pollen.pollenIndex')}</CardTitle>
+          <CardDescription>{t('pollen.liveData')}</CardDescription>
         </div>
         {activeUserId && (
           <Dialog open={isAddingAllergy} onOpenChange={setIsAddingAllergy}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
                 <Plus className="w-4 h-4 mr-1" />
-                Track Allergy
+                {t('pollen.trackAllergy')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Allergy to Track</DialogTitle>
+                <DialogTitle>{t('pollen.addAllergy')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="allergen">Allergen</Label>
+                  <Label htmlFor="allergen">{t('pollen.allergen')}</Label>
                   <Input
                     id="allergen"
                     value={newAllergen}
                     onChange={(e) => setNewAllergen(e.target.value)}
-                    placeholder="e.g. Grass, Birch, Ragweed"
+                    placeholder={t('pollen.allergenPlaceholder')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="severity">Sensitivity Level</Label>
+                  <Label htmlFor="severity">{t('pollen.sensitivityLevel')}</Label>
                   <Select value={newSeverity} onValueChange={setNewSeverity}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="mild">Mild</SelectItem>
-                      <SelectItem value="moderate">Moderate</SelectItem>
-                      <SelectItem value="severe">Severe</SelectItem>
+                      <SelectItem value="mild">{t('pollen.mild')}</SelectItem>
+                      <SelectItem value="moderate">{t('pollen.moderate')}</SelectItem>
+                      <SelectItem value="severe">{t('pollen.severe')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <Button onClick={addAllergy} className="w-full">
-                  Add Allergy
+                  {t('pollen.addAllergyButton')}
                 </Button>
               </div>
             </DialogContent>
@@ -413,7 +415,7 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
                 fill="hsl(var(--muted-foreground))"
                 fontWeight="500"
               >
-                Pollen Index
+                {t('pollen.pollenIndex')}
               </text>
             </svg>
           </div>
@@ -422,7 +424,7 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
         {/* Detailed Pollen List */}
         <div className="space-y-2">
           <div className="text-sm font-medium text-muted-foreground mb-3">
-            Current Season Pollen ({seasonalPollens.length} active)
+            {t('pollen.currentSeason')} ({seasonalPollens.length} {t('pollen.active')})
           </div>
           {seasonalPollens.map((pollen) => {
             const hasAlert = activeUserId && getUserAllergyAlert(pollen.name, pollen.value);
@@ -449,7 +451,7 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
         {/* User Tracked Allergies */}
         {activeUserId && userAllergies.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-medium text-sm">Your Tracked Allergies</h4>
+            <h4 className="font-medium text-sm">{t('pollen.yourTracked')}</h4>
             <div className="flex flex-wrap gap-2">
               {userAllergies.map((allergy) => (
                 <Badge key={allergy.id} variant="secondary" className="flex items-center gap-1">
@@ -470,12 +472,12 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
 
         {/* Information */}
         <div className="pt-3 border-t text-xs text-muted-foreground space-y-1">
-          <div><strong>Pollen Scale:</strong></div>
-          <div>0 = No risk • 1-2 = Low • 3-5 = Medium • 6-8 = High • 9+ = Very High</div>
+          <div><strong>{t('pollen.scale')}</strong></div>
+          <div>{t('pollen.scaleInfo')}</div>
           {activeUserId && (
-            <div className="text-destructive">🔴 Red alerts for your tracked allergies when levels may affect you</div>
+            <div className="text-destructive">🔴 {t('pollen.alertInfo')}</div>
           )}
-          <div>Higher numbers indicate increased pollen concentration. Consider limiting outdoor activities during high pollen periods.</div>
+          <div>{t('pollen.adviceInfo')}</div>
         </div>
       </CardContent>
     </Card>
