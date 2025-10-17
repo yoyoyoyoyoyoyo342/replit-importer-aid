@@ -28,6 +28,7 @@ interface UserAllergy {
 
 interface PollenWheelProps {
   pollenData?: PollenData;
+  userId?: string;
 }
 
 interface SeasonalPollen {
@@ -40,26 +41,27 @@ interface SeasonalPollen {
 
 const SEVERITY_LEVELS = ['mild', 'moderate', 'severe'];
 
-export function PollenWheel({ pollenData }: PollenWheelProps) {
+export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
   const { user } = useAuth();
+  const activeUserId = userId || user?.id;
   const [userAllergies, setUserAllergies] = useState<UserAllergy[]>([]);
   const [isAddingAllergy, setIsAddingAllergy] = useState(false);
   const [newAllergen, setNewAllergen] = useState("");
   const [newSeverity, setNewSeverity] = useState("moderate");
 
   useEffect(() => {
-    if (user) {
+    if (activeUserId) {
       fetchUserAllergies();
     }
-  }, [user]);
+  }, [activeUserId]);
 
   const fetchUserAllergies = async () => {
-    if (!user) return;
+    if (!activeUserId) return;
     
     const { data, error } = await supabase
       .from('user_allergies')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('user_id', activeUserId);
     
     if (error) {
       console.error('Error fetching allergies:', error);
@@ -70,12 +72,12 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
   };
 
   const addAllergy = async () => {
-    if (!user || !newAllergen.trim()) return;
+    if (!activeUserId || !newAllergen.trim()) return;
     
     const { error } = await supabase
       .from('user_allergies')
       .insert({
-        user_id: user.id,
+        user_id: activeUserId,
         allergen: newAllergen.trim(),
         severity: newSeverity
       });
@@ -128,74 +130,65 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
     );
   }
 
+  // October is month 9 (0-indexed)
   const currentMonth = new Date().getMonth(); // 0-11
   
   const allPollens: SeasonalPollen[] = [
     {
       name: "Alder",
-      value: pollenData.alder,
+      value: pollenData.alder || 0,
       color: "hsl(25 95% 53%)",
       months: [0, 1, 2, 3],
       season: "Early Spring"
     },
     {
       name: "Birch",
-      value: pollenData.birch,
+      value: pollenData.birch || 0,
       color: "hsl(142 71% 45%)",
       months: [2, 3, 4],
       season: "Spring"
     },
     {
       name: "Grass",
-      value: pollenData.grass,
+      value: pollenData.grass || 0,
       color: "hsl(120 60% 50%)",
       months: [4, 5, 6, 7, 8],
       season: "Late Spring/Summer"
     },
     {
       name: "Mugwort",
-      value: pollenData.mugwort,
+      value: pollenData.mugwort || 0,
       color: "hsl(280 70% 55%)",
       months: [6, 7, 8],
       season: "Late Summer"
     },
     {
       name: "Olive",
-      value: pollenData.olive,
+      value: pollenData.olive || 0,
       color: "hsl(47 96% 53%)",
       months: [3, 4, 5],
       season: "Spring/Summer"
     },
     {
       name: "Ragweed",
-      value: pollenData.ragweed,
+      value: pollenData.ragweed || 0,
       color: "hsl(15 80% 50%)",
-      months: [7, 8, 9],
+      months: [7, 8, 9, 10],
       season: "Fall"
     }
   ];
 
-  // Add user allergies to pollen data if they track allergies not in the main list
-  const userAllergyPollens: SeasonalPollen[] = userAllergies
-    .filter(allergy => !allPollens.some(p => p.name.toLowerCase() === allergy.allergen.toLowerCase()))
-    .map(allergy => ({
-      name: allergy.allergen,
-      value: 3, // Default moderate level for tracked allergies
-      color: "hsl(330 70% 55%)", // Purple for user-added allergens
-      months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], // Year-round
-      season: "Year-round"
-    }));
-
-  // Combine standard and user pollens
-  const combinedPollens = [...allPollens, ...userAllergyPollens];
-  
-  // Filter to show seasonal pollens (current month ± 1 month for better coverage)
-  const seasonalPollens = combinedPollens.filter(pollen => {
+  // Filter to show only seasonal pollens (current season ± 1 month)
+  // AND only show pollens with value > 0
+  const seasonalPollens = allPollens.filter(pollen => {
     const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
     const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
-    return pollen.months.includes(prevMonth) || 
-           pollen.months.includes(currentMonth) || 
-           pollen.months.includes(nextMonth);
+    const isInSeason = pollen.months.includes(prevMonth) || 
+                       pollen.months.includes(currentMonth) || 
+                       pollen.months.includes(nextMonth);
+    
+    // Show pollen if it's in season AND has a value > 0 (actual pollen detected)
+    return isInSeason && pollen.value > 0;
   });
 
   const getIntensityLabel = (value: number) => {
@@ -207,6 +200,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
   };
 
   const getUserAllergyAlert = (pollenName: string, value: number): boolean => {
+    if (!activeUserId) return false;
     const userAllergy = userAllergies.find(a => a.allergen.toLowerCase() === pollenName.toLowerCase());
     if (!userAllergy || value === 0) return false;
     
@@ -244,7 +238,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
           <CardTitle className="text-lg">Pollen Index</CardTitle>
           <CardDescription>Live seasonal allergy data</CardDescription>
         </div>
-        {user && (
+        {activeUserId && (
           <Dialog open={isAddingAllergy} onOpenChange={setIsAddingAllergy}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
@@ -338,7 +332,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
                 
                 currentAngle = endAngle;
                 
-                const hasAlert = user && getUserAllergyAlert(pollen.name, pollen.value);
+                const hasAlert = activeUserId && getUserAllergyAlert(pollen.name, pollen.value);
                 
                 return (
                   <g key={pollen.name}>
@@ -427,7 +421,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
             Current Season Pollen ({seasonalPollens.length} active)
           </div>
           {seasonalPollens.map((pollen) => {
-            const hasAlert = user && getUserAllergyAlert(pollen.name, pollen.value);
+            const hasAlert = activeUserId && getUserAllergyAlert(pollen.name, pollen.value);
             const level = getIntensityLabel(pollen.value);
             
             return (
@@ -449,7 +443,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
         </div>
 
         {/* User Tracked Allergies */}
-        {user && userAllergies.length > 0 && (
+        {activeUserId && userAllergies.length > 0 && (
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Your Tracked Allergies</h4>
             <div className="flex flex-wrap gap-2">
@@ -474,7 +468,7 @@ export function PollenWheel({ pollenData }: PollenWheelProps) {
         <div className="pt-3 border-t text-xs text-muted-foreground space-y-1">
           <div><strong>Pollen Scale:</strong></div>
           <div>0 = No risk • 1-2 = Low • 3-5 = Medium • 6-8 = High • 9+ = Very High</div>
-          {user && (
+          {activeUserId && (
             <div className="text-destructive">🔴 Red alerts for your tracked allergies when levels may affect you</div>
           )}
           <div>Higher numbers indicate increased pollen concentration. Consider limiting outdoor activities during high pollen periods.</div>
