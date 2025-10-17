@@ -30,6 +30,7 @@ export default function WeatherPage() {
     lon: number;
     name: string;
   } | null>(null);
+  const [isAutoDetected, setIsAutoDetected] = useState(false);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [userRoutines, setUserRoutines] = useState([]);
@@ -101,6 +102,7 @@ export default function WeatherPage() {
             lon: longitude,
             name: cityName
           });
+          setIsAutoDetected(true);
         } catch (geocodeError) {
           console.log("Reverse geocoding failed, using coordinates only");
           setSelectedLocation({
@@ -108,6 +110,7 @@ export default function WeatherPage() {
             lon: longitude,
             name: "Current Location"
           });
+          setIsAutoDetected(true);
         }
       } catch (error) {
         console.log("Location detection failed, user will need to search manually");
@@ -121,6 +124,7 @@ export default function WeatherPage() {
       lon,
       name: locationName
     });
+    setIsAutoDetected(false);
   };
   const handleRefresh = () => {
     refetch();
@@ -209,12 +213,12 @@ export default function WeatherPage() {
 
             {/* Desktop Layout - Only show on large screens */}
             <div className="hidden lg:block mb-6">
-              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
+              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} />
             </div>
 
             {/* Mobile Layout - Only show on small/medium screens */}
             <div className="lg:hidden">
-              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} />
+              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} />
             </div>
 
             {/* Weather Cards in User's Preferred Order */}

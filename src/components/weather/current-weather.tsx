@@ -11,6 +11,7 @@ interface CurrentWeatherProps {
   isLoading: boolean;
   lastUpdated: Date | null;
   isImperial?: boolean;
+  isAutoDetected?: boolean;
 }
 export function CurrentWeather({
   weatherData,
@@ -18,7 +19,8 @@ export function CurrentWeather({
   onRefresh,
   isLoading,
   lastUpdated,
-  isImperial = true
+  isImperial = true,
+  isAutoDetected = false
 }: CurrentWeatherProps) {
   const [showLocationCard, setShowLocationCard] = useState(false);
   const getConditionIcon = (condition: string) => {
@@ -53,7 +55,7 @@ export function CurrentWeather({
             <div className="flex items-center gap-2">
               <MapPin className="text-primary w-3 h-3" />
               <span className="text-sm font-semibold text-foreground">
-                {mostAccurate.location.split(',')[0]}
+                {isAutoDetected ? "My Location" : mostAccurate.location.split(',')[0]}
               </span>
             </div>
             
