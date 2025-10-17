@@ -44,21 +44,37 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
     (current.accuracy > prev.accuracy) ? current : prev
   );
 
-  // Get hourly data for a specific day
+  // Get hourly data for a specific day (midnight to midnight)
   const getHourlyForDay = (dayIndex: number) => {
     if (!hourlyForecast.length) return [];
     
-    // Since hourly data is sequential starting from current time,
-    // each day gets 24 consecutive hours
-    const startIndex = dayIndex * 24;
-    const endIndex = startIndex + 24;
+    // Create a date for the target day at midnight
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + dayIndex);
+    const targetDateStr = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // Make sure we don't exceed available data
-    if (startIndex >= hourlyForecast.length) {
-      return [];
+    // Filter hourly data to only include hours from this specific day
+    // We need to parse the time format (e.g., "14:00" or "02:00 PM")
+    const dayHours: HourlyForecast[] = [];
+    
+    for (const hour of hourlyForecast) {
+      // Calculate which day this hour belongs to based on its position
+      const now = new Date();
+      const hourIndex = hourlyForecast.indexOf(hour);
+      const hourDate = new Date(now.getTime() + hourIndex * 60 * 60 * 1000);
+      const hourDateStr = hourDate.toISOString().split('T')[0];
+      
+      if (hourDateStr === targetDateStr) {
+        dayHours.push(hour);
+      }
+      
+      // Stop if we have 24 hours or we've passed the target day
+      if (dayHours.length >= 24 || hourDateStr > targetDateStr) {
+        break;
+      }
     }
     
-    return hourlyForecast.slice(startIndex, Math.min(endIndex, hourlyForecast.length));
+    return dayHours;
   };
 
   const toggleDay = (index: number) => {

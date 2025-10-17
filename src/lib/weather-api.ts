@@ -432,10 +432,23 @@ export const weatherApi = {
       idx
     });
 
-    // Generate hourly forecast for 10 days (240 hours total)
-    const totalHours = Math.min(240, hourlyTimes.length - idx); // 10 days * 24 hours, but don't exceed available data
-    const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + totalHours).map((t: string, i: number) => {
+    // Generate hourly forecast aligned to midnight for each day (240 hours = 10 days)
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Calculate hours until next midnight
+    const hoursUntilMidnight = 24 - currentHour - (currentMinute > 0 ? 1 : 0);
+    
+    // We need data from now until 10 full days from next midnight
+    // That's: remaining hours today + (10 days * 24 hours)
+    const totalHoursNeeded = hoursUntilMidnight + (10 * 24);
+    const maxHours = Math.min(totalHoursNeeded, hourlyTimes.length - idx);
+    
+    const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + maxHours).map((t: string, i: number) => {
       const j = idx + i;
+      const hourDate = new Date(t);
+      
       // Enhanced precipitation calculation for hourly forecast
       const precipProb = data?.hourly?.precipitation_probability?.[j] ?? 0;
       const precip = data?.hourly?.precipitation?.[j] ?? 0;
@@ -445,7 +458,7 @@ export const weatherApi = {
       const totalPrecip = Math.round((precip + rain + showers + snow) * 10) / 10;
       
       return {
-        time: new Date(t).toLocaleTimeString([], { hour: "2-digit" }),
+        time: hourDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         temperature: Math.round(data?.hourly?.temperature_2m?.[j] ?? 0),
         condition: weatherCodeToText(data?.hourly?.weathercode?.[j]),
         precipitation: Math.max(precipProb, totalPrecip > 0 ? Math.min(100, totalPrecip * 20) : 0),
@@ -514,10 +527,11 @@ export const weatherApi = {
         return;
       }
 
+      // Use high accuracy for hyper-local weather data
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000, // 5 minutes
+        enableHighAccuracy: true, // GPS-level accuracy
+        timeout: 15000, // Extended timeout for high accuracy
+        maximumAge: 0, // Always get fresh location, don't use cached
       });
     });
   },
