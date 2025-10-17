@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { weatherApi } from "@/lib/weather-api";
 import { Location } from "@/types/weather";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/language-context";
 interface LocationSearchProps {
   onLocationSelect: (lat: number, lon: number, locationName: string) => void;
 }
@@ -19,6 +20,7 @@ export function LocationSearch({
   const {
     toast
   } = useToast();
+  const { t } = useLanguage();
 
   // Debounce search query
   useEffect(() => {
@@ -60,7 +62,7 @@ export function LocationSearch({
   };
   return <div className="relative flex-1 max-w-md z-[9999]">
       <div className="relative">
-        <Input type="text" placeholder="Search for a city..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-16 py-3 bg-input text-black border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-black rounded-xl text-ellipsis" style={{ textAlign: 'left' }} />
+        <Input type="text" placeholder={t('search.placeholder')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-16 py-3 bg-input text-black border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-black rounded-xl text-ellipsis" style={{ textAlign: 'left' }} />
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
         <Button onClick={handleLocationDetection} disabled={isDetecting} variant="ghost" size="sm" className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-2">
           {isDetecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
@@ -72,7 +74,7 @@ export function LocationSearch({
           <CardContent className="p-0">
             {isLoading ? <div className="p-4 text-center text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
-                Searching...
+                {t('search.searching')}
               </div> : locations.length > 0 ? <div className="max-h-60 overflow-y-auto">
                 {locations.map((location, index) => <button key={index} onClick={() => {
             onLocationSelect(location.latitude, location.longitude, `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`);
@@ -84,7 +86,7 @@ export function LocationSearch({
                     </div>
                   </button>)}
               </div> : searchQuery.length > 2 ? <div className="p-4 text-center text-muted-foreground">
-                No locations found
+                {t('search.noResults')}
               </div> : null}
           </CardContent>
         </Card>}

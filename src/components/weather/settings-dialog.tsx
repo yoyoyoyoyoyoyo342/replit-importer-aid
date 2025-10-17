@@ -153,7 +153,7 @@ export function SettingsDialog({
               {t('settings.language')}
             </Label>
             <div className="grid gap-2">
-              {(['en-GB', 'da', 'sv', 'no', 'fr', 'it'] as Language[]).map((lang) => (
+              {(['en-GB', 'en-US', 'da', 'sv', 'no', 'fr', 'it'] as Language[]).map((lang) => (
                 <button
                   key={lang}
                   onClick={() => {

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-export type Language = 'en-GB' | 'da' | 'sv' | 'no' | 'fr' | 'it';
+export type Language = 'en-GB' | 'en-US' | 'da' | 'sv' | 'no' | 'fr' | 'it';
 
 interface LanguageContextType {
   language: Language;
@@ -15,6 +15,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     'app.tagline': 'Aiming to be the best weather app.',
     'header.signIn': 'Sign In',
+    'search.placeholder': 'Search for a location...',
+    'search.searching': 'Searching...',
+    'search.noResults': 'No locations found',
     
     // Weather
     'weather.welcome': 'Welcome to Rainz',
@@ -83,6 +86,89 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Languages
     'language.en-GB': 'British English',
+    'language.en-US': 'American English',
+    'language.da': 'Dansk',
+    'language.sv': 'Svenska',
+    'language.no': 'Norsk',
+    'language.fr': 'Français',
+    'language.it': 'Italiano',
+  },
+  'en-US': {
+    // Header
+    'app.tagline': 'Aiming to be the best weather app.',
+    'header.signIn': 'Sign In',
+    'search.placeholder': 'Search for a location...',
+    'search.searching': 'Searching...',
+    'search.noResults': 'No locations found',
+    
+    // Weather
+    'weather.welcome': 'Welcome to Rainz',
+    'weather.searchLocation': 'Search for a location above or allow location access',
+    'weather.failed': 'Failed to load weather data',
+    'weather.tryAgain': 'Try Again',
+    'weather.demoData': 'Demo Data',
+    'weather.demoMessage': 'API keys needed for real data',
+    'weather.refresh': 'Refresh',
+    'weather.locationCard': 'Location Card',
+    'weather.myLocation': 'My Location',
+    'weather.checkConnection': 'Please check your connection and try again',
+    
+    // Weather metrics
+    'weather.wind': 'Wind',
+    'weather.visibility': 'Visibility',
+    'weather.feelsLike': 'Feels like',
+    'weather.humidity': 'Humidity',
+    'weather.pressure': 'Pressure',
+    'weather.uvIndex': 'UV Index',
+    
+    // Time
+    'time.goodMorning': 'Good Morning!',
+    'time.dismiss': 'Dismiss',
+    'time.today': 'Today',
+    'time.tomorrow': 'Tomorrow',
+    
+    // Settings
+    'settings.title': 'Settings',
+    'settings.account': 'Account',
+    'settings.appearance': 'Appearance',
+    'settings.notifications': 'Notifications',
+    'settings.language': 'Language',
+    'settings.signOut': 'Sign Out',
+    'settings.enableNotifications': 'Enable Notifications',
+    'settings.testNotification': 'Send Test Notification',
+    'settings.cardVisibility': 'Card Visibility',
+    'settings.cardOrder': 'Card Order',
+    'settings.save': 'Save',
+    'settings.customise': 'Customize your weather app experience',
+    'settings.temperatureUnits': 'Temperature Units',
+    'settings.useCelsius': 'Use Celsius (°C)',
+    'settings.currentlyFahrenheit': 'Currently using Fahrenheit (°F)',
+    'settings.currentlyCelsius': 'Currently using Celsius (°C)',
+    'settings.reset': 'Reset',
+    'settings.reloadChanges': 'Reload to activate changes.',
+    'settings.languageChanged': 'Language changed',
+    'settings.changedTo': 'Changed to',
+    
+    // Pollen
+    'pollen.title': 'Pollen Forecast',
+    'pollen.track': 'Track Allergies',
+    'pollen.low': 'Low',
+    'pollen.moderate': 'Moderate',
+    'pollen.high': 'High',
+    'pollen.veryHigh': 'Very High',
+    'pollen.pollenIndex': 'Pollen Index',
+    'pollen.hourlyForecast': '24-Hour Forecast',
+    'pollen.tenDayForecast': '10-Day Forecast',
+    'pollen.detailedMetrics': 'Detailed Metrics',
+    'pollen.userRoutines': 'User Routines',
+    
+    // Footer
+    'footer.dataFrom': 'Data from',
+    'footer.disclaimer': 'We are not to be held accountable for any inaccuracies or wrong claims.',
+    
+    // Languages
+    'language.en-GB': 'British English',
+    'language.en-US': 'American English',
     'language.da': 'Dansk',
     'language.sv': 'Svenska',
     'language.no': 'Norsk',
@@ -93,6 +179,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     'app.tagline': 'Sigter mod at være den bedste vejr-app.',
     'header.signIn': 'Log Ind',
+    'search.placeholder': 'Søg efter en placering...',
+    'search.searching': 'Søger...',
+    'search.noResults': 'Ingen placeringer fundet',
     
     // Weather
     'weather.welcome': 'Velkommen til Rainz',
@@ -161,6 +250,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Languages
     'language.en-GB': 'British English',
+    'language.en-US': 'American English',
     'language.da': 'Dansk',
     'language.sv': 'Svenska',
     'language.no': 'Norsk',
@@ -171,6 +261,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     'app.tagline': 'Strävar efter att vara den bästa väderappen.',
     'header.signIn': 'Logga In',
+    'search.placeholder': 'Sök efter en plats...',
+    'search.searching': 'Söker...',
+    'search.noResults': 'Inga platser hittades',
     
     // Weather
     'weather.welcome': 'Välkommen till Rainz',
@@ -239,6 +332,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Languages
     'language.en-GB': 'British English',
+    'language.en-US': 'American English',
     'language.da': 'Dansk',
     'language.sv': 'Svenska',
     'language.no': 'Norsk',
@@ -249,6 +343,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     'app.tagline': 'Sikter på å være den beste værappen.',
     'header.signIn': 'Logg Inn',
+    'search.placeholder': 'Søk etter en plassering...',
+    'search.searching': 'Søker...',
+    'search.noResults': 'Ingen plasseringer funnet',
     
     // Weather
     'weather.welcome': 'Velkommen til Rainz',
@@ -317,6 +414,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Languages
     'language.en-GB': 'British English',
+    'language.en-US': 'American English',
     'language.da': 'Dansk',
     'language.sv': 'Svenska',
     'language.no': 'Norsk',
@@ -327,6 +425,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     'app.tagline': 'Visant à être la meilleure application météo.',
     'header.signIn': 'Se Connecter',
+    'search.placeholder': 'Rechercher un lieu...',
+    'search.searching': 'Recherche en cours...',
+    'search.noResults': 'Aucun lieu trouvé',
     
     // Weather
     'weather.welcome': 'Bienvenue sur Rainz',
@@ -395,6 +496,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Languages
     'language.en-GB': 'British English',
+    'language.en-US': 'American English',
     'language.da': 'Dansk',
     'language.sv': 'Svenska',
     'language.no': 'Norsk',
@@ -405,6 +507,9 @@ const translations: Record<Language, Record<string, string>> = {
     // Header
     'app.tagline': 'Mira ad essere la migliore app meteo.',
     'header.signIn': 'Accedi',
+    'search.placeholder': 'Cerca una località...',
+    'search.searching': 'Ricerca in corso...',
+    'search.noResults': 'Nessuna località trovata',
     
     // Weather
     'weather.welcome': 'Benvenuto su Rainz',
@@ -473,6 +578,7 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Languages
     'language.en-GB': 'British English',
+    'language.en-US': 'American English',
     'language.da': 'Dansk',
     'language.sv': 'Svenska',
     'language.no': 'Norsk',
@@ -513,6 +619,7 @@ export function useLanguage() {
 
 export const languageFlags: Record<Language, string> = {
   'en-GB': '🇬🇧',
+  'en-US': '🇺🇸',
   'da': '🇩🇰',
   'sv': '🇸🇪',
   'no': '🇳🇴',
