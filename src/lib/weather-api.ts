@@ -137,7 +137,7 @@ export const weatherApi = {
       ].join(","),
       timezone: "auto",
       temperature_unit: "fahrenheit",
-      forecast_days: "10",
+      forecast_days: "16", // Request 16 days to ensure we have 10 full days after today
     });
 
     const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
@@ -432,17 +432,17 @@ export const weatherApi = {
       idx
     });
 
-    // Generate hourly forecast aligned to midnight for each day (240 hours = 10 days)
+    // Generate hourly forecast aligned to midnight for each day
+    // We need enough hours to cover 10 full days starting from tomorrow
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    // Calculate hours until next midnight
-    const hoursUntilMidnight = 24 - currentHour - (currentMinute > 0 ? 1 : 0);
+    // Calculate hours remaining today (until midnight)
+    const hoursRemainingToday = 24 - currentHour - (currentMinute > 30 ? 1 : 0);
     
-    // We need data from now until 10 full days from next midnight
-    // That's: remaining hours today + (10 days * 24 hours)
-    const totalHoursNeeded = hoursUntilMidnight + (10 * 24);
+    // We need: remaining hours today + (10 full days * 24 hours)
+    const totalHoursNeeded = hoursRemainingToday + (10 * 24);
     const maxHours = Math.min(totalHoursNeeded, hourlyTimes.length - idx);
     
     const hourly: HourlyForecast[] = hourlyTimes.slice(idx, idx + maxHours).map((t: string, i: number) => {
@@ -466,7 +466,7 @@ export const weatherApi = {
       };
     });
 
-    const daily: DailyForecast[] = (data?.daily?.time || []).slice(0, 10).map((d: string, i: number) => {
+    const daily: DailyForecast[] = (data?.daily?.time || []).slice(0, 11).map((d: string, i: number) => {
       // Enhanced precipitation calculation for daily forecast
       const precipProb = data?.daily?.precipitation_probability_max?.[i] ?? 0;
       const precipSum = data?.daily?.precipitation_sum?.[i] ?? 0;

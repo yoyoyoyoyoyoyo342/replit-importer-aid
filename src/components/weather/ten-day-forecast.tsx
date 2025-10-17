@@ -44,33 +44,39 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
     (current.accuracy > prev.accuracy) ? current : prev
   );
 
-  // Get hourly data for a specific day (midnight to midnight)
+  // Get hourly data for a specific day (midnight to midnight, 00:00-23:00)
   const getHourlyForDay = (dayIndex: number) => {
     if (!hourlyForecast.length) return [];
     
+    // dayIndex is now 0-9 representing days 1-10 (tomorrow through day 10)
+    const actualDayIndex = dayIndex + 1; // Adjust because we're skipping today
+    
     // Create a date for the target day at midnight
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + dayIndex);
+    const now = new Date();
+    const targetDate = new Date(now);
+    targetDate.setDate(now.getDate() + actualDayIndex);
+    targetDate.setHours(0, 0, 0, 0);
+    
     const targetDateStr = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
     
-    // Filter hourly data to only include hours from this specific day
-    // We need to parse the time format (e.g., "14:00" or "02:00 PM")
+    // Collect hours that belong to this specific calendar day
     const dayHours: HourlyForecast[] = [];
     
-    for (const hour of hourlyForecast) {
-      // Calculate which day this hour belongs to based on its position
-      const now = new Date();
-      const hourIndex = hourlyForecast.indexOf(hour);
-      const hourDate = new Date(now.getTime() + hourIndex * 60 * 60 * 1000);
-      const hourDateStr = hourDate.toISOString().split('T')[0];
+    // Start from midnight of target day and collect 24 hours (00:00 to 23:00)
+    for (let hour = 0; hour < 24; hour++) {
+      const checkDate = new Date(targetDate);
+      checkDate.setHours(hour);
       
-      if (hourDateStr === targetDateStr) {
-        dayHours.push(hour);
-      }
+      // Calculate hours from now to this specific hour
+      const hoursFromNow = Math.round((checkDate.getTime() - now.getTime()) / (1000 * 60 * 60));
       
-      // Stop if we have 24 hours or we've passed the target day
-      if (dayHours.length >= 24 || hourDateStr > targetDateStr) {
-        break;
+      if (hoursFromNow >= 0 && hoursFromNow < hourlyForecast.length) {
+        const hourData = hourlyForecast[hoursFromNow];
+        // Override the time to show the exact hour (00:00 to 23:00 format)
+        dayHours.push({
+          ...hourData,
+          time: `${String(hour).padStart(2, '0')}:00`
+        });
       }
     }
     
@@ -91,7 +97,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
           </h2>
 
           <div className="space-y-2">
-            {dailyForecast.map((day, index) => (
+            {dailyForecast.slice(1, 11).map((day, index) => (
               <Collapsible
                 key={index}
                 open={expandedDay === index}
