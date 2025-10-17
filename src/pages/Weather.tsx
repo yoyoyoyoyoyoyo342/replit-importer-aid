@@ -24,6 +24,7 @@ import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { UserRoutineTracker } from "@/components/weather/user-routine-tracker";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
+import { useLanguage } from "@/contexts/language-context";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -37,6 +38,7 @@ export default function WeatherPage() {
   const { toast } = useToast();
   const { user, profile, loading: authLoading } = useAuth();
   const { visibleCards, cardOrder, loading: preferencesLoading } = useUserPreferences();
+  const { t } = useLanguage();
 
   // Initialize push notifications
   usePushNotifications();
@@ -139,7 +141,7 @@ export default function WeatherPage() {
               <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
               <div>
                 <h1 className="text-lg font-bold text-foreground">Rainz</h1>
-                <p className="text-xs text-slate-950">Aiming to be the best weather app.</p>
+                <p className="text-xs text-slate-950">{t('app.tagline')}</p>
               </div>
             </div>
 
@@ -154,7 +156,7 @@ export default function WeatherPage() {
               
               {user ? <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} /> : <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'} className="h-8 px-2 text-xs">
                   <LogIn className="w-3 h-3 mr-1" />
-                  Sign In
+                  {t('header.signIn')}
                 </Button>}
               
               {weatherData && <WeatherReportForm location={selectedLocation?.name || "Unknown"} currentCondition={weatherData.mostAccurate.currentWeather.condition} />}
@@ -169,22 +171,22 @@ export default function WeatherPage() {
         {!selectedLocation ? <Card className="bg-card border border-border text-center py-6">
             <CardContent>
               <CloudSun className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <h2 className="text-sm font-semibold text-foreground mb-1">Welcome to Rainz</h2>
+              <h2 className="text-sm font-semibold text-foreground mb-1">{t('weather.welcome')}</h2>
               <p className="text-muted-foreground text-xs">
-                Search for a location above or allow location access
+                {t('weather.searchLocation')}
               </p>
             </CardContent>
           </Card> : error ? <Card className="bg-destructive/10 border-destructive/20 text-center py-6">
             <CardContent>
               <div className="text-destructive mb-2">⚠️</div>
               <h2 className="text-sm font-semibold text-destructive mb-1">
-                Failed to load weather data
+                {t('weather.failed')}
               </h2>
               <p className="text-destructive/80 mb-3 text-xs">
                 Please check your connection and try again
               </p>
               <Button onClick={handleRefresh} variant="outline" size="sm">
-                Try Again
+                {t('weather.tryAgain')}
               </Button>
             </CardContent>
           </Card> : weatherData ? <>
@@ -195,9 +197,9 @@ export default function WeatherPage() {
                     <span className="text-primary text-xs">⚠️</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary text-xs">Demo Data</h3>
+                    <h3 className="font-semibold text-primary text-xs">{t('weather.demoData')}</h3>
                     <p className="text-primary/80 text-xs">
-                      {weatherData.message || "API keys needed for real data"}
+                      {weatherData.message || t('weather.demoMessage')}
                     </p>
                   </div>
                 </div>
@@ -280,10 +282,10 @@ export default function WeatherPage() {
             <footer className="text-center py-2 mt-4 glass-header rounded-lg p-4">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div className="text-muted-foreground text-xs">
-                  Data from{" "}
+                  {t('footer.dataFrom')}{" "}
                   <span className="font-medium text-foreground">OpenWeatherMap</span>,{" "}
                   <span className="font-medium text-foreground">Open-meteo</span>, and{" "}
-                  <span className="font-medium text-foreground">WeatherAPI. We are not to be held accountable for any inaccuracies or wrong claims.</span>
+                  <span className="font-medium text-foreground">WeatherAPI. {t('footer.disclaimer')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   

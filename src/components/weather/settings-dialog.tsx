@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages } from "lucide-react";
+import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -72,6 +73,7 @@ export function SettingsDialog({
     updateOrder,
     resetToDefaults
   } = useUserPreferences();
+  const { language, setLanguage, t } = useLanguage();
   const cardLabels = {
     pollen: "Pollen Index",
     hourly: "24-Hour Forecast",
@@ -119,7 +121,7 @@ export function SettingsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="w-5 h-5" />
-            Settings
+            {t('settings.title')}
           </DialogTitle>
           <DialogDescription>
             Customize your weather app experience
@@ -129,7 +131,7 @@ export function SettingsDialog({
           {/* User Profile */}
           {user && <>
               <div className="space-y-3">
-                <Label className="text-base font-medium">Account</Label>
+                <Label className="text-base font-medium">{t('settings.account')}</Label>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-muted-foreground" />
@@ -137,12 +139,47 @@ export function SettingsDialog({
                   </div>
                   <Button variant="outline" size="sm" onClick={handleSignOut}>
                     <LogOut className="w-3 h-3 mr-2" />
-                    Sign Out
+                    {t('settings.signOut')}
                   </Button>
                 </div>
               </div>
               <Separator />
             </>}
+
+          {/* Language Selection */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium flex items-center gap-2">
+              <Languages className="w-4 h-4" />
+              {t('settings.language')}
+            </Label>
+            <div className="grid gap-2">
+              {(['en-GB', 'da', 'sv', 'no', 'fr', 'it'] as Language[]).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => {
+                    setLanguage(lang);
+                    toast({
+                      title: "Language changed",
+                      description: `Changed to ${t(`language.${lang}`)}`,
+                    });
+                  }}
+                  className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                    language === lang
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                  }`}
+                >
+                  <span className="text-2xl">{languageFlags[lang]}</span>
+                  <span className="text-sm font-medium">{t(`language.${lang}`)}</span>
+                  {language === lang && (
+                    <span className="ml-auto text-xs text-primary">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Separator />
 
           {/* Temperature Units */}
           <div className="space-y-3">
@@ -159,13 +196,14 @@ export function SettingsDialog({
             </p>
           </div>
 
+          <Separator />
+
 
           {/* Card Visibility - Only for authenticated users */}
           {user && <>
-              <Separator />
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-medium">Card Visibility</Label>
+                  <Label className="text-base font-medium">{t('settings.cardVisibility')}</Label>
                   <Button variant="ghost" size="sm" onClick={resetToDefaults} className="h-8 text-xs">
                     <RotateCcw className="w-3 h-3 mr-1" />
                     Reset

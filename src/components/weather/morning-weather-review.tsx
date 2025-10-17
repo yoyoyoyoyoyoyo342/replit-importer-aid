@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sunrise, Droplets, Wind, AlertTriangle, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from "@/contexts/language-context";
 
 interface MorningWeatherReviewProps {
   weatherData: any;
@@ -31,6 +32,7 @@ export function MorningWeatherReview({
   const [reviewData, setReviewData] = useState<MorningReviewData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Check if it's morning time (6 AM - 12 PM)
   const isMorningTime = () => {
@@ -117,7 +119,7 @@ export function MorningWeatherReview({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sunrise className="w-5 h-5 text-orange-500" />
-            <CardTitle className="text-lg">Good Morning!</CardTitle>
+            <CardTitle className="text-lg">{t('time.goodMorning')}</CardTitle>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -134,7 +136,7 @@ export function MorningWeatherReview({
               onClick={handleDismiss}
               className="h-7 px-2 text-xs"
             >
-              Dismiss
+              {t('time.dismiss')}
             </Button>
           </div>
         </div>
