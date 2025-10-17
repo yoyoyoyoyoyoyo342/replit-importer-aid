@@ -160,8 +160,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="space-y-4 h-full flex flex-col">
+      <div className="flex items-center gap-2 flex-shrink-0">
         <div className="p-2 bg-primary/10 rounded-full">
           <Brain className="w-5 h-5 text-primary" />
         </div>
@@ -172,7 +172,7 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
         </Badge>
       </div>
       
-      <ScrollArea className="h-96 lg:h-[500px] pr-4" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 min-h-[300px] max-h-[500px] pr-4" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.map((message) => (
               <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -221,26 +221,26 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
           </div>
         </ScrollArea>
 
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2 flex-shrink-0">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask about weather, get recommendations, or chat..."
-            className="flex-1 h-12 lg:h-14 text-base"
+            className="flex-1 h-10 text-sm"
             disabled={isLoading}
           />
           <Button 
             onClick={sendMessage} 
             disabled={!input.trim() || isLoading}
-            size="lg"
-            className="px-6 h-12 lg:h-14"
+            size="default"
+            className="px-4 h-10"
           >
-            <Send className="w-5 h-5" />
+            <Send className="w-4 h-4" />
           </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground text-center mt-2">
+        <div className="text-xs text-muted-foreground text-center flex-shrink-0">
           Your AI companion learns from your preferences and provides personalized weather insights
         </div>
     </div>

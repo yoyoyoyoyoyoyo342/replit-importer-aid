@@ -16,7 +16,12 @@ interface LocationCardProps {
 
 export function LocationCard({ open, onOpenChange, temperature, location, isImperial }: LocationCardProps) {
   const displayTemp = Math.round(isImperial ? temperature : (temperature - 32) * 5 / 9);
-  const cityName = location.split(',')[0].trim().toUpperCase();
+  
+  // Extract actual city name - prefer the second part if it exists (actual city vs. district/airport)
+  const locationParts = location.split(',').map(p => p.trim());
+  const actualCity = locationParts.length > 1 ? locationParts[1] : locationParts[0];
+  const cityName = actualCity.toUpperCase();
+  
   const cardRef = useRef<HTMLDivElement>(null);
   const [landmarkImage, setLandmarkImage] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -33,10 +38,12 @@ export function LocationCard({ open, onOpenChange, temperature, location, isImpe
     setIsGenerating(true);
     setHasError(false);
     try {
-      console.log('Finding real photo for:', location);
+      // Send the actual city name for better landmark matching
+      const searchLocation = actualCity;
+      console.log('Finding real photo for city:', searchLocation);
       
       const { data, error } = await supabase.functions.invoke('generate-landmark-image', {
-        body: { location }
+        body: { location: searchLocation }
       });
 
       console.log('Photo response:', data, 'Error:', error);

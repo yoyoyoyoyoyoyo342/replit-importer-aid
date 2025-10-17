@@ -21,6 +21,7 @@ export function PollenCard({ pollenData, userId }: PollenCardProps) {
   useEffect(() => {
     const fetchUserAllergies = async () => {
       if (!userId) {
+        // Show all pollens if not logged in
         setFilteredPollenData(pollenData);
         return;
       }
@@ -40,7 +41,7 @@ export function PollenCard({ pollenData, userId }: PollenCardProps) {
         const allergies = data.map(a => a.allergen.toLowerCase());
         setUserAllergies(allergies);
         
-        // Filter pollen data to only show user's allergens
+        // Show only user's tracked allergens with real pollen data
         const filtered: any = {};
         Object.keys(pollenData || {}).forEach(key => {
           if (allergies.includes(key.toLowerCase())) {
@@ -48,8 +49,19 @@ export function PollenCard({ pollenData, userId }: PollenCardProps) {
           }
         });
         
+        // If user has allergies but none match current pollen data, still show their tracked ones with value 0
+        if (Object.keys(filtered).length === 0) {
+          allergies.forEach(allergen => {
+            const matchingKey = Object.keys(pollenData || {}).find(k => k.toLowerCase() === allergen);
+            if (matchingKey) {
+              filtered[matchingKey] = pollenData![matchingKey as keyof typeof pollenData];
+            }
+          });
+        }
+        
         setFilteredPollenData(Object.keys(filtered).length > 0 ? filtered : pollenData);
       } else {
+        // User has no allergies tracked, show all pollens
         setFilteredPollenData(pollenData);
       }
     };

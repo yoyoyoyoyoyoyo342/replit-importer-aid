@@ -65,6 +65,19 @@ serve(async (req) => {
     'dublin': { name: 'Hapenny Bridge', description: 'Dublin Ireland' },
     'edinburgh': { name: 'Edinburgh Castle', description: 'Edinburgh Scotland' },
     'maidenhead': { name: 'Maidenhead Railway Bridge', description: 'Maidenhead UK' },
+    // Danish cities and regions
+    'capital region': { name: 'Little Mermaid statue', description: 'Copenhagen Denmark' },
+    'south denmark': { name: 'Sonderborg Castle', description: 'Southern Denmark' },
+    'southern denmark': { name: 'Sonderborg Castle', description: 'Southern Denmark' },
+    'sonderborg': { name: 'Sonderborg Castle', description: 'Sonderborg Denmark' },
+    'sønderborg': { name: 'Sonderborg Castle', description: 'Sonderborg Denmark' },
+    'aarhus': { name: 'ARoS Art Museum', description: 'Aarhus Denmark' },
+    'odense': { name: 'Hans Christian Andersen Museum', description: 'Odense Denmark' },
+    'aalborg': { name: 'Aalborg Tower', description: 'Aalborg Denmark' },
+    'esbjerg': { name: 'Men at Sea sculpture', description: 'Esbjerg Denmark' },
+    'roskilde': { name: 'Roskilde Cathedral', description: 'Roskilde Denmark' },
+    'helsingør': { name: 'Kronborg Castle', description: 'Helsingor Denmark' },
+    'kolding': { name: 'Koldinghus Castle', description: 'Kolding Denmark' },
     'ørestad': { name: 'Bella Sky Hotel', description: 'Copenhagen Denmark' },
     'ørestad syd': { name: 'Bella Sky Hotel', description: 'Copenhagen Denmark' }
   };
@@ -78,9 +91,24 @@ serve(async (req) => {
       throw new Error('UNSPLASH_ACCESS_KEY not configured');
     }
 
-    const fullLocation = location.trim();
-    const cityName = location.split(',')[0].trim().toLowerCase();
-    console.log('Finding photo for:', fullLocation);
+    // Parse location to extract actual city name
+    // Format might be: "District, City, Region, Country" or "City, Country"
+    const locationParts = location.split(',').map((p: string) => p.trim());
+    
+    // Try to identify the actual city:
+    // - If there are 4+ parts, use the 2nd part (likely the city)
+    // - If there are 3 parts, use the 2nd part
+    // - If there are 2 parts, use the 1st part
+    // - Otherwise use the full location
+    let actualCity = location;
+    if (locationParts.length >= 3) {
+      actualCity = locationParts[1]; // Usually the actual city
+    } else if (locationParts.length === 2) {
+      actualCity = locationParts[0]; // First part is likely the city
+    }
+    
+    const cityName = actualCity.trim().toLowerCase();
+    console.log('Finding photo for city:', actualCity, 'from full location:', location);
 
     // Get landmark from database
     const landmark = landmarkDatabase[cityName];
