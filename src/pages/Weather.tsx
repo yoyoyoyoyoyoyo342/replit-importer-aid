@@ -216,7 +216,10 @@ export default function WeatherPage() {
                 case "pollen":
                   return weatherData?.mostAccurate?.currentWeather?.pollenData ? (
                     <div key="pollen" className="mb-4">
-                      <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} />
+                      <PollenCard 
+                        pollenData={weatherData.mostAccurate.currentWeather.pollenData}
+                        userId={user?.id}
+                      />
                     </div>
                   ) : null;
                 

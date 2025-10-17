@@ -1,4 +1,6 @@
 import { PollenWheel } from "./pollen-wheel";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PollenCardProps {
   pollenData?: {
@@ -9,14 +11,59 @@ interface PollenCardProps {
     olive: number;
     ragweed: number;
   };
+  userId?: string;
 }
 
-export function PollenCard({ pollenData }: PollenCardProps) {
-  if (!pollenData) return null;
+export function PollenCard({ pollenData, userId }: PollenCardProps) {
+  const [userAllergies, setUserAllergies] = useState<string[]>([]);
+  const [filteredPollenData, setFilteredPollenData] = useState(pollenData);
 
-  // Calculate average pollen level for color gradient
-  const avgPollen = (pollenData.alder + pollenData.birch + pollenData.grass + 
-                     pollenData.mugwort + pollenData.olive + pollenData.ragweed) / 6;
+  useEffect(() => {
+    const fetchUserAllergies = async () => {
+      if (!userId) {
+        setFilteredPollenData(pollenData);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('user_allergies')
+        .select('allergen')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Error fetching user allergies:', error);
+        setFilteredPollenData(pollenData);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const allergies = data.map(a => a.allergen.toLowerCase());
+        setUserAllergies(allergies);
+        
+        // Filter pollen data to only show user's allergens
+        const filtered: any = {};
+        Object.keys(pollenData || {}).forEach(key => {
+          if (allergies.includes(key.toLowerCase())) {
+            filtered[key] = pollenData![key as keyof typeof pollenData];
+          }
+        });
+        
+        setFilteredPollenData(Object.keys(filtered).length > 0 ? filtered : pollenData);
+      } else {
+        setFilteredPollenData(pollenData);
+      }
+    };
+
+    fetchUserAllergies();
+  }, [userId, pollenData]);
+
+  if (!filteredPollenData || Object.keys(filteredPollenData).length === 0) return null;
+
+  // Calculate average pollen level for color gradient using filtered data
+  const pollenValues = Object.values(filteredPollenData);
+  const avgPollen = pollenValues.length > 0 
+    ? pollenValues.reduce((sum, val) => sum + val, 0) / pollenValues.length 
+    : 0;
   
   // Determine gradient colors based on pollen level
   const getGradientColors = () => {
@@ -35,7 +82,7 @@ export function PollenCard({ pollenData }: PollenCardProps) {
 
   return (
     <div className="glass-card rounded-2xl shadow-lg border border-border p-4">
-      <PollenWheel pollenData={pollenData} />
+      <PollenWheel pollenData={filteredPollenData} />
     </div>
   );
 }
