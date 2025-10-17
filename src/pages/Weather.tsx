@@ -183,7 +183,7 @@ export default function WeatherPage() {
                 {t('weather.failed')}
               </h2>
               <p className="text-destructive/80 mb-3 text-xs">
-                Please check your connection and try again
+                {t('weather.checkConnection')}
               </p>
               <Button onClick={handleRefresh} variant="outline" size="sm">
                 {t('weather.tryAgain')}

@@ -75,11 +75,11 @@ export function SettingsDialog({
   } = useUserPreferences();
   const { language, setLanguage, t } = useLanguage();
   const cardLabels = {
-    pollen: "Pollen Index",
-    hourly: "24-Hour Forecast",
-    tenDay: "10-Day Forecast",
-    detailedMetrics: "Detailed Metrics",
-    routines: "User Routines"
+    pollen: t('pollen.pollenIndex'),
+    hourly: t('pollen.hourlyForecast'),
+    tenDay: t('pollen.tenDayForecast'),
+    detailedMetrics: t('pollen.detailedMetrics'),
+    routines: t('pollen.userRoutines')
   };
   const handleSignOut = async () => {
     try {
@@ -124,7 +124,7 @@ export function SettingsDialog({
             {t('settings.title')}
           </DialogTitle>
           <DialogDescription>
-            Customize your weather app experience
+            {t('settings.customise')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4 overflow-y-auto flex-1 px-1">
@@ -159,8 +159,8 @@ export function SettingsDialog({
                   onClick={() => {
                     setLanguage(lang);
                     toast({
-                      title: "Language changed",
-                      description: `Changed to ${t(`language.${lang}`)}`,
+                      title: t('settings.languageChanged'),
+                      description: `${t('settings.changedTo')} ${t(`language.${lang}`)}`,
                     });
                   }}
                   className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
@@ -183,16 +183,16 @@ export function SettingsDialog({
 
           {/* Temperature Units */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Temperature Units</Label>
+            <Label className="text-base font-medium">{t('settings.temperatureUnits')}</Label>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Globe className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">Use Celsius (°C)</span>
+                <span className="text-sm">{t('settings.useCelsius')}</span>
               </div>
               <Switch checked={!isImperial} onCheckedChange={checked => onUnitsChange(!checked)} />
             </div>
             <p className="text-xs text-muted-foreground">
-              {isImperial ? "Currently using Fahrenheit (°F)" : "Currently using Celsius (°C)"}
+              {isImperial ? t('settings.currentlyFahrenheit') : t('settings.currentlyCelsius')}
             </p>
           </div>
 
@@ -206,10 +206,10 @@ export function SettingsDialog({
                   <Label className="text-base font-medium">{t('settings.cardVisibility')}</Label>
                   <Button variant="ghost" size="sm" onClick={resetToDefaults} className="h-8 text-xs">
                     <RotateCcw className="w-3 h-3 mr-1" />
-                    Reset
+                    {t('settings.reset')}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">Reload to activate changes.</p>
+                <p className="text-xs text-muted-foreground">{t('settings.reloadChanges')}</p>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={cardOrder} strategy={verticalListSortingStrategy}>
                     <div className="space-y-2">

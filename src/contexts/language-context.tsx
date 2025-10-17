@@ -26,6 +26,7 @@ const translations: Record<Language, Record<string, string>> = {
     'weather.refresh': 'Refresh',
     'weather.locationCard': 'Location Card',
     'weather.myLocation': 'My Location',
+    'weather.checkConnection': 'Please check your connection and try again',
     
     // Weather metrics
     'weather.wind': 'Wind',
@@ -53,6 +54,15 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.cardVisibility': 'Card Visibility',
     'settings.cardOrder': 'Card Order',
     'settings.save': 'Save',
+    'settings.customise': 'Customise your weather app experience',
+    'settings.temperatureUnits': 'Temperature Units',
+    'settings.useCelsius': 'Use Celsius (°C)',
+    'settings.currentlyFahrenheit': 'Currently using Fahrenheit (°F)',
+    'settings.currentlyCelsius': 'Currently using Celsius (°C)',
+    'settings.reset': 'Reset',
+    'settings.reloadChanges': 'Reload to activate changes.',
+    'settings.languageChanged': 'Language changed',
+    'settings.changedTo': 'Changed to',
     
     // Pollen
     'pollen.title': 'Pollen Forecast',
@@ -61,6 +71,11 @@ const translations: Record<Language, Record<string, string>> = {
     'pollen.moderate': 'Moderate',
     'pollen.high': 'High',
     'pollen.veryHigh': 'Very High',
+    'pollen.pollenIndex': 'Pollen Index',
+    'pollen.hourlyForecast': '24-Hour Forecast',
+    'pollen.tenDayForecast': '10-Day Forecast',
+    'pollen.detailedMetrics': 'Detailed Metrics',
+    'pollen.userRoutines': 'User Routines',
     
     // Footer
     'footer.dataFrom': 'Data from',
@@ -89,6 +104,7 @@ const translations: Record<Language, Record<string, string>> = {
     'weather.refresh': 'Opdater',
     'weather.locationCard': 'Placeringskort',
     'weather.myLocation': 'Min Placering',
+    'weather.checkConnection': 'Tjek venligst din forbindelse og prøv igen',
     
     // Weather metrics
     'weather.wind': 'Vind',
@@ -116,6 +132,15 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.cardVisibility': 'Kort Synlighed',
     'settings.cardOrder': 'Kort Rækkefølge',
     'settings.save': 'Gem',
+    'settings.customise': 'Tilpas din vejr-app oplevelse',
+    'settings.temperatureUnits': 'Temperaturenheder',
+    'settings.useCelsius': 'Brug Celsius (°C)',
+    'settings.currentlyFahrenheit': 'Bruger i øjeblikket Fahrenheit (°F)',
+    'settings.currentlyCelsius': 'Bruger i øjeblikket Celsius (°C)',
+    'settings.reset': 'Nulstil',
+    'settings.reloadChanges': 'Genindlæs for at aktivere ændringer.',
+    'settings.languageChanged': 'Sprog ændret',
+    'settings.changedTo': 'Ændret til',
     
     // Pollen
     'pollen.title': 'Pollenprognose',
@@ -124,6 +149,11 @@ const translations: Record<Language, Record<string, string>> = {
     'pollen.moderate': 'Moderat',
     'pollen.high': 'Høj',
     'pollen.veryHigh': 'Meget Høj',
+    'pollen.pollenIndex': 'Pollenindeks',
+    'pollen.hourlyForecast': '24-Timers Prognose',
+    'pollen.tenDayForecast': '10-Dages Prognose',
+    'pollen.detailedMetrics': 'Detaljerede Målinger',
+    'pollen.userRoutines': 'Brugerrutiner',
     
     // Footer
     'footer.dataFrom': 'Data fra',
@@ -152,6 +182,7 @@ const translations: Record<Language, Record<string, string>> = {
     'weather.refresh': 'Uppdatera',
     'weather.locationCard': 'Platskort',
     'weather.myLocation': 'Min Plats',
+    'weather.checkConnection': 'Vänligen kontrollera din anslutning och försök igen',
     
     // Weather metrics
     'weather.wind': 'Vind',
@@ -179,6 +210,15 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.cardVisibility': 'Kort Synlighet',
     'settings.cardOrder': 'Kort Ordning',
     'settings.save': 'Spara',
+    'settings.customise': 'Anpassa din väderapp-upplevelse',
+    'settings.temperatureUnits': 'Temperaturenheter',
+    'settings.useCelsius': 'Använd Celsius (°C)',
+    'settings.currentlyFahrenheit': 'Använder för närvarande Fahrenheit (°F)',
+    'settings.currentlyCelsius': 'Använder för närvarande Celsius (°C)',
+    'settings.reset': 'Återställ',
+    'settings.reloadChanges': 'Ladda om för att aktivera ändringar.',
+    'settings.languageChanged': 'Språk ändrat',
+    'settings.changedTo': 'Ändrat till',
     
     // Pollen
     'pollen.title': 'Pollenprognos',
@@ -187,6 +227,11 @@ const translations: Record<Language, Record<string, string>> = {
     'pollen.moderate': 'Måttlig',
     'pollen.high': 'Hög',
     'pollen.veryHigh': 'Mycket Hög',
+    'pollen.pollenIndex': 'Pollenindex',
+    'pollen.hourlyForecast': '24-Timmars Prognos',
+    'pollen.tenDayForecast': '10-Dagars Prognos',
+    'pollen.detailedMetrics': 'Detaljerade Mätningar',
+    'pollen.userRoutines': 'Användarrutiner',
     
     // Footer
     'footer.dataFrom': 'Data från',
@@ -215,6 +260,7 @@ const translations: Record<Language, Record<string, string>> = {
     'weather.refresh': 'Oppdater',
     'weather.locationCard': 'Plasseringskort',
     'weather.myLocation': 'Min Plassering',
+    'weather.checkConnection': 'Vennligst sjekk tilkoblingen din og prøv igjen',
     
     // Weather metrics
     'weather.wind': 'Vind',
@@ -242,6 +288,15 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.cardVisibility': 'Kort Synlighet',
     'settings.cardOrder': 'Kort Rekkefølge',
     'settings.save': 'Lagre',
+    'settings.customise': 'Tilpass værrapp-opplevelsen din',
+    'settings.temperatureUnits': 'Temperaturenheter',
+    'settings.useCelsius': 'Bruk Celsius (°C)',
+    'settings.currentlyFahrenheit': 'Bruker for øyeblikket Fahrenheit (°F)',
+    'settings.currentlyCelsius': 'Bruker for øyeblikket Celsius (°C)',
+    'settings.reset': 'Tilbakestill',
+    'settings.reloadChanges': 'Last inn på nytt for å aktivere endringer.',
+    'settings.languageChanged': 'Språk endret',
+    'settings.changedTo': 'Endret til',
     
     // Pollen
     'pollen.title': 'Pollenvarsel',
@@ -250,6 +305,11 @@ const translations: Record<Language, Record<string, string>> = {
     'pollen.moderate': 'Moderat',
     'pollen.high': 'Høy',
     'pollen.veryHigh': 'Veldig Høy',
+    'pollen.pollenIndex': 'Pollenindeks',
+    'pollen.hourlyForecast': '24-Timers Varsel',
+    'pollen.tenDayForecast': '10-Dagers Varsel',
+    'pollen.detailedMetrics': 'Detaljerte Målinger',
+    'pollen.userRoutines': 'Brukerrutiner',
     
     // Footer
     'footer.dataFrom': 'Data fra',
@@ -278,6 +338,7 @@ const translations: Record<Language, Record<string, string>> = {
     'weather.refresh': 'Actualiser',
     'weather.locationCard': 'Carte de Localisation',
     'weather.myLocation': 'Ma Position',
+    'weather.checkConnection': 'Veuillez vérifier votre connexion et réessayer',
     
     // Weather metrics
     'weather.wind': 'Vent',
@@ -305,6 +366,15 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.cardVisibility': 'Visibilité des Cartes',
     'settings.cardOrder': 'Ordre des Cartes',
     'settings.save': 'Enregistrer',
+    'settings.customise': 'Personnalisez votre expérience météo',
+    'settings.temperatureUnits': 'Unités de Température',
+    'settings.useCelsius': 'Utiliser Celsius (°C)',
+    'settings.currentlyFahrenheit': 'Utilise actuellement Fahrenheit (°F)',
+    'settings.currentlyCelsius': 'Utilise actuellement Celsius (°C)',
+    'settings.reset': 'Réinitialiser',
+    'settings.reloadChanges': 'Rechargez pour activer les modifications.',
+    'settings.languageChanged': 'Langue modifiée',
+    'settings.changedTo': 'Changé en',
     
     // Pollen
     'pollen.title': 'Prévisions Polliniques',
@@ -313,6 +383,11 @@ const translations: Record<Language, Record<string, string>> = {
     'pollen.moderate': 'Modéré',
     'pollen.high': 'Élevé',
     'pollen.veryHigh': 'Très Élevé',
+    'pollen.pollenIndex': 'Indice Pollinique',
+    'pollen.hourlyForecast': 'Prévisions sur 24 Heures',
+    'pollen.tenDayForecast': 'Prévisions sur 10 Jours',
+    'pollen.detailedMetrics': 'Métriques Détaillées',
+    'pollen.userRoutines': 'Routines Utilisateur',
     
     // Footer
     'footer.dataFrom': 'Données de',
@@ -341,6 +416,7 @@ const translations: Record<Language, Record<string, string>> = {
     'weather.refresh': 'Aggiorna',
     'weather.locationCard': 'Scheda Località',
     'weather.myLocation': 'La Mia Posizione',
+    'weather.checkConnection': 'Controlla la tua connessione e riprova',
     
     // Weather metrics
     'weather.wind': 'Vento',
@@ -368,6 +444,15 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.cardVisibility': 'Visibilità Schede',
     'settings.cardOrder': 'Ordine Schede',
     'settings.save': 'Salva',
+    'settings.customise': 'Personalizza la tua esperienza meteo',
+    'settings.temperatureUnits': 'Unità di Temperatura',
+    'settings.useCelsius': 'Usa Celsius (°C)',
+    'settings.currentlyFahrenheit': 'Attualmente usa Fahrenheit (°F)',
+    'settings.currentlyCelsius': 'Attualmente usa Celsius (°C)',
+    'settings.reset': 'Ripristina',
+    'settings.reloadChanges': 'Ricarica per attivare le modifiche.',
+    'settings.languageChanged': 'Lingua cambiata',
+    'settings.changedTo': 'Cambiato in',
     
     // Pollen
     'pollen.title': 'Previsioni Polline',
@@ -376,6 +461,11 @@ const translations: Record<Language, Record<string, string>> = {
     'pollen.moderate': 'Moderato',
     'pollen.high': 'Alto',
     'pollen.veryHigh': 'Molto Alto',
+    'pollen.pollenIndex': 'Indice Pollinico',
+    'pollen.hourlyForecast': 'Previsioni 24 Ore',
+    'pollen.tenDayForecast': 'Previsioni 10 Giorni',
+    'pollen.detailedMetrics': 'Metriche Dettagliate',
+    'pollen.userRoutines': 'Routine Utente',
     
     // Footer
     'footer.dataFrom': 'Dati da',
