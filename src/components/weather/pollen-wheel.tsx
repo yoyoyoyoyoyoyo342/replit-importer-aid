@@ -179,7 +179,7 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
   ];
 
   // Filter to show only seasonal pollens (current season ± 1 month)
-  // AND only show pollens with value > 0
+  // Show pollens that are in season with their real values (even if 0)
   const seasonalPollens = allPollens.filter(pollen => {
     const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
     const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
@@ -187,8 +187,8 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
                        pollen.months.includes(currentMonth) || 
                        pollen.months.includes(nextMonth);
     
-    // Show pollen if it's in season AND has a value > 0 (actual pollen detected)
-    return isInSeason && pollen.value > 0;
+    // Show all in-season pollens with their actual API values
+    return isInSeason;
   });
 
   const getIntensityLabel = (value: number) => {
@@ -212,7 +212,10 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
   };
 
   const getTotalValue = () => {
-    return seasonalPollens.reduce((sum, pollen) => sum + pollen.value, 0);
+    // For visual display, ensure we have at least some value for the wheel
+    const total = seasonalPollens.reduce((sum, pollen) => sum + pollen.value, 0);
+    // If all values are 0, use small values for visual representation
+    return total > 0 ? total : seasonalPollens.length * 0.1;
   };
 
   const getOverallLevel = () => {
@@ -228,7 +231,7 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
   const strokeWidth = 30;
 
   // Calculate segments using seasonal pollens
-  const total = seasonalPollens.reduce((sum, pollen) => sum + Math.max(pollen.value, 0.5), 0);
+  const total = getTotalValue();
   let currentAngle = -90; // Start at top
 
   return (
@@ -299,8 +302,9 @@ export function PollenWheel({ pollenData, userId }: PollenWheelProps) {
               
               {/* Pollen segments */}
               {seasonalPollens.map((pollen, index) => {
-                const segmentValue = Math.max(pollen.value, 0.5);
-                const segmentAngle = (segmentValue / total) * 360;
+                // Use actual value, or small value for visual display if all are 0
+                const segmentValue = total > 1 ? pollen.value : 1;
+                const segmentAngle = (segmentValue / (total > 1 ? total : seasonalPollens.length)) * 360;
                 
                 const startAngle = currentAngle;
                 const endAngle = currentAngle + segmentAngle;
