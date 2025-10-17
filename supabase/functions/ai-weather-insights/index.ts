@@ -77,6 +77,42 @@ Examples of good insights:
 - "💧 ${humidity}% humidity - stay hydrated and dress breathable"
 - "👁️ Visibility ${visibility} ${isImperial ? 'miles' : 'km'} - drive carefully if conditions are poor"`;
 
+    } else if (type === 'morning_review') {
+      // Morning briefing - comprehensive start-of-day summary
+      const temp = isImperial ? weatherData.currentWeather.temperature : Math.round((weatherData.currentWeather.temperature - 32) * 5/9);
+      const feelsLike = isImperial ? weatherData.currentWeather.feelsLike : Math.round((weatherData.currentWeather.feelsLike - 32) * 5/9);
+      const condition = weatherData.currentWeather.condition;
+      const humidity = weatherData.currentWeather.humidity;
+      const windSpeed = isImperial ? weatherData.currentWeather.windSpeed : Math.round(weatherData.currentWeather.windSpeed * 1.60934);
+      const uvIndex = weatherData.currentWeather.uvIndex;
+      
+      // Get high pollen types
+      const pollenData = weatherData.currentWeather?.pollenData || {};
+      const highPollens = Object.entries(pollenData)
+        .filter(([_, value]) => value > 6)
+        .map(([type]) => type);
+
+      systemPrompt = `You are creating a personalized morning weather briefing. Provide a warm, helpful summary that helps the user plan their day.
+
+Current Weather in ${location}:
+- Temperature: ${temp}°${isImperial ? 'F' : 'C'} (feels like ${feelsLike}°${isImperial ? 'F' : 'C'})
+- Condition: ${condition}
+- Humidity: ${humidity}%
+- Wind: ${windSpeed} ${isImperial ? 'mph' : 'km/h'}
+- UV Index: ${uvIndex}/10
+${highPollens.length > 0 ? `- High Pollen: ${highPollens.join(', ')}` : ''}
+
+Return a JSON object with these fields:
+{
+  "summary": "A warm 2-sentence greeting with weather overview",
+  "outfit": "Specific clothing recommendation based on temp and conditions",
+  "pollenAlerts": ["Array of specific pollen warnings if any high levels detected"],
+  "activityRecommendation": "Best times or activities for outdoor plans",
+  "keyInsight": "One important thing to remember for the day"
+}`;
+
+      userPrompt = `Create a morning briefing for ${location}. Be warm, specific, and actionable. Consider the ${temp}° temperature, ${condition} conditions, and ${highPollens.length > 0 ? 'high pollen levels' : 'current pollen levels'}.`;
+
     } else if (type === 'chat') {
       // Convert temperatures and units for chat context
       const chatTemp = isImperial ? weatherData.currentWeather.temperature : Math.round((weatherData.currentWeather.temperature - 32) * 5/9);
@@ -140,7 +176,28 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
 
     console.log('AI response received:', aiResponse.substring(0, 100) + '...');
 
-    if (type === 'proactive_insights') {
+    if (type === 'morning_review') {
+      try {
+        const review = JSON.parse(aiResponse);
+        return new Response(JSON.stringify({ review }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      } catch (parseError) {
+        console.error('Failed to parse morning review:', parseError);
+        // Return a basic structure if parsing fails
+        return new Response(JSON.stringify({ 
+          review: {
+            summary: aiResponse.split('\n')[0] || "Good morning! Check the weather details below.",
+            outfit: "Dress appropriately for current conditions.",
+            pollenAlerts: [],
+            activityRecommendation: "Plan your day according to the forecast.",
+            keyInsight: "Stay informed and have a great day!"
+          }
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    } else if (type === 'proactive_insights') {
       try {
         // Try to parse as JSON array
         const insights = JSON.parse(aiResponse);

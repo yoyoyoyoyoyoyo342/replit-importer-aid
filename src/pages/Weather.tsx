@@ -23,6 +23,7 @@ import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { UserRoutineTracker } from "@/components/weather/user-routine-tracker";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
+import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -197,6 +198,14 @@ export default function WeatherPage() {
                   </div>
                 </div>
               </div>}
+
+            {/* Morning Weather Review */}
+            <MorningWeatherReview 
+              weatherData={weatherData.mostAccurate}
+              location={selectedLocation.name}
+              isImperial={isImperial}
+              userId={user?.id}
+            />
 
             {/* Desktop Layout - Only show on large screens */}
             <div className="hidden lg:block mb-6">
