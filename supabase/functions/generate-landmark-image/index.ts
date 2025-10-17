@@ -85,15 +85,15 @@ serve(async (req) => {
     // Get landmark from database
     const landmark = landmarkDatabase[cityName];
     const searchQuery = landmark 
-      ? `${landmark.name} landmark architecture ${landmark.description}`
-      : `${cityName} cityscape landmark architecture`;
+      ? `${landmark.name} iconic famous monument ${landmark.description}`
+      : `${cityName} famous landmark iconic monument`;
     
     console.log('Searching Unsplash for:', searchQuery);
 
     
-    // Search Unsplash for real photos
+    // Search Unsplash for real photos with strict landmark filtering
     const unsplashResponse = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=5&orientation=portrait&content_filter=high`,
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=3&orientation=portrait&content_filter=high`,
       {
         headers: {
           'Authorization': `Client-ID ${unsplashToken}`,
