@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { WeatherSource } from "@/types/weather";
 import { useAuth } from "@/hooks/use-auth";
+import { useLanguage } from "@/contexts/language-context";
 
 interface Message {
   id: string;
@@ -40,6 +41,7 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { language } = useLanguage();
 
   // Fetch user routines
   useEffect(() => {
@@ -80,7 +82,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
           weatherData,
           location,
           isImperial,
-          userRoutines
+          userRoutines,
+          language
         }
       });
 
@@ -123,7 +126,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
           location,
           isImperial,
           conversationHistory: messages.slice(-5), // Last 5 messages for context
-          userRoutines
+          userRoutines,
+          language
         }
       });
 
