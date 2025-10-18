@@ -1,20 +1,22 @@
 // Service Worker for Rainz Weather App
-const CACHE_NAME = 'rainz-weather-v2';
-const STATIC_CACHE = 'rainz-static-v2';
+const VERSION = 'v3.0';
+const CACHE_NAME = `rainz-weather-${VERSION}`;
+const STATIC_CACHE = `rainz-static-${VERSION}`;
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+  console.log(`Service Worker ${VERSION} installing...`);
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => cache.addAll(['/logo.png', '/favicon.ico']))
+      .then(() => self.skipWaiting()) // Force immediate activation
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
+  console.log(`Service Worker ${VERSION} activating...`);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
+      // Delete ALL old caches
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME && cacheName !== STATIC_CACHE) {
@@ -23,32 +25,50 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      // Force all clients to be claimed by this new service worker
+      return self.clients.claim();
+    }).then(() => {
+      // Force reload all clients to get fresh content
+      return self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ type: 'FORCE_RELOAD' });
+        });
+      });
+    })
   );
 });
 
 self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+  
   const url = new URL(event.request.url);
   
-  // Network-first strategy for HTML/JS/CSS to always get latest version
-  if (event.request.method === 'GET' && 
-      (url.pathname.endsWith('.html') || 
-       url.pathname.endsWith('.js') || 
-       url.pathname.endsWith('.css') ||
-       url.pathname === '/' ||
-       url.pathname.startsWith('/assets/'))) {
+  // Always fetch fresh for HTML, JS, CSS, and API calls
+  if (url.pathname.endsWith('.html') || 
+      url.pathname.endsWith('.js') || 
+      url.pathname.endsWith('.css') ||
+      url.pathname === '/' ||
+      url.pathname.startsWith('/assets/') ||
+      url.hostname.includes('supabase') ||
+      url.hostname.includes('open-meteo')) {
+    
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-store' })
         .then((response) => {
-          // Cache the new version
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
+          // Only cache successful responses
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
           return response;
         })
-        .catch(() => {
-          // Fall back to cache if offline
+        .catch((error) => {
+          console.log('Fetch failed, trying cache:', error);
+          // Fall back to cache only if offline
           return caches.match(event.request);
         })
     );
