@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { HfInference } from "https://esm.sh/@huggingface/inference@2.8.0";
 
 const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
@@ -27,8 +26,6 @@ serve(async (req) => {
     }
 
     console.log('AI Weather Insights request:', { type, location, hasWeatherData: !!weatherData, language });
-
-    const hf = new HfInference(huggingFaceToken);
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -177,20 +174,45 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    // Use Hugging Face Chat Completion API with correct method
-    console.log('Calling Hugging Face API...');
+    // Use Hugging Face Inference API directly
+    console.log('Calling Hugging Face API with model: meta-llama/Llama-3.3-70B-Instruct');
     
-    const chatCompletion = await hf.chatCompletion({
-      model: 'meta-llama/Llama-3.3-70B-Instruct',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      max_tokens: type === 'proactive_insights' ? 500 : 800,
-      temperature: 0.7,
+    const response = await fetch('https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${huggingFaceToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: `${systemPrompt}\n\nUser: ${userPrompt}\n\nAssistant:`,
+        parameters: {
+          max_new_tokens: type === 'proactive_insights' ? 500 : 800,
+          temperature: 0.7,
+          return_full_text: false,
+        },
+      }),
     });
 
-    const aiResponse = chatCompletion.choices[0].message.content;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Hugging Face API error:', response.status, errorText);
+      throw new Error(`Hugging Face API error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log('Raw Hugging Face response:', JSON.stringify(result).substring(0, 200));
+    
+    // Extract the generated text from the response
+    let aiResponse = '';
+    if (Array.isArray(result) && result[0]?.generated_text) {
+      aiResponse = result[0].generated_text;
+    } else if (result.generated_text) {
+      aiResponse = result.generated_text;
+    } else {
+      console.error('Unexpected response format:', result);
+      throw new Error('Unexpected response format from Hugging Face API');
+    }
+    
     console.log('AI response received:', aiResponse.substring(0, 100) + '...');
 
     if (type === 'morning_review') {
