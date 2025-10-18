@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export type Language = 'en-GB' | 'en-US' | 'da' | 'sv' | 'no' | 'fr' | 'it';
 
@@ -805,14 +807,79 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('rainz-language');
-    return (saved as Language) || 'en-GB';
-  });
+  const [language, setLanguageState] = useState<Language>('en-GB');
+  const [userId, setUserId] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('rainz-language', lang);
+  // Load language preference from database on mount
+  useEffect(() => {
+    const loadLanguagePreference = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        const { data } = await supabase
+          .from('user_preferences')
+          .select('language')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (data?.language) {
+          setLanguageState(data.language as Language);
+        } else {
+          // Fallback to localStorage if no DB preference
+          const saved = localStorage.getItem('rainz-language');
+          if (saved) setLanguageState(saved as Language);
+        }
+      } else {
+        // No user, use localStorage
+        const saved = localStorage.getItem('rainz-language');
+        if (saved) setLanguageState(saved as Language);
+      }
+    };
+
+    loadLanguagePreference();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUserId(session.user.id);
+        loadLanguagePreference();
+      } else {
+        setUserId(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const setLanguage = async (newLanguage: Language) => {
+    setLanguageState(newLanguage);
+    localStorage.setItem('rainz-language', newLanguage);
+    
+    // Save to database if user is logged in
+    if (userId) {
+      try {
+        const { error } = await supabase
+          .from('user_preferences')
+          .upsert({
+            user_id: userId,
+            language: newLanguage,
+            visible_cards: { hourly: true, pollen: true, tenDay: true, routines: true, detailedMetrics: true },
+            card_order: ["pollen", "hourly", "tenDay", "detailedMetrics", "routines"]
+          }, {
+            onConflict: 'user_id'
+          });
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error saving language preference:', error);
+        toast({
+          title: "Could not save language preference",
+          description: "Your selection will be reset when you log out.",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   const t = (key: string): string => {

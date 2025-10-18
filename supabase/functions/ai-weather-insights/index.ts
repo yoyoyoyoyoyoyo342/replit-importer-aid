@@ -105,13 +105,19 @@ ${highPollens.length > 0 ? `- High Pollen: ${highPollens.join(', ')}` : ''}
 Return a JSON object with these fields:
 {
   "summary": "A warm 2-sentence greeting with weather overview",
-  "outfit": "Specific clothing recommendation based on temp and conditions",
+  "outfit": "VERY SPECIFIC clothing items list (e.g., 'Light jacket, long sleeves, jeans, and trainers' or 'T-shirt, shorts, trainers, and sunglasses'). Never say just 'dress appropriately'. Always list actual clothing items.",
   "pollenAlerts": ["Array of specific pollen warnings if any high levels detected"],
-  "activityRecommendation": "Best times or activities for outdoor plans",
+  "activityRecommendation": "SPECIFIC activity suggestions based on weather analysis (e.g., 'Perfect for outdoor running from 8-10am before it gets hot' or 'Indoor activities recommended due to rain - great day for museums or cinema'). Never say generic phrases like 'plan your day'. Always analyze weather and suggest specific activities with timing.",
   "keyInsight": "One important thing to remember for the day"
 }`;
 
-      userPrompt = `Create a morning briefing for ${location}. Be warm, specific, and actionable. Consider the ${temp}° temperature, ${condition} conditions, and ${highPollens.length > 0 ? 'high pollen levels' : 'current pollen levels'}.`;
+      userPrompt = `Create a morning briefing for ${location}. Be warm, specific, and actionable. 
+
+CRITICAL REQUIREMENTS:
+1. For "outfit": List SPECIFIC clothing items (jacket, t-shirt, trousers, shoes, etc.). NEVER say "dress appropriately" or generic advice. Think about what someone would actually wear for ${temp}°${isImperial ? 'F' : 'C'} and ${condition}.
+2. For "activityRecommendation": Analyze the weather (${temp}°, ${condition}, ${windSpeed} ${isImperial ? 'mph' : 'km/h'} wind, UV ${uvIndex}) and suggest SPECIFIC activities with timing. Examples: "Perfect for outdoor cycling 7-9am", "Stay indoors, heavy rain expected - good day for reading", "Great beach weather 10am-4pm, apply SPF30+". NEVER give generic advice.
+
+Consider the weather conditions carefully: ${temp}° temperature, ${condition} conditions, and ${highPollens.length > 0 ? 'high pollen levels' : 'current pollen levels'}.`;
 
     } else if (type === 'chat') {
       // Convert temperatures and units for chat context

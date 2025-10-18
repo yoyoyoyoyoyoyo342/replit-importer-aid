@@ -121,6 +121,7 @@ export type Database = {
           card_order: Json
           created_at: string
           id: string
+          language: string | null
           updated_at: string
           user_id: string
           visible_cards: Json
@@ -129,6 +130,7 @@ export type Database = {
           card_order?: Json
           created_at?: string
           id?: string
+          language?: string | null
           updated_at?: string
           user_id: string
           visible_cards?: Json
@@ -137,6 +139,7 @@ export type Database = {
           card_order?: Json
           created_at?: string
           id?: string
+          language?: string | null
           updated_at?: string
           user_id?: string
           visible_cards?: Json
