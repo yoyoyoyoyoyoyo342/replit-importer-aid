@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { HfInference } from "https://esm.sh/@huggingface/inference@2.3.2";
 
 const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
@@ -174,49 +175,32 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    // Use Hugging Face Inference API with Mistral model (proven to work)
-    console.log('Calling Hugging Face Inference API with Mistral-7B...');
+    // Use HfInference library for reliable API calls
+    console.log('Calling Hugging Face with HfInference library...');
     
-    // Combine system and user prompts into a single input for Hugging Face
+    const hf = new HfInference(huggingFaceToken);
+    
+    // Combine system and user prompts
     const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
     
-    const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${huggingFaceToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    let aiResponse = '';
+    try {
+      const result = await hf.textGeneration({
+        model: 'mistralai/Mistral-7B-Instruct-v0.2',
         inputs: combinedPrompt,
         parameters: {
           max_new_tokens: type === 'proactive_insights' ? 500 : 800,
           temperature: 0.7,
           return_full_text: false,
         },
-      }),
-    });
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Hugging Face API error:', response.status, errorText);
-      throw new Error(`Hugging Face API error: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
-    console.log('Hugging Face response:', JSON.stringify(result).substring(0, 200));
-    
-    // Extract generated text from Hugging Face response
-    let aiResponse = '';
-    if (Array.isArray(result) && result[0]?.generated_text) {
-      aiResponse = result[0].generated_text;
-    } else if (result.generated_text) {
       aiResponse = result.generated_text;
-    } else {
-      console.error('Unexpected response format:', JSON.stringify(result).substring(0, 500));
-      throw new Error('Unexpected response format from Hugging Face API');
+      console.log('AI response received:', aiResponse.substring(0, 150) + '...');
+    } catch (hfError) {
+      console.error('Hugging Face API call failed:', hfError);
+      throw new Error(`Failed to generate AI response: ${hfError.message}`);
     }
-    
-    console.log('AI response received:', aiResponse.substring(0, 150) + '...');
 
     if (type === 'morning_review') {
       try {
