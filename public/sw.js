@@ -1,5 +1,5 @@
 // Service Worker for Rainz Weather App
-const VERSION = 'v3.0';
+const VERSION = 'v3.1';
 const CACHE_NAME = `rainz-weather-${VERSION}`;
 const STATIC_CACHE = `rainz-static-${VERSION}`;
 
@@ -45,40 +45,25 @@ self.addEventListener('fetch', (event) => {
   
   const url = new URL(event.request.url);
   
-  // Always fetch fresh for HTML, JS, CSS, and API calls
-  if (url.pathname.endsWith('.html') || 
-      url.pathname.endsWith('.js') || 
-      url.pathname.endsWith('.css') ||
-      url.pathname === '/' ||
-      url.pathname.startsWith('/assets/') ||
-      url.hostname.includes('supabase') ||
-      url.hostname.includes('open-meteo')) {
-    
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' })
-        .then((response) => {
-          // Only cache successful responses
-          if (response && response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch((error) => {
-          console.log('Fetch failed, trying cache:', error);
-          // Fall back to cache only if offline
-          return caches.match(event.request);
-        })
-    );
-  } else {
-    // Cache-first for static assets like images
-    event.respondWith(
-      caches.match(event.request)
-        .then((response) => response || fetch(event.request))
-    );
-  }
+  // ALWAYS fetch fresh - network-first for everything
+  event.respondWith(
+    fetch(event.request, { 
+      cache: 'no-store',
+      headers: {
+        ...event.request.headers,
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    })
+      .then((response) => {
+        // Don't cache anything - always fresh
+        return response;
+      })
+      .catch((error) => {
+        console.log('Fetch failed, trying cache:', error);
+        // Only fall back to cache if completely offline
+        return caches.match(event.request);
+      })
+  );
 });
 
 // Handle notification click

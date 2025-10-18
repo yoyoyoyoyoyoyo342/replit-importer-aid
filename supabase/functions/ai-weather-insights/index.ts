@@ -1,7 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2';
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,11 +18,13 @@ serve(async (req) => {
   try {
     const { type, message, weatherData, location, isImperial, conversationHistory, userRoutines, language } = await req.json();
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!huggingFaceToken) {
+      throw new Error('Hugging Face API token not configured');
     }
 
     console.log('AI Weather Insights request:', { type, location, hasWeatherData: !!weatherData });
+
+    const hf = new HfInference(huggingFaceToken);
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -170,31 +173,20 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: type === 'proactive_insights' ? 500 : 800,
-        temperature: 0.7,
-      }),
+    // Use Hugging Face Chat Completion API
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ];
+
+    const result = await hf.chatCompletion({
+      model: 'meta-llama/Llama-3.3-70B-Instruct',
+      messages: messages,
+      max_tokens: type === 'proactive_insights' ? 500 : 800,
+      temperature: 0.7,
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const aiResponse = result.choices[0].message.content;
 
     console.log('AI response received:', aiResponse.substring(0, 100) + '...');
 
