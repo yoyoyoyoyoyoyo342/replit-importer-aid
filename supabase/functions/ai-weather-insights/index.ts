@@ -174,13 +174,13 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    // Use Hugging Face Inference API with correct format
-    console.log('Calling Hugging Face Inference API...');
+    // Use Hugging Face Inference API with Mistral model (proven to work)
+    console.log('Calling Hugging Face Inference API with Mistral-7B...');
     
     // Combine system and user prompts into a single input for Hugging Face
     const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
     
-    const response = await fetch('https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct', {
+    const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${huggingFaceToken}`,
