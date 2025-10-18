@@ -177,7 +177,7 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
     // Use Hugging Face chat completions endpoint (OpenAI-compatible format)
     console.log('Calling Hugging Face chat completions API...');
     
-    const response = await fetch('https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct', {
+    const response = await fetch('https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${huggingFaceToken}`,
