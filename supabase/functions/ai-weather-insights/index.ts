@@ -174,22 +174,22 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    // Use Hugging Face Inference API directly
-    console.log('Calling Hugging Face API with model: meta-llama/Llama-3.3-70B-Instruct');
+    // Use Hugging Face chat completions endpoint (OpenAI-compatible format)
+    console.log('Calling Hugging Face chat completions API...');
     
-    const response = await fetch('https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct', {
+    const response = await fetch('https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.3-70B-Instruct', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${huggingFaceToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: `${systemPrompt}\n\nUser: ${userPrompt}\n\nAssistant:`,
-        parameters: {
-          max_new_tokens: type === 'proactive_insights' ? 500 : 800,
-          temperature: 0.7,
-          return_full_text: false,
-        },
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: type === 'proactive_insights' ? 500 : 800,
+        temperature: 0.7,
       }),
     });
 
@@ -200,20 +200,18 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
     }
 
     const result = await response.json();
-    console.log('Raw Hugging Face response:', JSON.stringify(result).substring(0, 200));
+    console.log('Hugging Face response structure:', Object.keys(result));
     
-    // Extract the generated text from the response
+    // Extract content from OpenAI-compatible response format
     let aiResponse = '';
-    if (Array.isArray(result) && result[0]?.generated_text) {
-      aiResponse = result[0].generated_text;
-    } else if (result.generated_text) {
-      aiResponse = result.generated_text;
+    if (result.choices && result.choices[0]?.message?.content) {
+      aiResponse = result.choices[0].message.content;
     } else {
-      console.error('Unexpected response format:', result);
+      console.error('Unexpected response format:', JSON.stringify(result).substring(0, 500));
       throw new Error('Unexpected response format from Hugging Face API');
     }
     
-    console.log('AI response received:', aiResponse.substring(0, 100) + '...');
+    console.log('AI response received:', aiResponse.substring(0, 150) + '...');
 
     if (type === 'morning_review') {
       try {
