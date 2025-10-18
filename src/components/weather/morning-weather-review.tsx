@@ -119,7 +119,7 @@ export function MorningWeatherReview({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sunrise className="w-5 h-5 text-orange-500" />
-            <CardTitle className="text-lg">{t('time.goodMorning')}</CardTitle>
+            <CardTitle className="text-lg">AI Morning Review</CardTitle>
           </div>
           <div className="flex items-center gap-1">
             <Button
