@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { HfInference } from "https://esm.sh/@huggingface/inference@2.8.0";
 
 const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
@@ -26,6 +27,8 @@ serve(async (req) => {
     }
 
     console.log('AI Weather Insights request:', { type, location, hasWeatherData: !!weatherData, language });
+
+    const hf = new HfInference(huggingFaceToken);
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -174,33 +177,20 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    // Use Hugging Face Chat Completion API
-    const response = await fetch('https://api-inference.huggingface.co/models/meta-llama/Llama-3.3-70B-Instruct/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${huggingFaceToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/Llama-3.3-70B-Instruct',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: type === 'proactive_insights' ? 500 : 800,
-        temperature: 0.7,
-      }),
+    // Use Hugging Face Chat Completion API with correct method
+    console.log('Calling Hugging Face API...');
+    
+    const chatCompletion = await hf.chatCompletion({
+      model: 'meta-llama/Llama-3.3-70B-Instruct',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      max_tokens: type === 'proactive_insights' ? 500 : 800,
+      temperature: 0.7,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Hugging Face API error:', response.status, errorText);
-      throw new Error(`Hugging Face API error: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const aiResponse = result.choices[0].message.content;
-
+    const aiResponse = chatCompletion.choices[0].message.content;
     console.log('AI response received:', aiResponse.substring(0, 100) + '...');
 
     if (type === 'morning_review') {
