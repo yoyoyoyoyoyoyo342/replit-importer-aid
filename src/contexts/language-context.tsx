@@ -47,6 +47,15 @@ const translations: Record<Language, Record<string, string>> = {
     'time.today': 'Today',
     'time.tomorrow': 'Tomorrow',
     
+    // Morning Review
+    'morning.title': 'AI Morning Review',
+    'morning.generating': 'Generating your morning briefing...',
+    'morning.generate': 'Generate AI Morning Briefing',
+    'morning.outfit': 'What to Wear:',
+    'morning.pollenAlerts': 'Pollen Alerts',
+    'morning.activities': 'Activities:',
+    'morning.keyInsight': 'Key Insight:',
+    
     // Settings
     'settings.title': 'Settings',
     'settings.account': 'Account',
@@ -159,6 +168,15 @@ const translations: Record<Language, Record<string, string>> = {
     'time.dismiss': 'Dismiss',
     'time.today': 'Today',
     'time.tomorrow': 'Tomorrow',
+    
+    // Morning Review
+    'morning.title': 'AI Morning Review',
+    'morning.generating': 'Generating your morning briefing...',
+    'morning.generate': 'Generate AI Morning Briefing',
+    'morning.outfit': 'What to Wear:',
+    'morning.pollenAlerts': 'Pollen Alerts',
+    'morning.activities': 'Activities:',
+    'morning.keyInsight': 'Key Insight:',
     
     // Settings
     'settings.title': 'Settings',
@@ -273,6 +291,15 @@ const translations: Record<Language, Record<string, string>> = {
     'time.today': 'I dag',
     'time.tomorrow': 'I morgen',
     
+    // Morning Review
+    'morning.title': 'AI Morgen Gennemgang',
+    'morning.generating': 'Genererer din morgen briefing...',
+    'morning.generate': 'Generer AI Morgen Briefing',
+    'morning.outfit': 'Hvad skal man have på:',
+    'morning.pollenAlerts': 'Pollen Advarsler',
+    'morning.activities': 'Aktiviteter:',
+    'morning.keyInsight': 'Vigtig Indsigt:',
+    
     // Settings
     'settings.title': 'Indstillinger',
     'settings.account': 'Konto',
@@ -385,6 +412,15 @@ const translations: Record<Language, Record<string, string>> = {
     'time.dismiss': 'Avfärda',
     'time.today': 'Idag',
     'time.tomorrow': 'Imorgon',
+    
+    // Morning Review
+    'morning.title': 'AI Morgon Översikt',
+    'morning.generating': 'Genererar din morgonbriefing...',
+    'morning.generate': 'Generera AI Morgonbriefing',
+    'morning.outfit': 'Vad ska man ha på sig:',
+    'morning.pollenAlerts': 'Pollenvarningar',
+    'morning.activities': 'Aktiviteter:',
+    'morning.keyInsight': 'Viktig Insikt:',
     
     // Settings
     'settings.title': 'Inställningar',
@@ -499,6 +535,15 @@ const translations: Record<Language, Record<string, string>> = {
     'time.today': 'I dag',
     'time.tomorrow': 'I morgen',
     
+    // Morning Review
+    'morning.title': 'AI Morgen Oversikt',
+    'morning.generating': 'Genererer din morgenbriefing...',
+    'morning.generate': 'Generer AI Morgenbriefing',
+    'morning.outfit': 'Hva skal man ha på seg:',
+    'morning.pollenAlerts': 'Pollenvarsler',
+    'morning.activities': 'Aktiviteter:',
+    'morning.keyInsight': 'Viktig Innsikt:',
+    
     // Settings
     'settings.title': 'Innstillinger',
     'settings.account': 'Konto',
@@ -612,6 +657,15 @@ const translations: Record<Language, Record<string, string>> = {
     'time.today': 'Aujourd\'hui',
     'time.tomorrow': 'Demain',
     
+    // Morning Review
+    'morning.title': 'Revue Matinale IA',
+    'morning.generating': 'Génération de votre briefing matinal...',
+    'morning.generate': 'Générer Briefing Matinal IA',
+    'morning.outfit': 'Quoi Porter:',
+    'morning.pollenAlerts': 'Alertes Pollen',
+    'morning.activities': 'Activités:',
+    'morning.keyInsight': 'Conseil Clé:',
+    
     // Settings
     'settings.title': 'Paramètres',
     'settings.account': 'Compte',
@@ -724,6 +778,15 @@ const translations: Record<Language, Record<string, string>> = {
     'time.dismiss': 'Ignora',
     'time.today': 'Oggi',
     'time.tomorrow': 'Domani',
+    
+    // Morning Review
+    'morning.title': 'Revisione Mattutina IA',
+    'morning.generating': 'Generazione del tuo briefing mattutino...',
+    'morning.generate': 'Genera Briefing Mattutino IA',
+    'morning.outfit': 'Cosa Indossare:',
+    'morning.pollenAlerts': 'Avvisi Polline',
+    'morning.activities': 'Attività:',
+    'morning.keyInsight': 'Consiglio Chiave:',
     
     // Settings
     'settings.title': 'Impostazioni',

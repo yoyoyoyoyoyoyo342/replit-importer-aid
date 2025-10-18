@@ -32,7 +32,7 @@ export function MorningWeatherReview({
   const [reviewData, setReviewData] = useState<MorningReviewData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Check if it's morning time (6 AM - 12 PM)
   const isMorningTime = () => {
@@ -67,7 +67,8 @@ export function MorningWeatherReview({
           type: 'morning_review',
           weatherData,
           location,
-          isImperial
+          isImperial,
+          language
         }
       });
 
@@ -119,7 +120,7 @@ export function MorningWeatherReview({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sunrise className="w-5 h-5 text-orange-500" />
-            <CardTitle className="text-lg">AI Morning Review</CardTitle>
+            <CardTitle className="text-lg">{t('morning.title')}</CardTitle>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -164,7 +165,7 @@ export function MorningWeatherReview({
           {isLoading ? (
             <div className="text-center py-4">
               <div className="animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Generating your morning briefing...</p>
+              <p className="text-sm text-muted-foreground">{t('morning.generating')}</p>
             </div>
           ) : reviewData ? (
             <div className="space-y-3">
@@ -175,7 +176,7 @@ export function MorningWeatherReview({
               {reviewData.outfit && (
                 <div className="bg-background/50 rounded-lg p-3">
                   <p className="text-sm">
-                    <span className="font-semibold">👔 What to Wear:</span> {reviewData.outfit}
+                    <span className="font-semibold">👔 {t('morning.outfit')}</span> {reviewData.outfit}
                   </p>
                 </div>
               )}
@@ -186,7 +187,7 @@ export function MorningWeatherReview({
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-yellow-900 dark:text-yellow-100">Pollen Alerts</p>
+                      <p className="text-sm font-semibold text-yellow-900 dark:text-yellow-100">{t('morning.pollenAlerts')}</p>
                       {reviewData.pollenAlerts.map((alert, idx) => (
                         <p key={idx} className="text-xs text-yellow-800 dark:text-yellow-200">• {alert}</p>
                       ))}
@@ -199,7 +200,7 @@ export function MorningWeatherReview({
               {reviewData.activityRecommendation && (
                 <div className="bg-background/50 rounded-lg p-3">
                   <p className="text-sm">
-                    <span className="font-semibold">🏃 Activities:</span> {reviewData.activityRecommendation}
+                    <span className="font-semibold">🏃 {t('morning.activities')}</span> {reviewData.activityRecommendation}
                   </p>
                 </div>
               )}
@@ -208,7 +209,7 @@ export function MorningWeatherReview({
               {reviewData.keyInsight && (
                 <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
                   <p className="text-sm">
-                    <span className="font-semibold">💡 Key Insight:</span> {reviewData.keyInsight}
+                    <span className="font-semibold">💡 {t('morning.keyInsight')}</span> {reviewData.keyInsight}
                   </p>
                 </div>
               )}
@@ -221,7 +222,7 @@ export function MorningWeatherReview({
               className="w-full"
             >
               <Sparkles className="w-4 h-4 mr-2" />
-              Generate AI Morning Briefing
+              {t('morning.generate')}
             </Button>
           )}
         </CardContent>

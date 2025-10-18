@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { type, message, weatherData, location, isImperial, conversationHistory, userRoutines } = await req.json();
+    const { type, message, weatherData, location, isImperial, conversationHistory, userRoutines, language } = await req.json();
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
@@ -92,7 +92,21 @@ Examples of good insights:
         .filter(([_, value]) => value > 6)
         .map(([type]) => type);
 
+      // Map language codes to language names for AI prompt
+      const languageMap: Record<string, string> = {
+        'en-GB': 'British English',
+        'en-US': 'American English',
+        'da': 'Danish',
+        'sv': 'Swedish',
+        'no': 'Norwegian',
+        'fr': 'French',
+        'it': 'Italian'
+      };
+      const targetLanguage = languageMap[language] || 'English';
+
       systemPrompt = `You are creating a personalized morning weather briefing. Provide a warm, helpful summary that helps the user plan their day.
+
+CRITICAL: You MUST respond in ${targetLanguage}. All text in your response must be in ${targetLanguage}, including the greeting, weather description, clothing suggestions, and activity recommendations.
 
 Current Weather in ${location}:
 - Temperature: ${temp}°${isImperial ? 'F' : 'C'} (feels like ${feelsLike}°${isImperial ? 'F' : 'C'})
@@ -114,9 +128,10 @@ Return ONLY a JSON object (no markdown code blocks) with these fields:
       userPrompt = `Create a morning briefing for ${location}. Be warm, specific, and actionable. 
 
 CRITICAL REQUIREMENTS:
-1. For "outfit": List SPECIFIC clothing items (jacket, t-shirt, trousers, shoes, etc.). NEVER say "dress appropriately" or generic advice. Think about what someone would actually wear for ${temp}°${isImperial ? 'F' : 'C'} and ${condition}.
-2. For "activityRecommendation": Analyze the weather (${temp}°, ${condition}, ${windSpeed} ${isImperial ? 'mph' : 'km/h'} wind, UV ${uvIndex}) and suggest SPECIFIC activities with timing. Examples: "Perfect for outdoor cycling 7-9am", "Stay indoors, heavy rain expected - good day for reading", "Great beach weather 10am-4pm, apply SPF30+". NEVER give generic advice.
-3. IMPORTANT: Return ONLY pure JSON. Do NOT wrap the response in markdown code blocks. Do NOT include \`\`\`json or \`\`\`. Just return the raw JSON object.
+1. LANGUAGE: You MUST write the ENTIRE response in ${targetLanguage}. Every single word must be in ${targetLanguage}.
+2. For "outfit": List SPECIFIC clothing items (jacket, t-shirt, trousers, shoes, etc.) in ${targetLanguage}. NEVER say "dress appropriately" or generic advice. Think about what someone would actually wear for ${temp}°${isImperial ? 'F' : 'C'} and ${condition}.
+3. For "activityRecommendation": Analyze the weather (${temp}°, ${condition}, ${windSpeed} ${isImperial ? 'mph' : 'km/h'} wind, UV ${uvIndex}) and suggest SPECIFIC activities with timing in ${targetLanguage}. Examples: "Perfect for outdoor cycling 7-9am", "Stay indoors, heavy rain expected - good day for reading", "Great beach weather 10am-4pm, apply SPF30+". NEVER give generic advice.
+4. IMPORTANT: Return ONLY pure JSON. Do NOT wrap the response in markdown code blocks. Do NOT include \`\`\`json or \`\`\`. Just return the raw JSON object.
 
 Consider the weather conditions carefully: ${temp}° temperature, ${condition} conditions, and ${highPollens.length > 0 ? 'high pollen levels' : 'current pollen levels'}.`;
 
