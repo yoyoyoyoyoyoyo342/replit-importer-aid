@@ -102,7 +102,7 @@ Current Weather in ${location}:
 - UV Index: ${uvIndex}/10
 ${highPollens.length > 0 ? `- High Pollen: ${highPollens.join(', ')}` : ''}
 
-Return a JSON object with these fields:
+Return ONLY a JSON object (no markdown code blocks) with these fields:
 {
   "summary": "A warm 2-sentence greeting with weather overview",
   "outfit": "VERY SPECIFIC clothing items list (e.g., 'Light jacket, long sleeves, jeans, and trainers' or 'T-shirt, shorts, trainers, and sunglasses'). Never say just 'dress appropriately'. Always list actual clothing items.",
@@ -116,6 +116,7 @@ Return a JSON object with these fields:
 CRITICAL REQUIREMENTS:
 1. For "outfit": List SPECIFIC clothing items (jacket, t-shirt, trousers, shoes, etc.). NEVER say "dress appropriately" or generic advice. Think about what someone would actually wear for ${temp}°${isImperial ? 'F' : 'C'} and ${condition}.
 2. For "activityRecommendation": Analyze the weather (${temp}°, ${condition}, ${windSpeed} ${isImperial ? 'mph' : 'km/h'} wind, UV ${uvIndex}) and suggest SPECIFIC activities with timing. Examples: "Perfect for outdoor cycling 7-9am", "Stay indoors, heavy rain expected - good day for reading", "Great beach weather 10am-4pm, apply SPF30+". NEVER give generic advice.
+3. IMPORTANT: Return ONLY pure JSON. Do NOT wrap the response in markdown code blocks. Do NOT include \`\`\`json or \`\`\`. Just return the raw JSON object.
 
 Consider the weather conditions carefully: ${temp}° temperature, ${condition} conditions, and ${highPollens.length > 0 ? 'high pollen levels' : 'current pollen levels'}.`;
 
@@ -184,20 +185,31 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
 
     if (type === 'morning_review') {
       try {
-        const review = JSON.parse(aiResponse);
+        // Strip markdown code blocks if present
+        let cleanResponse = aiResponse.trim();
+        if (cleanResponse.startsWith('```json')) {
+          cleanResponse = cleanResponse.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+        } else if (cleanResponse.startsWith('```')) {
+          cleanResponse = cleanResponse.replace(/^```\n?/, '').replace(/\n?```$/, '');
+        }
+        
+        console.log('Cleaned response:', cleanResponse.substring(0, 100) + '...');
+        
+        const review = JSON.parse(cleanResponse);
         return new Response(JSON.stringify({ review }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (parseError) {
         console.error('Failed to parse morning review:', parseError);
+        console.error('Raw AI response:', aiResponse);
         // Return a basic structure if parsing fails
         return new Response(JSON.stringify({ 
           review: {
-            summary: aiResponse.split('\n')[0] || "Good morning! Check the weather details below.",
-            outfit: "Dress appropriately for current conditions.",
+            summary: "Good morning! Check the weather details below for your day.",
+            outfit: "Warm jacket, long sleeves, comfortable trousers, and sturdy shoes for the current temperature.",
             pollenAlerts: [],
-            activityRecommendation: "Plan your day according to the forecast.",
-            keyInsight: "Stay informed and have a great day!"
+            activityRecommendation: "Check the hourly forecast and plan outdoor activities during the warmest parts of the day.",
+            keyInsight: "Stay weather-aware and dress in layers for comfort!"
           }
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
