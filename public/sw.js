@@ -1,5 +1,5 @@
 // Service Worker for Rainz Weather App
-const VERSION = 'v3.1';
+const VERSION = 'v3.2';
 const CACHE_NAME = `rainz-weather-${VERSION}`;
 const STATIC_CACHE = `rainz-static-${VERSION}`;
 
@@ -45,7 +45,12 @@ self.addEventListener('fetch', (event) => {
   
   const url = new URL(event.request.url);
   
-  // ALWAYS fetch fresh - network-first for everything
+  // Skip service worker for external API requests - let browser handle them
+  if (url.hostname !== self.location.hostname) {
+    return;
+  }
+  
+  // ALWAYS fetch fresh - network-first for app resources
   event.respondWith(
     fetch(event.request, { 
       cache: 'no-store',
