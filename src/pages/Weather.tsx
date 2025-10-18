@@ -129,7 +129,7 @@ export default function WeatherPage() {
     setIsAutoDetected(false);
   };
   const handleRefresh = () => {
-    refetch();
+    window.location.reload();
   };
   return <div className="min-h-screen overflow-x-hidden relative">
       <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} />
