@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2';
+import { InferenceClient } from 'https://esm.sh/@huggingface/inference@2.3.2';
 
 const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
@@ -15,8 +15,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let type = ''; // Define outside try block for error handling
+  
   try {
-    const { type, message, weatherData, location, isImperial, conversationHistory, userRoutines, language } = await req.json();
+    const requestData = await req.json();
+    type = requestData.type;
+    const { message, weatherData, location, isImperial, conversationHistory, userRoutines, language } = requestData;
 
     if (!huggingFaceToken) {
       throw new Error('Hugging Face API token not configured');
@@ -24,7 +28,7 @@ serve(async (req) => {
 
     console.log('AI Weather Insights request:', { type, location, hasWeatherData: !!weatherData });
 
-    const hf = new HfInference(huggingFaceToken);
+    const client = new InferenceClient(huggingFaceToken);
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -179,7 +183,7 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       { role: 'user', content: userPrompt }
     ];
 
-    const result = await hf.chatCompletion({
+    const result = await client.chatCompletion({
       model: 'meta-llama/Llama-3.3-70B-Instruct',
       messages: messages,
       max_tokens: type === 'proactive_insights' ? 500 : 800,
