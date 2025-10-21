@@ -176,7 +176,7 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
         </Badge>
       </div>
       
-      <ScrollArea className="flex-1 min-h-[300px] max-h-[500px] pr-4" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1 pr-4 overflow-auto" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.map((message) => (
               <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
