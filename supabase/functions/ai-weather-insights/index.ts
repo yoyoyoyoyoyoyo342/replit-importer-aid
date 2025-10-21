@@ -174,43 +174,88 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    // Use OpenAI API
+    // Use OpenAI API with retry logic for rate limits
     console.log('Calling OpenAI API...');
     
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: type === 'proactive_insights' ? 300 : 800,
-        temperature: 0.7,
-      }),
-    });
+    let aiResponse = '';
+    let retries = 3;
+    let delay = 1000; // Start with 1 second delay
+    
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: type === 'proactive_insights' ? 300 : 800,
+            temperature: 0.7,
+          }),
+        });
 
-    if (!openAIResponse.ok) {
-      const errorText = await openAIResponse.text();
-      console.error('OpenAI API error:', openAIResponse.status, errorText);
-      throw new Error(`OpenAI API returned ${openAIResponse.status}: ${errorText}`);
-    }
+        if (openAIResponse.status === 429) {
+          // Rate limited - wait and retry
+          if (attempt < retries - 1) {
+            console.log(`Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            delay *= 2; // Exponential backoff
+            continue;
+          } else {
+            // Last attempt failed, return friendly error
+            return new Response(JSON.stringify({ 
+              error: 'The AI service is temporarily busy. Please try again in a moment.',
+              fallback: type === 'proactive_insights' ? 
+                ["Check current conditions before heading out", "Dress appropriately for the weather"] :
+                type === 'morning_review' ? {
+                  summary: "Good morning! Check the weather details for your day ahead.",
+                  outfit: "Dress in layers appropriate for the current temperature",
+                  pollenAlerts: [],
+                  activityRecommendation: "Review the forecast and plan your activities accordingly",
+                  keyInsight: "Stay weather-aware throughout the day"
+                } :
+                "I'm temporarily busy. Please try asking again in a moment."
+            }), {
+              status: 200,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          }
+        }
 
-    const openAIResult = await openAIResponse.json();
-    console.log('OpenAI response received');
-    
-    const aiResponse = openAIResult.choices[0]?.message?.content || '';
-    
-    if (!aiResponse) {
-      console.error('No content in OpenAI response:', openAIResult);
-      throw new Error('OpenAI returned empty response');
+        if (!openAIResponse.ok) {
+          const errorText = await openAIResponse.text();
+          console.error('OpenAI API error:', openAIResponse.status, errorText);
+          throw new Error(`OpenAI API error: ${openAIResponse.status}`);
+        }
+
+        const openAIResult = await openAIResponse.json();
+        console.log('OpenAI response received');
+        
+        aiResponse = openAIResult.choices[0]?.message?.content || '';
+        
+        if (!aiResponse) {
+          throw new Error('OpenAI returned empty response');
+        }
+        
+        console.log('AI response:', aiResponse.substring(0, 150) + '...');
+        break; // Success, exit retry loop
+        
+      } catch (fetchError) {
+        if (attempt < retries - 1) {
+          console.log(`Request failed, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2;
+        } else {
+          throw fetchError;
+        }
+      }
     }
-    
-    console.log('AI response:', aiResponse.substring(0, 150) + '...');
 
     if (type === 'morning_review') {
       try {
