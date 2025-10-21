@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
+const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,8 +21,8 @@ serve(async (req) => {
     type = requestData.type;
     const { message, weatherData, location, isImperial, conversationHistory, userRoutines, language } = requestData;
 
-    if (!huggingFaceToken) {
-      throw new Error('Hugging Face API token not configured');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
     console.log('AI Weather Insights request:', { type, location, hasWeatherData: !!weatherData, language });
@@ -174,55 +174,43 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
       userPrompt = message;
     }
 
-    // Use direct fetch with a reliable public model
-    console.log('Calling Hugging Face API directly...');
+    // Use OpenAI API
+    console.log('Calling OpenAI API...');
     
-    // Combine system and user prompts
-    const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
-    
-    // Try Hugging Face API with a reliable public model
-    const hfResponse = await fetch('https://api-inference.huggingface.co/models/google/flan-t5-base', {
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${huggingFaceToken}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: combinedPrompt,
-        parameters: {
-          max_new_tokens: type === 'proactive_insights' ? 300 : 500,
-          temperature: 0.7,
-          do_sample: true,
-        },
-        options: {
-          wait_for_model: true,
-          use_cache: false,
-        }
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: type === 'proactive_insights' ? 300 : 800,
+        temperature: 0.7,
       }),
     });
 
-    if (!hfResponse.ok) {
-      const errorText = await hfResponse.text();
-      console.error('Hugging Face API error:', hfResponse.status, errorText);
-      throw new Error(`Hugging Face API returned ${hfResponse.status}: ${errorText}`);
+    if (!openAIResponse.ok) {
+      const errorText = await openAIResponse.text();
+      console.error('OpenAI API error:', openAIResponse.status, errorText);
+      throw new Error(`OpenAI API returned ${openAIResponse.status}: ${errorText}`);
     }
 
-    const hfResult = await hfResponse.json();
-    console.log('Hugging Face raw response:', JSON.stringify(hfResult).substring(0, 200));
+    const openAIResult = await openAIResponse.json();
+    console.log('OpenAI response received');
     
-    let aiResponse = '';
-    if (Array.isArray(hfResult) && hfResult[0]?.generated_text) {
-      aiResponse = hfResult[0].generated_text;
-    } else if (hfResult.generated_text) {
-      aiResponse = hfResult.generated_text;
-    } else if (typeof hfResult === 'string') {
-      aiResponse = hfResult;
-    } else {
-      console.error('Unexpected response format:', hfResult);
-      throw new Error('Could not parse Hugging Face response');
+    const aiResponse = openAIResult.choices[0]?.message?.content || '';
+    
+    if (!aiResponse) {
+      console.error('No content in OpenAI response:', openAIResult);
+      throw new Error('OpenAI returned empty response');
     }
     
-    console.log('AI response received:', aiResponse.substring(0, 150) + '...');
+    console.log('AI response:', aiResponse.substring(0, 150) + '...');
 
     if (type === 'morning_review') {
       try {
