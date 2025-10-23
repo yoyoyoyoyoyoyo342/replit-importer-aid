@@ -47,34 +47,33 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
     <section className="mb-4 md:mb-8">
       <Card className="rounded-2xl shadow-lg border border-border">
         <CardContent className="p-3 md:p-4 lg:p-6">
-          <div className="flex items-center justify-between mb-3 md:mb-6">
-            <h2 className="text-lg md:text-xl font-semibold text-card-foreground flex items-center gap-2">
-              <Clock className="text-primary w-4 h-4 md:w-5 md:h-5" />
-              24-Hour Forecast
-            </h2>
-            <CollapsibleTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(!isOpen)}
-                className="gap-1"
-              >
-                {isOpen ? (
-                  <>
-                    <ChevronUp className="h-4 w-4" />
-                    <span className="text-xs md:text-sm">Show Less</span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-4 w-4" />
-                    <span className="text-xs md:text-sm">Show All 24h</span>
-                  </>
-                )}
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <div className="flex items-center justify-between mb-3 md:mb-6">
+              <h2 className="text-lg md:text-xl font-semibold text-card-foreground flex items-center gap-2">
+                <Clock className="text-primary w-4 h-4 md:w-5 md:h-5" />
+                24-Hour Forecast
+              </h2>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1"
+                >
+                  {isOpen ? (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      <span className="text-xs md:text-sm">Show Less</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      <span className="text-xs md:text-sm">Show All 24h</span>
+                    </>
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+
             <div className="space-y-2">
               {defaultVisibleData.map((hour, index) => (
                 <div
