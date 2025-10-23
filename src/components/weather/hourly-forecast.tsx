@@ -29,19 +29,19 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
   const now = new Date();
   const currentHour = now.getHours();
   
-  // Find the index of the current hour in the hourly data
-  const currentHourIndex = hourlyData.findIndex(hour => {
+  // Get 24 hours of data
+  const fullDayData = hourlyData.slice(0, 24);
+  
+  // Find the index of the current hour in the 24-hour data
+  const currentHourIndex = fullDayData.findIndex(hour => {
     const hourTime = parseInt(hour.time.split(':')[0]);
     return hourTime === currentHour;
   });
   
-  // Get 24 hours of data, defaulting to first 24 if current hour not found
-  const fullDayData = hourlyData.slice(0, 24);
-  
   // Get default visible hours (current + next 2)
-  const defaultVisibleData = currentHourIndex >= 0 
-    ? fullDayData.slice(currentHourIndex, currentHourIndex + 3)
-    : fullDayData.slice(0, 3);
+  // If current hour is found, show current + next 2, otherwise show first 3
+  const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
+  const defaultVisibleData = fullDayData.slice(startIndex, startIndex + 3);
   
   return (
     <section className="mb-4 md:mb-8">
@@ -101,9 +101,9 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
               
               <CollapsibleContent>
                 <div className="space-y-2 mt-2">
-                  {fullDayData.slice(defaultVisibleData.length).map((hour, index) => (
+                  {fullDayData.slice(startIndex + 3).map((hour, index) => (
                     <div
-                      key={index + defaultVisibleData.length}
+                      key={index + startIndex + 3}
                       className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
                     >
                       <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
