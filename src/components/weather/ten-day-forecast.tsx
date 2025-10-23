@@ -13,6 +13,7 @@ interface TenDayForecastProps {
 
 export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, isImperial = true }: TenDayForecastProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const [showAllDays, setShowAllDays] = useState(false);
   const getConditionIcon = (condition: string) => {
     const c = condition.toLowerCase();
     if (c.includes("thunder")) return <CloudLightning className="w-7 h-7 text-primary" />;
@@ -97,7 +98,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
           </h2>
 
           <div className="space-y-2">
-            {dailyForecast.slice(1, 11).map((day, index) => (
+            {dailyForecast.slice(1, showAllDays ? 11 : 4).map((day, index) => (
               <Collapsible
                 key={index}
                 open={expandedDay === index}
@@ -174,6 +175,25 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
               </Collapsible>
             ))}
           </div>
+
+          {dailyForecast.length > 4 && (
+            <button
+              onClick={() => setShowAllDays(!showAllDays)}
+              className="w-full mt-4 py-2 px-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 text-sm font-medium text-card-foreground transition-colors flex items-center justify-center gap-2"
+            >
+              {showAllDays ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  Show Less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  Show All 10 Days
+                </>
+              )}
+            </button>
+          )}
         </CardContent>
       </Card>
     </section>
