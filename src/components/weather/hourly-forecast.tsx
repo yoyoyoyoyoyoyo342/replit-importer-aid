@@ -29,19 +29,41 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
   const now = new Date();
   const currentHour = now.getHours();
   
-  // Get 24 hours of data
-  const fullDayData = hourlyData.slice(0, 24);
+  // Create array of 24 hours for today (00:00 to 23:00)
+  const fullDayData: HourlyData[] = [];
   
-  // Find the index of the current hour in the 24-hour data
+  for (let hour = 0; hour < 24; hour++) {
+    const checkDate = new Date(now);
+    checkDate.setHours(hour, 0, 0, 0);
+    
+    // Calculate hours from now to this specific hour
+    const hoursFromNow = Math.round((checkDate.getTime() - now.getTime()) / (1000 * 60 * 60));
+    
+    // Get data from hourlyData array if available
+    if (hoursFromNow >= 0 && hoursFromNow < hourlyData.length) {
+      const hourData = hourlyData[hoursFromNow];
+      fullDayData.push({
+        ...hourData,
+        time: `${String(hour).padStart(2, '0')}:00`
+      });
+    } else if (hour < hourlyData.length) {
+      // For past hours today, use the data if available
+      fullDayData.push({
+        ...hourlyData[hour],
+        time: `${String(hour).padStart(2, '0')}:00`
+      });
+    }
+  }
+  
+  // Find the current hour in the full day data
   const currentHourIndex = fullDayData.findIndex(hour => {
     const hourTime = parseInt(hour.time.split(':')[0]);
     return hourTime === currentHour;
   });
   
   // Get default visible hours (current + next 2)
-  // If current hour is found, show current + next 2, otherwise show first 3
   const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
-  const defaultVisibleData = fullDayData.slice(startIndex, startIndex + 3);
+  const defaultVisibleData = fullDayData.slice(startIndex, Math.min(startIndex + 3, fullDayData.length));
   
   return (
     <section className="mb-4 md:mb-8">
@@ -101,29 +123,35 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
               
               <CollapsibleContent>
                 <div className="space-y-2 mt-2">
-                  {fullDayData.slice(startIndex + 3).map((hour, index) => (
-                    <div
-                      key={index + startIndex + 3}
-                      className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
-                    >
-                      <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                        <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
-                          {hour.time}
+                  {fullDayData.map((hour, index) => {
+                    // Skip the hours that are already visible in defaultVisibleData
+                    const isVisible = index >= startIndex && index < startIndex + defaultVisibleData.length;
+                    if (isVisible) return null;
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
+                      >
+                        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                          <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
+                            {hour.time}
+                          </div>
+                          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                            {getConditionIcon(hour.condition)}
+                          </div>
                         </div>
-                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                          {getConditionIcon(hour.condition)}
+                        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                          <div className="text-xs text-muted-foreground">
+                            {hour.precipitation}%
+                          </div>
+                          <div className="text-sm md:text-lg font-semibold text-card-foreground min-w-[32px] md:min-w-[40px] text-right">
+                            {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                        <div className="text-xs text-muted-foreground">
-                          {hour.precipitation}%
-                        </div>
-                        <div className="text-sm md:text-lg font-semibold text-card-foreground min-w-[32px] md:min-w-[40px] text-right">
-                          {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CollapsibleContent>
             </div>
