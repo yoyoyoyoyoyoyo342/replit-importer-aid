@@ -21,7 +21,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { AIChatButton } from "@/components/weather/ai-chat-button";
-import { UserRoutineTracker } from "@/components/weather/user-routine-tracker";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
 import { useLanguage } from "@/contexts/language-context";
@@ -34,7 +33,6 @@ export default function WeatherPage() {
   const [isAutoDetected, setIsAutoDetected] = useState(false);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [userRoutines, setUserRoutines] = useState([]);
   const { toast } = useToast();
   const { user, profile, loading: authLoading } = useAuth();
   const { visibleCards, cardOrder, is24Hour, loading: preferencesLoading } = useUserPreferences();
@@ -265,13 +263,6 @@ export default function WeatherPage() {
                       currentWeather={weatherData.mostAccurate.currentWeather}
                       is24Hour={is24Hour}
                     />
-                  );
-                
-                case "routines":
-                  return (
-                    <div key="routines" className="mt-6">
-                      <UserRoutineTracker onRoutineUpdate={setUserRoutines} />
-                    </div>
                   );
                 
                 default:
