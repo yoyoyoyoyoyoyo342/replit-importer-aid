@@ -97,6 +97,36 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
             </div>
 
             <div className="space-y-2">
+              {/* Hours before the current hour (shown only when expanded) */}
+              <CollapsibleContent>
+                <div className="space-y-2">
+                  {fullDayData.slice(0, startIndex).map((hour, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
+                    >
+                      <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                        <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
+                          {hour.time}
+                        </div>
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                          {getConditionIcon(hour.condition)}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                        <div className="text-xs text-muted-foreground">
+                          {hour.precipitation}%
+                        </div>
+                        <div className="text-sm md:text-lg font-semibold text-card-foreground min-w-[32px] md:min-w-[40px] text-right">
+                          {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+
+              {/* Current hour + next 2 (always visible) */}
               {defaultVisibleData.map((hour, index) => (
                 <div
                   key={index}
@@ -121,37 +151,32 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
                 </div>
               ))}
               
+              {/* Hours after the current 3 (shown only when expanded) */}
               <CollapsibleContent>
-                <div className="space-y-2 mt-2">
-                  {fullDayData.map((hour, index) => {
-                    // Skip the hours that are already visible in defaultVisibleData
-                    const isVisible = index >= startIndex && index < startIndex + defaultVisibleData.length;
-                    if (isVisible) return null;
-                    
-                    return (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
-                      >
-                        <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                          <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
-                            {hour.time}
-                          </div>
-                          <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                            {getConditionIcon(hour.condition)}
-                          </div>
+                <div className="space-y-2">
+                  {fullDayData.slice(startIndex + defaultVisibleData.length).map((hour, index) => (
+                    <div
+                      key={index + startIndex + defaultVisibleData.length}
+                      className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
+                    >
+                      <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                        <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
+                          {hour.time}
                         </div>
-                        <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                          <div className="text-xs text-muted-foreground">
-                            {hour.precipitation}%
-                          </div>
-                          <div className="text-sm md:text-lg font-semibold text-card-foreground min-w-[32px] md:min-w-[40px] text-right">
-                            {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
-                          </div>
+                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                          {getConditionIcon(hour.condition)}
                         </div>
                       </div>
-                    );
-                  })}
+                      <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                        <div className="text-xs text-muted-foreground">
+                          {hour.precipitation}%
+                        </div>
+                        <div className="text-sm md:text-lg font-semibold text-card-foreground min-w-[32px] md:min-w-[40px] text-right">
+                          {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CollapsibleContent>
             </div>
