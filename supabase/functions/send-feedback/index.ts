@@ -47,7 +47,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailResponse = await resend.emails.send({
       from: "Weather App <onboarding@resend.dev>",
-      to: ["alfredcasper1010@gmail.com"],
+      to: ["alfredandanouk@gmail.com"],
       subject: `Feedback from ${name}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
