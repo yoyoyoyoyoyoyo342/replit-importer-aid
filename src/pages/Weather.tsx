@@ -241,7 +241,8 @@ export default function WeatherPage() {
                     <HourlyForecast 
                       key="hourly"
                       hourlyData={weatherData.mostAccurate.hourlyForecast} 
-                      isImperial={isImperial} 
+                      isImperial={isImperial}
+                      is24Hour={is24Hour}
                     />
                   );
                 

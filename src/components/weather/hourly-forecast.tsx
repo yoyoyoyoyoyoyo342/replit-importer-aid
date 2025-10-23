@@ -4,13 +4,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { HourlyForecast as HourlyData } from "@/types/weather";
+import { formatTime } from "@/lib/time-format";
 
 interface HourlyForecastProps {
   hourlyData: HourlyData[];
   isImperial?: boolean;
+  is24Hour?: boolean;
 }
 
-export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecastProps) {
+export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true }: HourlyForecastProps) {
   const [isOpen, setIsOpen] = useState(false);
   
   const getConditionIcon = (condition: string) => {
@@ -87,7 +89,7 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
                 >
                   <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                     <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
-                      {hour.time}
+                      {formatTime(hour.time, is24Hour)}
                     </div>
                     <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                       {getConditionIcon(hour.condition)}
@@ -114,7 +116,7 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
                     >
                       <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
                         <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
-                          {hour.time}
+                          {formatTime(hour.time, is24Hour)}
                         </div>
                         <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                           {getConditionIcon(hour.condition)}
