@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
+import { FeedbackForm } from "./feedback-form";
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
@@ -177,6 +178,14 @@ export function SettingsDialog({
                 </button>
               ))}
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Feedback Button */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Feedback</Label>
+            <FeedbackForm />
           </div>
 
           <Separator />
