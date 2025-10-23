@@ -25,45 +25,27 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
     return <Sun className="w-6 h-6 text-primary" />;
   };
 
-  // Get current hour to find the index
+  // Create array of 24 hours starting from current hour
   const now = new Date();
-  const currentHour = now.getHours();
-  
-  // Create array of 24 hours for today (00:00 to 23:00)
   const fullDayData: HourlyData[] = [];
   
-  for (let hour = 0; hour < 24; hour++) {
-    const checkDate = new Date(now);
-    checkDate.setHours(hour, 0, 0, 0);
+  for (let i = 0; i < 24; i++) {
+    const futureDate = new Date(now);
+    futureDate.setHours(now.getHours() + i, 0, 0, 0);
     
-    // Calculate hours from now to this specific hour
-    const hoursFromNow = Math.round((checkDate.getTime() - now.getTime()) / (1000 * 60 * 60));
+    const hour = futureDate.getHours();
     
     // Get data from hourlyData array if available
-    if (hoursFromNow >= 0 && hoursFromNow < hourlyData.length) {
-      const hourData = hourlyData[hoursFromNow];
+    if (i < hourlyData.length) {
       fullDayData.push({
-        ...hourData,
-        time: `${String(hour).padStart(2, '0')}:00`
-      });
-    } else if (hour < hourlyData.length) {
-      // For past hours today, use the data if available
-      fullDayData.push({
-        ...hourlyData[hour],
+        ...hourlyData[i],
         time: `${String(hour).padStart(2, '0')}:00`
       });
     }
   }
   
-  // Find the current hour in the full day data
-  const currentHourIndex = fullDayData.findIndex(hour => {
-    const hourTime = parseInt(hour.time.split(':')[0]);
-    return hourTime === currentHour;
-  });
-  
   // Get default visible hours (current + next 2)
-  const startIndex = currentHourIndex >= 0 ? currentHourIndex : 0;
-  const defaultVisibleData = fullDayData.slice(startIndex, Math.min(startIndex + 3, fullDayData.length));
+  const defaultVisibleData = fullDayData.slice(0, Math.min(3, fullDayData.length));
   
   return (
     <section className="mb-4 md:mb-8">
@@ -97,35 +79,6 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
             </div>
 
             <div className="space-y-2">
-              {/* Hours before the current hour (shown only when expanded) */}
-              <CollapsibleContent>
-                <div className="space-y-2">
-                  {fullDayData.slice(0, startIndex).map((hour, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
-                    >
-                      <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                        <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
-                          {hour.time}
-                        </div>
-                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                          {getConditionIcon(hour.condition)}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                        <div className="text-xs text-muted-foreground">
-                          {hour.precipitation}%
-                        </div>
-                        <div className="text-sm md:text-lg font-semibold text-card-foreground min-w-[32px] md:min-w-[40px] text-right">
-                          {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CollapsibleContent>
-
               {/* Current hour + next 2 (always visible) */}
               {defaultVisibleData.map((hour, index) => (
                 <div
@@ -151,12 +104,12 @@ export function HourlyForecast({ hourlyData, isImperial = true }: HourlyForecast
                 </div>
               ))}
               
-              {/* Hours after the current 3 (shown only when expanded) */}
+              {/* Remaining hours (shown only when expanded) */}
               <CollapsibleContent>
                 <div className="space-y-2">
-                  {fullDayData.slice(startIndex + defaultVisibleData.length).map((hour, index) => (
+                  {fullDayData.slice(defaultVisibleData.length).map((hour, index) => (
                     <div
-                      key={index + startIndex + defaultVisibleData.length}
+                      key={index + defaultVisibleData.length}
                       className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border"
                     >
                       <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
