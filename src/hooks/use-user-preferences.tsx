@@ -28,6 +28,7 @@ export function useUserPreferences() {
   const { toast } = useToast();
   const [visibleCards, setVisibleCards] = useState<CardVisibility>(DEFAULT_VISIBILITY);
   const [cardOrder, setCardOrder] = useState<CardType[]>(DEFAULT_ORDER);
+  const [is24Hour, setIs24Hour] = useState(true); // Default to 24-hour format
   const [loading, setLoading] = useState(true);
 
   // Fetch user preferences
@@ -35,6 +36,7 @@ export function useUserPreferences() {
     if (!user) {
       setVisibleCards(DEFAULT_VISIBILITY);
       setCardOrder(DEFAULT_ORDER);
+      setIs24Hour(true);
       setLoading(false);
       return;
     }
@@ -43,7 +45,7 @@ export function useUserPreferences() {
       try {
         const { data, error } = await supabase
           .from("user_preferences")
-          .select("visible_cards, card_order")
+          .select("visible_cards, card_order, is_24_hour")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -55,6 +57,7 @@ export function useUserPreferences() {
         if (data) {
           setVisibleCards(data.visible_cards as unknown as CardVisibility);
           setCardOrder(data.card_order as unknown as CardType[]);
+          setIs24Hour(data.is_24_hour ?? true);
         } else {
           // Create default preferences for new user
           const { error: insertError } = await supabase
@@ -63,6 +66,7 @@ export function useUserPreferences() {
               user_id: user.id,
               visible_cards: DEFAULT_VISIBILITY as any,
               card_order: DEFAULT_ORDER as any,
+              is_24_hour: true,
             });
 
           if (insertError) {
@@ -94,6 +98,7 @@ export function useUserPreferences() {
           user_id: user.id,
           visible_cards: newVisibility as any,
           card_order: cardOrder as any,
+          is_24_hour: is24Hour,
         }, {
           onConflict: 'user_id'
         });
@@ -130,6 +135,7 @@ export function useUserPreferences() {
           user_id: user.id,
           visible_cards: visibleCards as any,
           card_order: newOrder as any,
+          is_24_hour: is24Hour,
         }, {
           onConflict: 'user_id'
         });
@@ -153,11 +159,44 @@ export function useUserPreferences() {
     }
   };
 
+  const updateTimeFormat = async (use24Hour: boolean) => {
+    if (!user) return;
+
+    setIs24Hour(use24Hour);
+
+    try {
+      const { error } = await supabase
+        .from("user_preferences")
+        .upsert({ 
+          user_id: user.id,
+          visible_cards: visibleCards as any,
+          card_order: cardOrder as any,
+          is_24_hour: use24Hour,
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error("Error updating time format:", error);
+        toast({
+          title: "Failed to save time format",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIs24Hour(!use24Hour);
+      }
+    } catch (error) {
+      console.error("Error in updateTimeFormat:", error);
+      setIs24Hour(!use24Hour);
+    }
+  };
+
   const resetToDefaults = async () => {
     if (!user) return;
 
     setVisibleCards(DEFAULT_VISIBILITY);
     setCardOrder(DEFAULT_ORDER);
+    setIs24Hour(true);
 
     try {
       const { error } = await supabase
@@ -166,6 +205,7 @@ export function useUserPreferences() {
           user_id: user.id,
           visible_cards: DEFAULT_VISIBILITY as any,
           card_order: DEFAULT_ORDER as any,
+          is_24_hour: true,
         }, {
           onConflict: 'user_id'
         });
@@ -191,9 +231,11 @@ export function useUserPreferences() {
   return {
     visibleCards,
     cardOrder,
+    is24Hour,
     loading,
     updateVisibility,
     updateOrder,
+    updateTimeFormat,
     resetToDefaults,
     isAuthenticated: !!user,
   };

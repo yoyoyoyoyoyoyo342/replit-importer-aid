@@ -2,13 +2,16 @@ import { Sun, Sunrise, Sunset, Moon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CurrentWeather } from "@/types/weather";
 import { PollenCard } from "./pollen-card";
+import { formatTime } from "@/lib/time-format";
 
 interface DetailedMetricsProps {
   currentWeather: CurrentWeather;
+  is24Hour?: boolean;
 }
 
 export function DetailedMetrics({
-  currentWeather
+  currentWeather,
+  is24Hour = true
 }: DetailedMetricsProps) {
   return (
     <section className="mb-4">
@@ -63,14 +66,18 @@ export function DetailedMetrics({
                     <Sunrise className="text-primary w-3 h-3" />
                     <span className="text-xs text-muted-foreground">Sunrise</span>
                   </div>
-                  <span className="font-semibold text-card-foreground text-xs">{currentWeather.sunrise || '—'}</span>
+                  <span className="font-semibold text-card-foreground text-xs">
+                    {formatTime(currentWeather.sunrise, is24Hour)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Sunset className="text-primary w-3 h-3" />
                     <span className="text-xs text-muted-foreground">Sunset</span>
                   </div>
-                  <span className="font-semibold text-card-foreground text-xs">{currentWeather.sunset || '—'}</span>
+                  <span className="font-semibold text-card-foreground text-xs">
+                    {formatTime(currentWeather.sunset, is24Hour)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Daylight</span>
@@ -88,14 +95,18 @@ export function DetailedMetrics({
                     <Moon className="text-primary w-3 h-3" />
                     <span className="text-xs text-muted-foreground">Moonrise</span>
                   </div>
-                  <span className="font-semibold text-card-foreground text-xs">{currentWeather.moonrise || '—'}</span>
+                  <span className="font-semibold text-card-foreground text-xs">
+                    {formatTime(currentWeather.moonrise, is24Hour)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Moon className="text-primary w-3 h-3" />
                     <span className="text-xs text-muted-foreground">Moonset</span>
                   </div>
-                  <span className="font-semibold text-card-foreground text-xs">{currentWeather.moonset || '—'}</span>
+                  <span className="font-semibold text-card-foreground text-xs">
+                    {formatTime(currentWeather.moonset, is24Hour)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Moon Phase</span>

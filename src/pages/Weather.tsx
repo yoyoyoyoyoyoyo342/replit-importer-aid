@@ -37,7 +37,7 @@ export default function WeatherPage() {
   const [userRoutines, setUserRoutines] = useState([]);
   const { toast } = useToast();
   const { user, profile, loading: authLoading } = useAuth();
-  const { visibleCards, cardOrder, loading: preferencesLoading } = useUserPreferences();
+  const { visibleCards, cardOrder, is24Hour, loading: preferencesLoading } = useUserPreferences();
   const { t } = useLanguage();
 
   // Initialize push notifications
@@ -262,7 +262,8 @@ export default function WeatherPage() {
                   return (
                     <DetailedMetrics 
                       key="detailedMetrics"
-                      currentWeather={weatherData.mostAccurate.currentWeather} 
+                      currentWeather={weatherData.mostAccurate.currentWeather}
+                      is24Hour={is24Hour}
                     />
                   );
                 

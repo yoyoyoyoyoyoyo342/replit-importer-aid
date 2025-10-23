@@ -70,8 +70,10 @@ export function SettingsDialog({
   const {
     visibleCards,
     cardOrder,
+    is24Hour,
     updateVisibility,
     updateOrder,
+    updateTimeFormat,
     resetToDefaults
   } = useUserPreferences();
   const { language, setLanguage, t } = useLanguage();
@@ -190,19 +192,46 @@ export function SettingsDialog({
 
           <Separator />
 
-          {/* Temperature Units */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">{t('settings.temperatureUnits')}</Label>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Globe className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">{t('settings.useCelsius')}</span>
+          {/* Display Settings */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Display Settings</Label>
+            
+            {/* Temperature Units */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{t('settings.useCelsius')}</span>
+                </div>
+                <Switch checked={!isImperial} onCheckedChange={checked => onUnitsChange(!checked)} />
               </div>
-              <Switch checked={!isImperial} onCheckedChange={checked => onUnitsChange(!checked)} />
+              <p className="text-xs text-muted-foreground">
+                {isImperial ? t('settings.currentlyFahrenheit') : t('settings.currentlyCelsius')}
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {isImperial ? t('settings.currentlyFahrenheit') : t('settings.currentlyCelsius')}
-            </p>
+
+            {/* Time Format */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Use 24-hour time</span>
+                </div>
+                <Switch 
+                  checked={is24Hour} 
+                  onCheckedChange={(checked) => {
+                    updateTimeFormat(checked);
+                    toast({
+                      title: "Time format updated",
+                      description: `Now using ${checked ? '24-hour' : '12-hour'} time format`
+                    });
+                  }} 
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {is24Hour ? 'Currently using 24-hour format (e.g., 15:30)' : 'Currently using 12-hour format (e.g., 3:30 PM)'}
+              </p>
+            </div>
           </div>
 
           <Separator />
