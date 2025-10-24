@@ -277,7 +277,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_games: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_public: boolean | null
+          play_count: number | null
+          thumbnail_url: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_public?: boolean | null
+          play_count?: number | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_public?: boolean | null
+          play_count?: number | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_public_profile: {
