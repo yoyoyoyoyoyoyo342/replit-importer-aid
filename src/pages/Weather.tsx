@@ -24,7 +24,6 @@ import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
 import { useLanguage } from "@/contexts/language-context";
-import { SavedLocations } from "@/components/weather/saved-locations";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -233,16 +232,6 @@ export default function WeatherPage() {
                 </div>
               </div>}
 
-            {/* Saved Locations */}
-            {user && (
-              <div className="mb-4">
-                <SavedLocations 
-                  onLocationSelect={handleLocationSelect}
-                  currentLocation={selectedLocation ? { latitude: selectedLocation.lat, longitude: selectedLocation.lon } : undefined}
-                />
-              </div>
-            )}
-
             {/* Morning Weather Review */}
             <MorningWeatherReview 
               weatherData={weatherData.mostAccurate}
@@ -253,12 +242,32 @@ export default function WeatherPage() {
 
             {/* Desktop Layout - Only show on large screens */}
             <div className="hidden lg:block mb-6">
-              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} />
+              <CurrentWeather 
+                weatherData={weatherData.sources} 
+                mostAccurate={weatherData.mostAccurate} 
+                onRefresh={handleRefresh} 
+                isLoading={isLoading} 
+                lastUpdated={lastUpdated} 
+                isImperial={isImperial} 
+                isAutoDetected={isAutoDetected}
+                currentLocation={selectedLocation}
+                onLocationSelect={handleLocationSelect}
+              />
             </div>
 
             {/* Mobile Layout - Only show on small/medium screens */}
             <div className="lg:hidden">
-              <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} />
+              <CurrentWeather 
+                weatherData={weatherData.sources} 
+                mostAccurate={weatherData.mostAccurate} 
+                onRefresh={handleRefresh} 
+                isLoading={isLoading} 
+                lastUpdated={lastUpdated} 
+                isImperial={isImperial} 
+                isAutoDetected={isAutoDetected}
+                currentLocation={selectedLocation}
+                onLocationSelect={handleLocationSelect}
+              />
             </div>
 
             {/* Weather Trends Card */}
