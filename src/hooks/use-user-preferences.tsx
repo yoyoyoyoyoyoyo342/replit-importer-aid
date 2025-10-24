@@ -55,9 +55,43 @@ export function useUserPreferences() {
         }
 
         if (data) {
-          setVisibleCards(data.visible_cards as unknown as CardVisibility);
-          setCardOrder(data.card_order as unknown as CardType[]);
+          // Migrate old preferences from "routines" to "weatherTrends"
+          let visibleCards = data.visible_cards as any;
+          let cardOrder = data.card_order as any;
+          
+          // Check if we have old "routines" key and migrate it
+          if (visibleCards.routines !== undefined && visibleCards.weatherTrends === undefined) {
+            visibleCards = {
+              ...visibleCards,
+              weatherTrends: true,
+            };
+            delete visibleCards.routines;
+          }
+          
+          if (cardOrder.includes('routines') && !cardOrder.includes('weatherTrends')) {
+            cardOrder = cardOrder.map((card: string) => card === 'routines' ? 'weatherTrends' : card);
+          }
+          
+          // Ensure weatherTrends exists
+          if (visibleCards.weatherTrends === undefined) {
+            visibleCards.weatherTrends = true;
+          }
+          if (!cardOrder.includes('weatherTrends')) {
+            cardOrder.push('weatherTrends');
+          }
+          
+          setVisibleCards(visibleCards);
+          setCardOrder(cardOrder);
           setIs24Hour(data.is_24_hour ?? true);
+          
+          // Update the database with migrated preferences
+          await supabase
+            .from("user_preferences")
+            .update({
+              visible_cards: visibleCards,
+              card_order: cardOrder,
+            })
+            .eq("user_id", user.id);
         } else {
           // Create default preferences for new user
           const { error: insertError } = await supabase
