@@ -332,7 +332,7 @@ Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${m
   } catch (error) {
     console.error('Error in ai-weather-insights function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: "Unable to generate weather insights. Please try again.",
       fallback: type === 'proactive_insights' ? 
         ["Check the weather before heading out today!", "Stay hydrated and dress appropriately for the conditions"] :
         "I'm having trouble connecting right now, but I'm here to help with weather insights!"

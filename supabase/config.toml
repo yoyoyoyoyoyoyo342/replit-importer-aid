@@ -1,14 +1,14 @@
 project_id = "ohwtbkudpkfbakynikyj"
 
 [functions.aggregate-weather]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ai-weather-insights]
 verify_jwt = true
 
 [functions.fetch-moon-data]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-landmark-image]
-verify_jwt = false
+verify_jwt = true
 
