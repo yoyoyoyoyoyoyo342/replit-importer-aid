@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User, Sparkles, TrendingUp, Brain } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Send, Bot, TrendingUp, Brain, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,7 +61,10 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
   }, [messages]);
 
@@ -164,89 +165,98 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
   };
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <div className="p-2 bg-primary/10 rounded-full">
-          <Brain className="w-5 h-5 text-primary" />
+    <div className="h-full flex flex-col bg-background">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0 bg-card">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+          <Brain className="w-5 h-5 text-white" />
         </div>
-        <h3 className="text-lg font-semibold">AI Weather Companion</h3>
-        <Badge variant="secondary" className="ml-auto text-xs">
+        <div className="flex-1">
+          <h3 className="text-base font-semibold">AI Weather Companion</h3>
+          <p className="text-xs text-muted-foreground">Online</p>
+        </div>
+        <Badge variant="secondary" className="text-xs">
           <Sparkles className="w-3 h-3 mr-1" />
           Beta
         </Badge>
       </div>
       
-      <ScrollArea className="flex-1 pr-4 overflow-auto" ref={scrollAreaRef}>
-          <div className="space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`flex gap-2 max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.role === 'user' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-gradient-to-br from-accent to-primary text-white'
-                  }`}>
-                    {message.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                  </div>
-                  <div className={`rounded-lg p-3 ${
-                    message.role === 'user' 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'glass-card border border-border'
-                  }`}>
-                    <p className="text-sm leading-relaxed">{message.content}</p>
-                    {message.insights && message.insights.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        {message.insights.map((insight, index) => (
-                          <div key={index} className="flex items-start gap-2 p-2 bg-primary/5 rounded border border-primary/10">
-                            <TrendingUp className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                            <span className="text-xs text-foreground">{insight}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-primary flex items-center justify-center">
+      {/* Messages Area - iMessage style */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-3" ref={scrollAreaRef}>
+        {messages.map((message) => (
+          <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`flex gap-2 max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+              {/* Avatar - only show for assistant */}
+              {message.role === 'assistant' && (
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 self-end">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="glass-card border border-border rounded-lg p-3">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              )}
+              
+              {/* Message Bubble */}
+              <div className={`rounded-2xl px-4 py-2 ${
+                message.role === 'user' 
+                  ? 'bg-primary text-primary-foreground rounded-tr-sm' 
+                  : 'bg-muted text-foreground rounded-tl-sm'
+              }`}>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
+                
+                {/* Insights */}
+                {message.insights && message.insights.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {message.insights.map((insight, index) => (
+                      <div key={index} className="flex items-start gap-2 p-2 bg-background/50 rounded-lg">
+                        <TrendingUp className="w-3 h-3 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-xs">{insight}</span>
+                      </div>
+                    ))}
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="flex gap-2 max-w-[75%]">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 self-end">
+                <Bot className="w-4 h-4 text-white" />
+              </div>
+              <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
+                <div className="flex space-x-1.5">
+                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-foreground/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        </ScrollArea>
+        )}
+      </div>
 
-        <div className="flex gap-2 flex-shrink-0">
+      {/* Input Area */}
+      <div className="p-4 border-t border-border flex-shrink-0 bg-card">
+        <div className="flex gap-2 items-center">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask about weather, get recommendations, or chat..."
-            className="flex-1 h-10 text-sm"
+            placeholder="Message..."
+            className="flex-1 rounded-full bg-muted border-0 h-10 text-sm px-4"
             disabled={isLoading}
           />
           <Button 
             onClick={sendMessage} 
             disabled={!input.trim() || isLoading}
-            size="default"
-            className="px-4 h-10"
+            size="icon"
+            className="rounded-full h-10 w-10 flex-shrink-0"
           >
             <Send className="w-4 h-4" />
           </Button>
         </div>
-
-        <div className="text-xs text-muted-foreground text-center flex-shrink-0">
-          Your AI companion learns from your preferences and provides personalized weather insights
-        </div>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AIWeatherCompanion } from "./ai-weather-companion";
 import { WeatherSource } from "@/types/weather";
 
@@ -27,27 +27,12 @@ export function AIChatButton({ weatherData, location, isImperial }: AIChatButton
 
       {/* Chat Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl w-[95vw] lg:w-[80vw] max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-4 pb-0 flex-shrink-0">
-            <DialogTitle className="flex items-center justify-between text-lg">
-              <span>AI Weather Companion</span>
-              <Button
-                onClick={() => setIsOpen(false)}
-                variant="ghost"
-                size="icon"
-                className="w-8 h-8"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 min-h-0 p-4 pt-2 overflow-hidden">
-            <AIWeatherCompanion 
-              weatherData={weatherData}
-              location={location}
-              isImperial={isImperial}
-            />
-          </div>
+        <DialogContent className="max-w-4xl w-[95vw] lg:w-[80vw] h-[85vh] flex flex-col p-0 gap-0">
+          <AIWeatherCompanion 
+            weatherData={weatherData}
+            location={location}
+            isImperial={isImperial}
+          />
         </DialogContent>
       </Dialog>
     </>
