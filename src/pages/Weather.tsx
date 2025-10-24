@@ -82,6 +82,20 @@ export default function WeatherPage() {
   // Auto-detect location on component mount
   useEffect(() => {
     const detectLocation = async () => {
+      // Check if we have a saved location
+      const savedLocation = localStorage.getItem('userLocation');
+      if (savedLocation) {
+        try {
+          const location = JSON.parse(savedLocation);
+          setSelectedLocation(location);
+          setIsAutoDetected(true);
+          return;
+        } catch (error) {
+          console.log("Failed to parse saved location");
+        }
+      }
+
+      // Only try to detect location if we don't have a saved one
       try {
         const position = await weatherApi.getCurrentLocation();
         const {
@@ -97,20 +111,30 @@ export default function WeatherPage() {
           const geocodeData = await geocodeResponse.json();
           const cityName = geocodeData.city || geocodeData.locality || geocodeData.principalSubdivision || "Current Location";
           
-          setSelectedLocation({
+          const newLocation = {
             lat: latitude,
             lon: longitude,
             name: cityName
-          });
+          };
+          
+          setSelectedLocation(newLocation);
           setIsAutoDetected(true);
+          
+          // Save location to localStorage
+          localStorage.setItem('userLocation', JSON.stringify(newLocation));
         } catch (geocodeError) {
           console.log("Reverse geocoding failed, using coordinates only");
-          setSelectedLocation({
+          const newLocation = {
             lat: latitude,
             lon: longitude,
             name: "Current Location"
-          });
+          };
+          
+          setSelectedLocation(newLocation);
           setIsAutoDetected(true);
+          
+          // Save location to localStorage
+          localStorage.setItem('userLocation', JSON.stringify(newLocation));
         }
       } catch (error) {
         console.log("Location detection failed, user will need to search manually");
@@ -119,12 +143,16 @@ export default function WeatherPage() {
     detectLocation();
   }, []);
   const handleLocationSelect = (lat: number, lon: number, locationName: string) => {
-    setSelectedLocation({
+    const newLocation = {
       lat,
       lon,
       name: locationName
-    });
+    };
+    setSelectedLocation(newLocation);
     setIsAutoDetected(false);
+    
+    // Save the manually selected location
+    localStorage.setItem('userLocation', JSON.stringify(newLocation));
   };
   const handleRefresh = () => {
     window.location.reload();
