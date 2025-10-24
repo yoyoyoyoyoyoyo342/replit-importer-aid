@@ -82,7 +82,7 @@ export function SettingsDialog({
     hourly: t('pollen.hourlyForecast'),
     tenDay: t('pollen.tenDayForecast'),
     detailedMetrics: t('pollen.detailedMetrics'),
-    routines: t('pollen.userRoutines')
+    weatherTrends: 'Weather Trends'
   };
   const handleSignOut = async () => {
     try {

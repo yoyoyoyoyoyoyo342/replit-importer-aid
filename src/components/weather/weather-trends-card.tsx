@@ -37,15 +37,15 @@ export function WeatherTrendsCard({
   const { data: historyData = [], isLoading } = useQuery({
     queryKey: ["weather-history", latitude, longitude],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !latitude || !longitude) return [];
+      if (!latitude || !longitude) return [];
 
       const thirtyDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from("weather_history")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("latitude", latitude)
+        .eq("longitude", longitude)
         .gte("date", thirtyDaysAgo)
         .order("date", { ascending: true });
 
@@ -61,12 +61,10 @@ export function WeatherTrendsCard({
       if (!currentWeather || !location || !latitude || !longitude) return;
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const today = format(new Date(), "yyyy-MM-dd");
 
       await supabase.from("weather_history").upsert({
-        user_id: user.id,
+        user_id: user?.id || null,
         location_name: location,
         latitude,
         longitude,
@@ -79,7 +77,7 @@ export function WeatherTrendsCard({
         humidity: currentWeather.humidity,
         wind_speed: currentWeather.windSpeed,
       }, {
-        onConflict: "user_id,latitude,longitude,date",
+        onConflict: "latitude,longitude,date",
       });
     };
 

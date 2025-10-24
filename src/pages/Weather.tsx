@@ -270,22 +270,24 @@ export default function WeatherPage() {
               />
             </div>
 
-            {/* Weather Trends Card */}
-            <div className="mb-4">
-              <WeatherTrendsCard
-                currentWeather={weatherData.mostAccurate.currentWeather}
-                location={selectedLocation.name}
-                latitude={selectedLocation.lat}
-                longitude={selectedLocation.lon}
-                isImperial={isImperial}
-              />
-            </div>
-
             {/* Weather Cards in User's Preferred Order */}
             {cardOrder.map((cardType) => {
               if (!visibleCards[cardType]) return null;
               
               switch (cardType) {
+                case "weatherTrends":
+                  return (
+                    <div key="weatherTrends" className="mb-4">
+                      <WeatherTrendsCard
+                        currentWeather={weatherData.mostAccurate.currentWeather}
+                        location={selectedLocation.name}
+                        latitude={selectedLocation.lat}
+                        longitude={selectedLocation.lon}
+                        isImperial={isImperial}
+                      />
+                    </div>
+                  );
+
                 case "pollen":
                   return weatherData?.mostAccurate?.currentWeather?.pollenData ? (
                     <div key="pollen" className="mb-4">

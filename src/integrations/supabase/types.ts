@@ -238,7 +238,7 @@ export type Database = {
           longitude: number
           low_temp: number
           precipitation: number | null
-          user_id: string
+          user_id: string | null
           wind_speed: number | null
         }
         Insert: {
@@ -254,7 +254,7 @@ export type Database = {
           longitude: number
           low_temp: number
           precipitation?: number | null
-          user_id: string
+          user_id?: string | null
           wind_speed?: number | null
         }
         Update: {
@@ -270,7 +270,7 @@ export type Database = {
           longitude?: number
           low_temp?: number
           precipitation?: number | null
-          user_id?: string
+          user_id?: string | null
           wind_speed?: number | null
         }
         Relationships: []

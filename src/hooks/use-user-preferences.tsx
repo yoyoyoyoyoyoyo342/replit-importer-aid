@@ -8,7 +8,7 @@ export interface CardVisibility {
   hourly: boolean;
   tenDay: boolean;
   detailedMetrics: boolean;
-  routines: boolean;
+  weatherTrends: boolean;
 }
 
 export type CardType = keyof CardVisibility;
@@ -18,10 +18,10 @@ const DEFAULT_VISIBILITY: CardVisibility = {
   hourly: true,
   tenDay: true,
   detailedMetrics: true,
-  routines: true,
+  weatherTrends: true,
 };
 
-const DEFAULT_ORDER: CardType[] = ["pollen", "hourly", "tenDay", "detailedMetrics", "routines"];
+const DEFAULT_ORDER: CardType[] = ["pollen", "hourly", "tenDay", "detailedMetrics", "weatherTrends"];
 
 export function useUserPreferences() {
   const { user } = useAuth();
