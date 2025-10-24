@@ -253,7 +253,8 @@ export default function WeatherPage() {
                       dailyForecast={weatherData.mostAccurate.dailyForecast} 
                       weatherSources={weatherData.sources} 
                       hourlyForecast={weatherData.mostAccurate.hourlyForecast} 
-                      isImperial={isImperial} 
+                      isImperial={isImperial}
+                      is24Hour={is24Hour}
                     />
                   );
                 

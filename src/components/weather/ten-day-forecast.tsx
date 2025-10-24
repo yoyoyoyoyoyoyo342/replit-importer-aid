@@ -3,15 +3,17 @@ import { CalendarDays, Droplets, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, 
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DailyForecast, WeatherSource, HourlyForecast } from "@/types/weather";
+import { formatTime } from "@/lib/time-format";
 
 interface TenDayForecastProps {
   dailyForecast: DailyForecast[];
   weatherSources: WeatherSource[];
   hourlyForecast: HourlyForecast[];
   isImperial?: boolean;
+  is24Hour?: boolean;
 }
 
-export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, isImperial = true }: TenDayForecastProps) {
+export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, isImperial = true, is24Hour = true }: TenDayForecastProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [showAllDays, setShowAllDays] = useState(false);
   const getConditionIcon = (condition: string) => {
@@ -156,7 +158,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
                           className="text-center p-2 rounded-lg glass-card border border-border/50"
                         >
                           <div className="text-xs text-muted-foreground mb-1">
-                            {hour.time}
+                            {formatTime(hour.time, is24Hour)}
                           </div>
                           <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-primary/20 flex items-center justify-center">
                             {getConditionIcon(hour.condition)}
