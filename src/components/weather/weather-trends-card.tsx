@@ -6,6 +6,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { format, subDays } from "date-fns";
 import { CurrentWeather } from "@/types/weather";
 import { useEffect } from "react";
+import { useUserPreferences } from "@/hooks/use-user-preferences";
 
 interface WeatherTrendsCardProps {
   currentWeather?: CurrentWeather;
@@ -31,6 +32,8 @@ export function WeatherTrendsCard({
   longitude,
   isImperial = false,
 }: WeatherTrendsCardProps) {
+  const { is24Hour } = useUserPreferences();
+  
   const { data: historyData = [], isLoading } = useQuery({
     queryKey: ["weather-history", latitude, longitude],
     queryFn: async () => {
@@ -83,13 +86,16 @@ export function WeatherTrendsCard({
     saveWeatherHistory();
   }, [currentWeather, location, latitude, longitude]);
 
-  const convertTemp = (temp: number) => (isImperial ? temp : ((temp - 32) * 5) / 9);
+  const convertTemp = (temp: number) => {
+    if (isImperial) return temp;
+    return ((temp - 32) * 5) / 9;
+  };
 
   const tempChartData = historyData.map((entry) => ({
     date: format(new Date(entry.date), "MMM d"),
-    high: parseFloat(entry.high_temp.toString()),
-    low: parseFloat(entry.low_temp.toString()),
-    avg: parseFloat(entry.avg_temp.toString()),
+    high: Math.round(convertTemp(parseFloat(entry.high_temp.toString()))),
+    low: Math.round(convertTemp(parseFloat(entry.low_temp.toString()))),
+    avg: Math.round(convertTemp(parseFloat(entry.avg_temp.toString()))),
   }));
 
   const precipChartData = historyData.map((entry) => ({
@@ -126,8 +132,12 @@ export function WeatherTrendsCard({
     );
   }
 
-  const avgTemp = historyData.reduce((sum, entry) => sum + parseFloat(entry.avg_temp.toString()), 0) / historyData.length;
+  const avgTemp = Math.round(
+    historyData.reduce((sum, entry) => sum + convertTemp(parseFloat(entry.avg_temp.toString())), 0) / historyData.length
+  );
   const totalPrecip = historyData.reduce((sum, entry) => sum + parseFloat(entry.precipitation.toString()), 0);
+  const tempUnit = isImperial ? "°F" : "°C";
+  const precipUnit = isImperial ? "in" : "mm";
 
   return (
     <Card className="p-6 glass-panel">
@@ -141,11 +151,11 @@ export function WeatherTrendsCard({
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="text-center p-3 rounded-lg bg-secondary/50">
           <p className="text-xs text-muted-foreground">Avg Temperature</p>
-          <p className="text-2xl font-bold">{avgTemp.toFixed(1)}°</p>
+          <p className="text-2xl font-bold">{avgTemp}{tempUnit}</p>
         </div>
         <div className="text-center p-3 rounded-lg bg-secondary/50">
           <p className="text-xs text-muted-foreground">Total Precipitation</p>
-          <p className="text-2xl font-bold">{totalPrecip.toFixed(1)}"</p>
+          <p className="text-2xl font-bold">{totalPrecip.toFixed(1)} {precipUnit}</p>
         </div>
       </div>
 

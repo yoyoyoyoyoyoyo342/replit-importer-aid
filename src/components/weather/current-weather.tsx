@@ -1,4 +1,4 @@
-import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
@@ -85,10 +85,38 @@ export function CurrentWeather({
     onError: () => toast.error("Failed to save location"),
   });
 
-  const isLocationSaved = currentLocation && savedLocations.some(
+  const removeLocationMutation = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      if (!currentLocation) throw new Error("No current location");
+
+      const savedLocation = savedLocations.find(
+        loc => Math.abs(loc.latitude - currentLocation.lat) < 0.01 && 
+               Math.abs(loc.longitude - currentLocation.lon) < 0.01
+      );
+
+      if (!savedLocation) throw new Error("Location not found");
+
+      const { error } = await supabase
+        .from("saved_locations")
+        .delete()
+        .eq("id", savedLocation.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["saved-locations"] });
+      toast.success("Location removed");
+    },
+    onError: () => toast.error("Failed to remove location"),
+  });
+
+  const savedLocationData = currentLocation && savedLocations.find(
     loc => Math.abs(loc.latitude - currentLocation.lat) < 0.01 && 
            Math.abs(loc.longitude - currentLocation.lon) < 0.01
   );
+  const isLocationSaved = !!savedLocationData;
   const getConditionIcon = (condition: string) => {
     const c = condition.toLowerCase();
     if (c.includes("thunder")) return <CloudLightning className="w-5 h-5 text-primary" />;
@@ -129,14 +157,14 @@ export function CurrentWeather({
                       <span className="text-sm font-semibold text-foreground">
                         {isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0]}
                       </span>
-                      {!isLocationSaved && currentLocation && (
+                      {currentLocation && (
                         <Button
                           size="sm"
                           variant="ghost"
                           className="h-5 w-5 p-0"
-                          onClick={() => addLocationMutation.mutate()}
+                          onClick={() => isLocationSaved ? removeLocationMutation.mutate() : addLocationMutation.mutate()}
                         >
-                          <Plus className="h-3 w-3" />
+                          {isLocationSaved ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
                         </Button>
                       )}
                     </div>
