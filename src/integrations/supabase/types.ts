@@ -92,6 +92,45 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_locations: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          latitude: number
+          longitude: number
+          name: string
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          latitude?: number
+          longitude?: number
+          name?: string
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_allergies: {
         Row: {
           allergen: string
@@ -182,6 +221,57 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weather_sensitive?: boolean
+        }
+        Relationships: []
+      }
+      weather_history: {
+        Row: {
+          avg_temp: number
+          condition: string | null
+          created_at: string
+          date: string
+          high_temp: number
+          humidity: number | null
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+          low_temp: number
+          precipitation: number | null
+          user_id: string
+          wind_speed: number | null
+        }
+        Insert: {
+          avg_temp: number
+          condition?: string | null
+          created_at?: string
+          date: string
+          high_temp: number
+          humidity?: number | null
+          id?: string
+          latitude: number
+          location_name: string
+          longitude: number
+          low_temp: number
+          precipitation?: number | null
+          user_id: string
+          wind_speed?: number | null
+        }
+        Update: {
+          avg_temp?: number
+          condition?: string | null
+          created_at?: string
+          date?: string
+          high_temp?: number
+          humidity?: number | null
+          id?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          low_temp?: number
+          precipitation?: number | null
+          user_id?: string
+          wind_speed?: number | null
         }
         Relationships: []
       }

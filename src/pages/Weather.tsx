@@ -24,6 +24,8 @@ import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
 import { useLanguage } from "@/contexts/language-context";
+import { SavedLocations } from "@/components/weather/saved-locations";
+import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -231,6 +233,16 @@ export default function WeatherPage() {
                 </div>
               </div>}
 
+            {/* Saved Locations */}
+            {user && (
+              <div className="mb-4">
+                <SavedLocations 
+                  onLocationSelect={handleLocationSelect}
+                  currentLocation={selectedLocation ? { latitude: selectedLocation.lat, longitude: selectedLocation.lon } : undefined}
+                />
+              </div>
+            )}
+
             {/* Morning Weather Review */}
             <MorningWeatherReview 
               weatherData={weatherData.mostAccurate}
@@ -247,6 +259,17 @@ export default function WeatherPage() {
             {/* Mobile Layout - Only show on small/medium screens */}
             <div className="lg:hidden">
               <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} />
+            </div>
+
+            {/* Weather Trends Card */}
+            <div className="mb-4">
+              <WeatherTrendsCard
+                currentWeather={weatherData.mostAccurate.currentWeather}
+                location={selectedLocation.name}
+                latitude={selectedLocation.lat}
+                longitude={selectedLocation.lon}
+                isImperial={isImperial}
+              />
             </div>
 
             {/* Weather Cards in User's Preferred Order */}
