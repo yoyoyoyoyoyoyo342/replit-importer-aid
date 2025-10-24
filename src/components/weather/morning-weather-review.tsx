@@ -115,7 +115,7 @@ export function MorningWeatherReview({
   const displayTemp = isImperial ? temp : Math.round((temp - 32) * 5/9);
 
   return (
-    <Card className="mb-4 border-2 border-primary/20 bg-gradient-to-br from-orange-50 via-yellow-50 to-blue-50 dark:from-orange-950 dark:via-yellow-950 dark:to-blue-950">
+    <Card className="mb-4 glass-card border border-border/50">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
