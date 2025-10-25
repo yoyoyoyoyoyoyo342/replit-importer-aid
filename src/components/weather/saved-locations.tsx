@@ -119,72 +119,112 @@ export function SavedLocations({ onLocationSelect, currentLocation }: SavedLocat
   }
 
   return (
-    <Card className="p-4 glass-panel">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          Saved Locations
-        </h3>
-        <Dialog open={isAddingLocation} onOpenChange={setIsAddingLocation}>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Location</DialogTitle>
-            </DialogHeader>
-            <LocationSearch onLocationSelect={handleLocationSelect} />
-          </DialogContent>
-        </Dialog>
+    <Card className="glass-card overflow-hidden">
+      <div className="p-4 border-b border-border/50 bg-muted/30">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold flex items-center gap-2 text-foreground">
+            <MapPin className="h-4 w-4 text-primary" />
+            Saved Locations
+          </h3>
+          <Dialog open={isAddingLocation} onOpenChange={setIsAddingLocation}>
+            <DialogTrigger asChild>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-8 gap-2 bg-background/50 hover:bg-background/80"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Add
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Location</DialogTitle>
+              </DialogHeader>
+              <LocationSearch onLocationSelect={handleLocationSelect} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {savedLocations.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          No saved locations yet. Add one to get started!
-        </p>
+        <div className="p-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted/50 mb-3">
+            <MapPin className="h-7 w-7 text-muted-foreground" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            No saved locations yet
+          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1">
+            Add your favorite locations for quick access
+          </p>
+        </div>
       ) : (
-        <div className="space-y-2">
+        <div className="p-2">
           {savedLocations.map((location) => (
             <div
               key={location.id}
-              className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                isCurrent(location) ? "bg-primary/10" : "bg-secondary/50 hover:bg-secondary"
+              className={`group relative rounded-lg mb-2 last:mb-0 transition-all ${
+                isCurrent(location) 
+                  ? "bg-primary/5 ring-1 ring-primary/20" 
+                  : "bg-muted/30 hover:bg-muted/50"
               }`}
             >
               <button
                 onClick={() => onLocationSelect(location.latitude, location.longitude, location.name)}
-                className="flex-1 text-left"
+                className="w-full p-4 text-left"
               >
-                <div className="flex items-center gap-2">
-                  {location.is_primary && <Star className="h-3 w-3 fill-primary text-primary" />}
-                  <span className="font-medium text-sm">{location.name}</span>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      {location.is_primary && (
+                        <Star className="h-3.5 w-3.5 fill-primary text-primary shrink-0" />
+                      )}
+                      <span className="font-medium text-sm text-foreground truncate">
+                        {location.name}
+                      </span>
+                      {isCurrent(location) && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">
+                          ACTIVE
+                        </span>
+                      )}
+                    </div>
+                    {location.state && location.country && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {location.state}, {location.country}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                {location.state && location.country && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {location.state}, {location.country}
-                  </p>
-                )}
               </button>
-              <div className="flex items-center gap-1">
+              
+              {/* Action buttons - appear on hover */}
+              <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 {!location.is_primary && (
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="h-7 w-7 p-0"
-                    onClick={() => setPrimaryMutation.mutate(location.id)}
+                    className="h-7 w-7 p-0 bg-background/80 hover:bg-background shadow-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPrimaryMutation.mutate(location.id);
+                    }}
+                    title="Set as primary location"
                   >
-                    <Star className="h-3 w-3" />
+                    <Star className="h-3.5 w-3.5 text-muted-foreground hover:text-primary" />
                   </Button>
                 )}
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                  onClick={() => deleteLocationMutation.mutate(location.id)}
+                  className="h-7 w-7 p-0 bg-background/80 hover:bg-destructive/10 shadow-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteLocationMutation.mutate(location.id);
+                  }}
+                  title="Remove location"
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground hover:text-destructive" />
                 </Button>
               </div>
             </div>
