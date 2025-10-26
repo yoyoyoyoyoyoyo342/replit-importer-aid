@@ -25,6 +25,7 @@ import { AnimatedWeatherBackground } from "@/components/weather/animated-weather
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
+import { StreakDisplay } from "@/components/weather/streak-display";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -231,6 +232,13 @@ export default function WeatherPage() {
                   </div>
                 </div>
               </div>}
+
+            {/* Streak Display for Logged In Users */}
+            {user && (
+              <div className="mb-4">
+                <StreakDisplay />
+              </div>
+            )}
 
             {/* Morning Weather Review */}
             <MorningWeatherReview 

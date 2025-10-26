@@ -224,6 +224,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_visit_date: string
+          longest_streak: number
+          total_visits: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_visit_date?: string
+          longest_streak?: number
+          total_visits?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_visit_date?: string
+          longest_streak?: number
+          total_visits?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       weather_history: {
         Row: {
           avg_temp: number
