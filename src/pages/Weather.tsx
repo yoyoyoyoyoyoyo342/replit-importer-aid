@@ -26,6 +26,8 @@ import { MorningWeatherReview } from "@/components/weather/morning-weather-revie
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
 import { StreakDisplay } from "@/components/weather/streak-display";
+import { WeatherPredictionForm } from "@/components/weather/weather-prediction-form";
+import { Leaderboard } from "@/components/weather/leaderboard";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -237,6 +239,25 @@ export default function WeatherPage() {
             {user && (
               <div className="mb-4">
                 <StreakDisplay />
+              </div>
+            )}
+
+            {/* Weather Prediction Form for Logged In Users */}
+            {user && selectedLocation && (
+              <div className="mb-4">
+                <WeatherPredictionForm
+                  location={selectedLocation.name}
+                  latitude={selectedLocation.lat}
+                  longitude={selectedLocation.lon}
+                  onPredictionMade={() => refetch()}
+                />
+              </div>
+            )}
+
+            {/* Leaderboard for Logged In Users */}
+            {user && (
+              <div className="mb-4">
+                <Leaderboard />
               </div>
             )}
 

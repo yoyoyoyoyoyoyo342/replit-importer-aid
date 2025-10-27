@@ -62,6 +62,7 @@ export type Database = {
           id: string
           notification_enabled: boolean | null
           notification_time: string | null
+          total_points: number | null
           updated_at: string
           user_id: string
           username: string | null
@@ -74,6 +75,7 @@ export type Database = {
           id?: string
           notification_enabled?: boolean | null
           notification_time?: string | null
+          total_points?: number | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -86,6 +88,7 @@ export type Database = {
           id?: string
           notification_enabled?: boolean | null
           notification_time?: string | null
+          total_points?: number | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -229,9 +232,9 @@ export type Database = {
           created_at: string
           current_streak: number
           id: string
-          last_visit_date: string
+          last_prediction_date: string
           longest_streak: number
-          total_visits: number
+          total_predictions: number
           updated_at: string
           user_id: string
         }
@@ -239,9 +242,9 @@ export type Database = {
           created_at?: string
           current_streak?: number
           id?: string
-          last_visit_date?: string
+          last_prediction_date?: string
           longest_streak?: number
-          total_visits?: number
+          total_predictions?: number
           updated_at?: string
           user_id: string
         }
@@ -249,9 +252,9 @@ export type Database = {
           created_at?: string
           current_streak?: number
           id?: string
-          last_visit_date?: string
+          last_prediction_date?: string
           longest_streak?: number
-          total_visits?: number
+          total_predictions?: number
           updated_at?: string
           user_id?: string
         }
@@ -308,8 +311,80 @@ export type Database = {
         }
         Relationships: []
       }
+      weather_predictions: {
+        Row: {
+          actual_condition: string | null
+          actual_high: number | null
+          actual_low: number | null
+          created_at: string | null
+          id: string
+          is_correct: boolean | null
+          is_verified: boolean | null
+          latitude: number
+          location_name: string
+          longitude: number
+          points_earned: number | null
+          predicted_condition: string
+          predicted_high: number
+          predicted_low: number
+          prediction_date: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_condition?: string | null
+          actual_high?: number | null
+          actual_low?: number | null
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean | null
+          is_verified?: boolean | null
+          latitude: number
+          location_name: string
+          longitude: number
+          points_earned?: number | null
+          predicted_condition: string
+          predicted_high: number
+          predicted_low: number
+          prediction_date: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_condition?: string | null
+          actual_high?: number | null
+          actual_low?: number | null
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          points_earned?: number | null
+          predicted_condition?: string
+          predicted_high?: number
+          predicted_low?: number
+          prediction_date?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
+      leaderboard: {
+        Row: {
+          correct_predictions: number | null
+          current_streak: number | null
+          display_name: string | null
+          id: string | null
+          longest_streak: number | null
+          total_points: number | null
+          total_predictions: number | null
+        }
+        Relationships: []
+      }
       public_games: {
         Row: {
           created_at: string | null
