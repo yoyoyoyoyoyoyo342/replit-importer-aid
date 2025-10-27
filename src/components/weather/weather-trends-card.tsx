@@ -39,11 +39,15 @@ export function WeatherTrendsCard({
     queryFn: async () => {
       if (!latitude || !longitude) return [];
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
       const thirtyDaysAgo = format(subDays(new Date(), 30), "yyyy-MM-dd");
 
       const { data, error } = await supabase
         .from("weather_history")
         .select("*")
+        .eq("user_id", user.id)
         .eq("latitude", latitude)
         .eq("longitude", longitude)
         .gte("date", thirtyDaysAgo)
@@ -61,10 +65,12 @@ export function WeatherTrendsCard({
       if (!currentWeather || !location || !latitude || !longitude) return;
 
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return; // Only save for authenticated users
+
       const today = format(new Date(), "yyyy-MM-dd");
 
       await supabase.from("weather_history").upsert({
-        user_id: user?.id || null,
+        user_id: user.id,
         location_name: location,
         latitude,
         longitude,
