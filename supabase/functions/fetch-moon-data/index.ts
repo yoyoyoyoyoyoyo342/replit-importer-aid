@@ -1,9 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "npm:zod@3.22.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const CoordinateSchema = z.object({
+  lat: z.number().min(-90, "Latitude must be between -90 and 90").max(90, "Latitude must be between -90 and 90"),
+  lon: z.number().min(-180, "Longitude must be between -180 and 180").max(180, "Longitude must be between -180 and 180"),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,7 +18,26 @@ serve(async (req) => {
   }
 
   try {
-    const { lat, lon } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = CoordinateSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid coordinates",
+          moonrise: null,
+          moonset: null,
+          moonPhase: null
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        }
+      );
+    }
+
+    const { lat, lon } = validationResult.data;
     const MOON_API_KEY = Deno.env.get("MOON_API_KEY");
 
     if (!MOON_API_KEY) {
@@ -46,7 +72,7 @@ serve(async (req) => {
       console.error("Moon API error:", response.status, await response.text());
       return new Response(
         JSON.stringify({ 
-          error: "Failed to fetch moon data",
+          error: "Service temporarily unavailable",
           moonrise: null,
           moonset: null,
           moonPhase: null
@@ -78,13 +104,13 @@ serve(async (req) => {
     console.error("Error in fetch-moon-data:", error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Service temporarily unavailable",
         moonrise: null,
         moonset: null,
         moonPhase: null
       }),
       { 
-        status: 200,
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" } 
       }
     );

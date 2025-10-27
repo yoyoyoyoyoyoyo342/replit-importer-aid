@@ -378,8 +378,8 @@ export type Database = {
           correct_predictions: number | null
           current_streak: number | null
           display_name: string | null
-          id: string | null
           longest_streak: number | null
+          rank: number | null
           total_points: number | null
           total_predictions: number | null
         }

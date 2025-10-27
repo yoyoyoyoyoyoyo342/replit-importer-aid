@@ -1,10 +1,16 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "npm:zod@3.22.4";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const LocationSchema = z.object({
+  location: z.string().min(1, "Location cannot be empty").max(200, "Location too long").trim(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -83,12 +89,35 @@ serve(async (req) => {
   };
 
   try {
-    const { location } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = LocationSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid location parameter",
+          image: null
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const { location } = validationResult.data;
     const unsplashToken = Deno.env.get('UNSPLASH_ACCESS_KEY');
 
     if (!unsplashToken) {
       console.error('UNSPLASH_ACCESS_KEY not configured');
-      throw new Error('UNSPLASH_ACCESS_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: "Service temporarily unavailable" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     // Parse location to extract actual city name
@@ -132,7 +161,13 @@ serve(async (req) => {
     if (!unsplashResponse.ok) {
       const errorText = await unsplashResponse.text();
       console.error('Unsplash API error:', unsplashResponse.status, errorText);
-      throw new Error(`Unsplash API error: ${unsplashResponse.status}`);
+      return new Response(
+        JSON.stringify({ error: "Service temporarily unavailable" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const unsplashData = await unsplashResponse.json();
@@ -167,7 +202,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error generating landmark image:', error);
     return new Response(
-      JSON.stringify({ error: error.message || 'Unknown error' }),
+      JSON.stringify({ error: "Service temporarily unavailable" }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

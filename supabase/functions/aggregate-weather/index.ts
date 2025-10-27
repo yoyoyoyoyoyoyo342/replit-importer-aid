@@ -1,9 +1,17 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { z } from "npm:zod@3.22.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const RequestSchema = z.object({
+  lat: z.number().min(-90, "Latitude must be between -90 and 90").max(90, "Latitude must be between -90 and 90"),
+  lon: z.number().min(-180, "Longitude must be between -180 and 180").max(180, "Longitude must be between -180 and 180"),
+  locationName: z.string().max(200).optional(),
+});
 
 interface WeatherSource {
   source: string;
@@ -46,12 +54,6 @@ interface WeatherSource {
   }>;
 }
 
-interface RequestBody {
-  lat: number;
-  lon: number;
-  locationName?: string;
-}
-
 // Utility to parse 12h time like "07:15 AM" into minutes since midnight
 function parse12hToMinutes(t: string): number | null {
   try {
@@ -82,7 +84,24 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { lat, lon, locationName }: RequestBody = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = RequestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid input parameters",
+          details: validationResult.error.errors[0].message 
+        }),
+        {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+          status: 400,
+        }
+      );
+    }
+
+    const { lat, lon, locationName } = validationResult.data;
 
     const weatherApiKey =
       Deno.env.get("WEATHERAPI_KEY") ||
@@ -178,9 +197,12 @@ serve(async (req: Request) => {
     });
   } catch (e) {
     console.error("aggregate-weather error", e);
-    return new Response(JSON.stringify({ error: (e as Error).message }), {
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({ error: "Service temporarily unavailable. Please try again." }),
+      {
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 500,
+      }
+    );
   }
 });

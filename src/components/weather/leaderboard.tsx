@@ -7,7 +7,7 @@ import { DisplayNameDialog } from "./display-name-dialog";
 import { useAuth } from "@/hooks/use-auth";
 
 interface LeaderboardEntry {
-  id: string;
+  rank: number;
   display_name: string;
   total_points: number;
   current_streak: number;
@@ -131,7 +131,7 @@ export const Leaderboard = () => {
 
             return (
               <div
-                key={entry.id}
+                key={entry.rank}
                 className={`flex items-center gap-4 p-4 rounded-lg transition-colors ${
                   index === 0
                     ? "bg-yellow-500/10 border border-yellow-500/30"

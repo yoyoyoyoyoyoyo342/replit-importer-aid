@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CloudRain, CloudSnow, Cloud, Sun, CloudDrizzle } from "lucide-react";
+import { z } from "zod";
 
 interface WeatherPredictionFormProps {
   location: string;
@@ -22,6 +23,20 @@ const weatherConditions = [
   { value: "snowy", label: "Snowy", icon: CloudSnow },
   { value: "partly-cloudy", label: "Partly Cloudy", icon: CloudDrizzle },
 ];
+
+// Validation schema
+const predictionSchema = z.object({
+  predictedHigh: z.number()
+    .min(-100, "Temperature must be at least -100°F")
+    .max(150, "Temperature must be at most 150°F"),
+  predictedLow: z.number()
+    .min(-100, "Temperature must be at least -100°F")
+    .max(150, "Temperature must be at most 150°F"),
+  predictedCondition: z.string().min(1, "Please select a weather condition"),
+}).refine(data => data.predictedHigh >= data.predictedLow, {
+  message: "High temperature must be greater than or equal to low temperature",
+  path: ["predictedHigh"],
+});
 
 export const WeatherPredictionForm = ({ 
   location, 
@@ -40,6 +55,20 @@ export const WeatherPredictionForm = ({
     if (!predictedHigh || !predictedLow || !predictedCondition) {
       toast.error("Please fill in all fields");
       return;
+    }
+
+    // Validate input
+    try {
+      predictionSchema.parse({
+        predictedHigh: parseFloat(predictedHigh),
+        predictedLow: parseFloat(predictedLow),
+        predictedCondition,
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
     }
 
     setLoading(true);

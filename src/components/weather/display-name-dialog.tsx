@@ -5,6 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Validation schema
+const displayNameSchema = z.string()
+  .trim()
+  .min(3, "Display name must be at least 3 characters")
+  .max(20, "Display name must be less than 20 characters")
+  .regex(/^[a-zA-Z0-9_\- ]+$/, {
+    message: "Display name can only contain letters, numbers, spaces, hyphens, and underscores"
+  })
+  .refine(name => name.replace(/\s/g, '').length >= 3, {
+    message: "Display name must contain at least 3 non-space characters"
+  });
 
 interface DisplayNameDialogProps {
   open: boolean;
@@ -18,14 +31,14 @@ export const DisplayNameDialog = ({ open, onClose }: DisplayNameDialogProps) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!displayName.trim()) {
-      toast.error("Please enter a display name");
-      return;
-    }
-
-    if (displayName.length < 3 || displayName.length > 20) {
-      toast.error("Display name must be 3-20 characters");
-      return;
+    // Validate display name
+    try {
+      displayNameSchema.parse(displayName);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+        return;
+      }
     }
 
     setLoading(true);
@@ -73,7 +86,7 @@ export const DisplayNameDialog = ({ open, onClose }: DisplayNameDialogProps) => 
               className="mt-2"
             />
             <p className="text-xs text-muted-foreground mt-1">
-              3-20 characters
+              3-20 characters (letters, numbers, spaces, hyphens, underscores only)
             </p>
           </div>
 
