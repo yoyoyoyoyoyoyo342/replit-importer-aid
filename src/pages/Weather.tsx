@@ -250,6 +250,7 @@ export default function WeatherPage() {
                   latitude={selectedLocation.lat}
                   longitude={selectedLocation.lon}
                   onPredictionMade={() => refetch()}
+                  isImperial={isImperial}
                 />
               </div>
             )}

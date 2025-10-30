@@ -14,6 +14,7 @@ interface WeatherPredictionFormProps {
   latitude: number;
   longitude: number;
   onPredictionMade: () => void;
+  isImperial: boolean;
 }
 
 const weatherConditions = [
@@ -42,7 +43,8 @@ export const WeatherPredictionForm = ({
   location, 
   latitude, 
   longitude,
-  onPredictionMade 
+  onPredictionMade,
+  isImperial
 }: WeatherPredictionFormProps) => {
   const [predictedHigh, setPredictedHigh] = useState("");
   const [predictedLow, setPredictedLow] = useState("");
@@ -119,24 +121,24 @@ export const WeatherPredictionForm = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="high">High Temp (°F)</Label>
+            <Label htmlFor="high">High Temp ({isImperial ? '°F' : '°C'})</Label>
             <Input
               id="high"
               type="number"
               value={predictedHigh}
               onChange={(e) => setPredictedHigh(e.target.value)}
-              placeholder="75"
+              placeholder={isImperial ? "75" : "24"}
               className="bg-background/60"
             />
           </div>
           <div>
-            <Label htmlFor="low">Low Temp (°F)</Label>
+            <Label htmlFor="low">Low Temp ({isImperial ? '°F' : '°C'})</Label>
             <Input
               id="low"
               type="number"
               value={predictedLow}
               onChange={(e) => setPredictedLow(e.target.value)}
-              placeholder="55"
+              placeholder={isImperial ? "55" : "13"}
               className="bg-background/60"
             />
           </div>
