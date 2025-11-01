@@ -27,7 +27,6 @@ import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
 import { StreakDisplay } from "@/components/weather/streak-display";
 import { PredictionDialog } from "@/components/weather/prediction-dialog";
-import { LeaderboardDialog } from "@/components/weather/leaderboard-dialog";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -219,16 +218,13 @@ export default function WeatherPage() {
 
             {/* Third Row: User Actions (Predictions & Leaderboard) - Only for logged in users */}
             {user && selectedLocation && (
-              <div className="flex gap-2">
-                <PredictionDialog
-                  location={selectedLocation.name}
-                  latitude={selectedLocation.lat}
-                  longitude={selectedLocation.lon}
-                  isImperial={isImperial}
-                  onPredictionMade={() => refetch()}
-                />
-                <LeaderboardDialog />
-              </div>
+              <PredictionDialog
+                location={selectedLocation.name}
+                latitude={selectedLocation.lat}
+                longitude={selectedLocation.lon}
+                isImperial={isImperial}
+                onPredictionMade={() => refetch()}
+              />
             )}
           </div>
         </header>

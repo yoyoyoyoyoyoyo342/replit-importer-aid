@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Target } from "lucide-react";
+import { Target, Trophy } from "lucide-react";
 import { WeatherPredictionForm } from "./weather-prediction-form";
+import { Leaderboard } from "./leaderboard";
 import { useLanguage } from "@/contexts/language-context";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface PredictionDialogProps {
   location: string;
@@ -36,17 +38,37 @@ export const PredictionDialog = ({
           Make Prediction
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Weather Prediction Challenge</DialogTitle>
+          <DialogTitle className="text-2xl">Weather Challenge</DialogTitle>
         </DialogHeader>
-        <WeatherPredictionForm
-          location={location}
-          latitude={latitude}
-          longitude={longitude}
-          onPredictionMade={handlePredictionMade}
-          isImperial={isImperial}
-        />
+        
+        <Tabs defaultValue="predict" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="predict" className="text-sm sm:text-base">
+              <Target className="w-4 h-4 mr-2" />
+              Make Prediction
+            </TabsTrigger>
+            <TabsTrigger value="leaderboard" className="text-sm sm:text-base">
+              <Trophy className="w-4 h-4 mr-2" />
+              Leaderboard
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="predict" className="mt-6">
+            <WeatherPredictionForm
+              location={location}
+              latitude={latitude}
+              longitude={longitude}
+              onPredictionMade={handlePredictionMade}
+              isImperial={isImperial}
+            />
+          </TabsContent>
+          
+          <TabsContent value="leaderboard" className="mt-6">
+            <Leaderboard />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

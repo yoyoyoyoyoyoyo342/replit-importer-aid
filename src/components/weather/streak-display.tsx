@@ -22,7 +22,7 @@ export const StreakDisplay = () => {
 
   if (!streakData) return null;
 
-  const { currentStreak, longestStreak, totalPredictions } = streakData;
+  const { currentStreak, longestStreak, totalVisits } = streakData;
 
   return (
     <Card className="p-4 bg-background/40 backdrop-blur-md border-border/50 hover:bg-background/50 transition-colors">
@@ -59,15 +59,15 @@ export const StreakDisplay = () => {
           </div>
         </div>
 
-        {/* Total Predictions */}
+        {/* Total Visits */}
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/30">
           <Calendar className="h-4 w-4 text-secondary-foreground/70" />
           <div className="text-xs">
             <span className="font-semibold text-secondary-foreground">
-              {totalPredictions}
+              {totalVisits}
             </span>
             <span className="text-secondary-foreground/70 ml-1">
-              {totalPredictions === 1 ? "prediction" : "predictions"}
+              {totalVisits === 1 ? "visit" : "visits"}
             </span>
           </div>
         </div>

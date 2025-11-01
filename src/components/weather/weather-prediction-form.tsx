@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CloudRain, CloudSnow, Cloud, Sun, CloudDrizzle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { z } from "zod";
 
 interface WeatherPredictionFormProps {
@@ -46,6 +47,7 @@ export const WeatherPredictionForm = ({
   onPredictionMade,
   isImperial
 }: WeatherPredictionFormProps) => {
+  const { user } = useAuth();
   const [predictedHigh, setPredictedHigh] = useState("");
   const [predictedLow, setPredictedLow] = useState("");
   const [predictedCondition, setPredictedCondition] = useState("");
@@ -76,13 +78,19 @@ export const WeatherPredictionForm = ({
     setLoading(true);
     
     try {
+      if (!user) {
+        toast.error("You must be logged in to make predictions");
+        return;
+      }
+
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const predictionDate = tomorrow.toISOString().split("T")[0];
 
       const { error } = await supabase
         .from("weather_predictions")
-        .insert([{
+        .insert({
+          user_id: user.id,
           prediction_date: predictionDate,
           predicted_high: parseFloat(predictedHigh),
           predicted_low: parseFloat(predictedLow),
@@ -90,7 +98,7 @@ export const WeatherPredictionForm = ({
           location_name: location,
           latitude,
           longitude,
-        }] as any);
+        });
 
       if (error) throw error;
 

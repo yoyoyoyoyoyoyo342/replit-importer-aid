@@ -6,8 +6,8 @@ import { toast } from "sonner";
 interface StreakData {
   currentStreak: number;
   longestStreak: number;
-  totalPredictions: number;
-  lastPredictionDate: string;
+  totalVisits: number;
+  lastVisitDate: string;
 }
 
 export const useUserStreaks = () => {
@@ -44,8 +44,8 @@ export const useUserStreaks = () => {
               user_id: user.id,
               current_streak: 1,
               longest_streak: 1,
-              last_prediction_date: today,
-              total_predictions: 1,
+              last_visit_date: today,
+              total_visits: 1,
             })
             .select()
             .single();
@@ -55,23 +55,23 @@ export const useUserStreaks = () => {
           setStreakData({
             currentStreak: newStreak.current_streak,
             longestStreak: newStreak.longest_streak,
-            totalPredictions: newStreak.total_predictions,
-            lastPredictionDate: newStreak.last_prediction_date,
+            totalVisits: newStreak.total_visits,
+            lastVisitDate: newStreak.last_visit_date,
           });
         } else {
-          const lastPrediction = existingStreak.last_prediction_date;
+          const lastVisit = existingStreak.last_visit_date;
           
-          if (lastPrediction === today) {
-            // Already predicted today - just load data
+          if (lastVisit === today) {
+            // Already visited today - just load data
             setStreakData({
               currentStreak: existingStreak.current_streak,
               longestStreak: existingStreak.longest_streak,
-              totalPredictions: existingStreak.total_predictions,
-              lastPredictionDate: existingStreak.last_prediction_date,
+              totalVisits: existingStreak.total_visits,
+              lastVisitDate: existingStreak.last_visit_date,
             });
           } else {
             // Calculate if streak continues
-            const lastDate = new Date(lastPrediction);
+            const lastDate = new Date(lastVisit);
             const currentDate = new Date(today);
             const diffDays = Math.floor(
               (currentDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -93,7 +93,7 @@ export const useUserStreaks = () => {
               existingStreak.longest_streak,
               newCurrentStreak
             );
-            const newTotalPredictions = existingStreak.total_predictions + 1;
+            const newTotalVisits = existingStreak.total_visits + 1;
 
             // Update streak
             const { data: updatedStreak, error: updateError } = await supabase
@@ -101,8 +101,8 @@ export const useUserStreaks = () => {
               .update({
                 current_streak: newCurrentStreak,
                 longest_streak: newLongestStreak,
-                last_prediction_date: today,
-                total_predictions: newTotalPredictions,
+                last_visit_date: today,
+                total_visits: newTotalVisits,
               })
               .eq("user_id", user.id)
               .select()
@@ -113,8 +113,8 @@ export const useUserStreaks = () => {
             setStreakData({
               currentStreak: updatedStreak.current_streak,
               longestStreak: updatedStreak.longest_streak,
-              totalPredictions: updatedStreak.total_predictions,
-              lastPredictionDate: updatedStreak.last_prediction_date,
+              totalVisits: updatedStreak.total_visits,
+              lastVisitDate: updatedStreak.last_visit_date,
             });
 
             if (showToast && newCurrentStreak > 1) {

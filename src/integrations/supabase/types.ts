@@ -232,9 +232,10 @@ export type Database = {
           created_at: string
           current_streak: number
           id: string
-          last_prediction_date: string
+          last_visit_date: string
           longest_streak: number
           total_predictions: number
+          total_visits: number
           updated_at: string
           user_id: string
         }
@@ -242,9 +243,10 @@ export type Database = {
           created_at?: string
           current_streak?: number
           id?: string
-          last_prediction_date?: string
+          last_visit_date?: string
           longest_streak?: number
           total_predictions?: number
+          total_visits?: number
           updated_at?: string
           user_id: string
         }
@@ -252,9 +254,10 @@ export type Database = {
           created_at?: string
           current_streak?: number
           id?: string
-          last_prediction_date?: string
+          last_visit_date?: string
           longest_streak?: number
           total_predictions?: number
+          total_visits?: number
           updated_at?: string
           user_id?: string
         }
