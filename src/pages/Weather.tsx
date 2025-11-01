@@ -164,46 +164,72 @@ export default function WeatherPage() {
   return <div className="min-h-screen overflow-x-hidden relative">
       <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} />
       <div className="container mx-auto px-3 py-2 max-w-5xl relative z-10">
-        {/* Header - Ultra Compact */}
-        <header className="mb-4 glass-header rounded-lg p-4 relative z-[1000]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-2 flex-1">
-              <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8" />
-              <div>
-                <h1 className="text-lg font-bold text-foreground">Rainz</h1>
-                <p className="text-xs text-slate-950">{t('app.tagline')}</p>
+        {/* Header - Mobile Optimized */}
+        <header className="mb-4 glass-header rounded-lg p-3 sm:p-4 relative z-[1000]">
+          <div className="flex flex-col gap-3">
+            {/* Top Row: Logo and Essential Actions */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-8 sm:h-8" />
+                <div>
+                  <h1 className="text-xl sm:text-lg font-bold text-foreground">Rainz</h1>
+                  <p className="text-xs sm:text-[10px] text-slate-950 hidden sm:block">{t('app.tagline')}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {user ? (
+                  <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => window.location.href = '/auth'} 
+                    className="h-10 px-3 sm:h-8 sm:px-2 text-sm sm:text-xs"
+                  >
+                    <LogIn className="w-4 h-4 sm:w-3 sm:h-3 mr-1" />
+                    <span className="hidden sm:inline">{t('header.signIn')}</span>
+                    <span className="sm:hidden">Sign In</span>
+                  </Button>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <LocationSearch onLocationSelect={handleLocationSelect} />
-              
-              <div className="flex items-center gap-1 px-2 py-1 text-muted-foreground bg-muted rounded text-xs">
-                <span>°F</span>
-                <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
-                <span>°C</span>
+            {/* Second Row: Location and Controls */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:items-center">
+              <div className="flex-1">
+                <LocationSearch onLocationSelect={handleLocationSelect} />
               </div>
               
-              {user && selectedLocation && (
-                <>
-                  <PredictionDialog
-                    location={selectedLocation.name}
-                    latitude={selectedLocation.lat}
-                    longitude={selectedLocation.lon}
-                    isImperial={isImperial}
-                    onPredictionMade={() => refetch()}
+              <div className="flex items-center gap-2 justify-between sm:justify-start">
+                <div className="flex items-center gap-1 px-3 py-2 sm:px-2 sm:py-1 text-muted-foreground bg-muted rounded text-sm sm:text-xs">
+                  <span>°F</span>
+                  <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
+                  <span>°C</span>
+                </div>
+                
+                {weatherData && (
+                  <WeatherReportForm 
+                    location={selectedLocation?.name || "Unknown"} 
+                    currentCondition={weatherData.mostAccurate.currentWeather.condition} 
                   />
-                  <LeaderboardDialog />
-                </>
-              )}
-              
-              {user ? <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} /> : <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'} className="h-8 px-2 text-xs">
-                  <LogIn className="w-3 h-3 mr-1" />
-                  {t('header.signIn')}
-                </Button>}
-              
-              {weatherData && <WeatherReportForm location={selectedLocation?.name || "Unknown"} currentCondition={weatherData.mostAccurate.currentWeather.condition} />}
+                )}
+              </div>
             </div>
+
+            {/* Third Row: User Actions (Predictions & Leaderboard) - Only for logged in users */}
+            {user && selectedLocation && (
+              <div className="flex gap-2">
+                <PredictionDialog
+                  location={selectedLocation.name}
+                  latitude={selectedLocation.lat}
+                  longitude={selectedLocation.lon}
+                  isImperial={isImperial}
+                  onPredictionMade={() => refetch()}
+                />
+                <LeaderboardDialog />
+              </div>
+            )}
           </div>
         </header>
 

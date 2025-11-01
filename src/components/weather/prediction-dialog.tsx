@@ -31,8 +31,8 @@ export const PredictionDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 px-3 text-xs">
-          <Target className="w-3 h-3 mr-1" />
+        <Button variant="outline" size="sm" className="h-10 px-4 text-sm sm:h-8 sm:px-3 sm:text-xs flex-1 sm:flex-initial">
+          <Target className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
           Make Prediction
         </Button>
       </DialogTrigger>
