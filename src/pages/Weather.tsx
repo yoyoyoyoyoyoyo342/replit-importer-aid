@@ -26,8 +26,8 @@ import { MorningWeatherReview } from "@/components/weather/morning-weather-revie
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
 import { StreakDisplay } from "@/components/weather/streak-display";
-import { WeatherPredictionForm } from "@/components/weather/weather-prediction-form";
-import { Leaderboard } from "@/components/weather/leaderboard";
+import { PredictionDialog } from "@/components/weather/prediction-dialog";
+import { LeaderboardDialog } from "@/components/weather/leaderboard-dialog";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -184,6 +184,19 @@ export default function WeatherPage() {
                 <span>°C</span>
               </div>
               
+              {user && selectedLocation && (
+                <>
+                  <PredictionDialog
+                    location={selectedLocation.name}
+                    latitude={selectedLocation.lat}
+                    longitude={selectedLocation.lon}
+                    isImperial={isImperial}
+                    onPredictionMade={() => refetch()}
+                  />
+                  <LeaderboardDialog />
+                </>
+              )}
+              
               {user ? <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} /> : <Button variant="outline" size="sm" onClick={() => window.location.href = '/auth'} className="h-8 px-2 text-xs">
                   <LogIn className="w-3 h-3 mr-1" />
                   {t('header.signIn')}
@@ -239,26 +252,6 @@ export default function WeatherPage() {
             {user && (
               <div className="mb-4">
                 <StreakDisplay />
-              </div>
-            )}
-
-            {/* Weather Prediction Form for Logged In Users */}
-            {user && selectedLocation && (
-              <div className="mb-4">
-                <WeatherPredictionForm
-                  location={selectedLocation.name}
-                  latitude={selectedLocation.lat}
-                  longitude={selectedLocation.lon}
-                  onPredictionMade={() => refetch()}
-                  isImperial={isImperial}
-                />
-              </div>
-            )}
-
-            {/* Leaderboard for Logged In Users */}
-            {user && (
-              <div className="mb-4">
-                <Leaderboard />
               </div>
             )}
 
