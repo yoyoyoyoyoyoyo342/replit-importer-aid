@@ -144,79 +144,107 @@ export function WeatherTrendsCard({
   const precipUnit = isImperial ? "in" : "mm";
 
   return (
-    <Card className="p-6 glass-panel">
-      <div className="flex items-center gap-2 mb-6">
-        <TrendingUp className="h-5 w-5" />
-        <h3 className="font-semibold">Weather Trends</h3>
-        <span className="text-xs text-muted-foreground ml-auto">Last 30 days</span>
+    <Card className="p-4 sm:p-6 glass-panel w-full overflow-hidden">
+      <div className="flex items-center gap-2 mb-4 sm:mb-6">
+        <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
+        <h3 className="text-sm sm:text-base font-semibold">Weather Trends</h3>
+        <span className="text-[10px] sm:text-xs text-muted-foreground ml-auto">Last 30 days</span>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="text-center p-3 rounded-lg bg-secondary/50">
-          <p className="text-xs text-muted-foreground">Avg Temperature</p>
-          <p className="text-2xl font-bold">{avgTemp}{tempUnit}</p>
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
+        <div className="text-center p-2 sm:p-3 rounded-lg bg-secondary/50">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Avg Temperature</p>
+          <p className="text-xl sm:text-2xl font-bold">{avgTemp}{tempUnit}</p>
         </div>
-        <div className="text-center p-3 rounded-lg bg-secondary/50">
-          <p className="text-xs text-muted-foreground">Total Precipitation</p>
-          <p className="text-2xl font-bold">{totalPrecip.toFixed(1)} {precipUnit}</p>
+        <div className="text-center p-2 sm:p-3 rounded-lg bg-secondary/50">
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Total Precipitation</p>
+          <p className="text-xl sm:text-2xl font-bold">{totalPrecip.toFixed(1)} {precipUnit}</p>
         </div>
       </div>
 
       {/* Temperature Trend */}
-      <div className="mb-6">
-        <h4 className="text-sm font-medium mb-3">Temperature Trend</h4>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={tempChartData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="date" className="text-xs" stroke="hsl(var(--muted-foreground))" />
-            <YAxis className="text-xs" stroke="hsl(var(--muted-foreground))" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-              }}
-            />
-            <Line type="monotone" dataKey="high" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="avg" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="low" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="flex items-center justify-center gap-4 mt-2 text-xs">
+      <div className="mb-4 sm:mb-6 w-full">
+        <h4 className="text-xs sm:text-sm font-medium mb-2 sm:mb-3">Temperature Trend</h4>
+        <div className="w-full" style={{ height: 200 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={tempChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 10 }} 
+                stroke="hsl(var(--muted-foreground))" 
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                tick={{ fontSize: 10 }} 
+                stroke="hsl(var(--muted-foreground))" 
+                width={40}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+              />
+              <Line type="monotone" dataKey="high" stroke="hsl(var(--destructive))" strokeWidth={2} dot={false} name="High" />
+              <Line type="monotone" dataKey="avg" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="Avg" />
+              <Line type="monotone" dataKey="low" stroke="hsl(var(--chart-2))" strokeWidth={2} dot={false} name="Low" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-center gap-2 sm:gap-4 mt-2 text-[10px] sm:text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-destructive" />
+            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-destructive" />
             <span>High</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-primary" />
+            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary" />
             <span>Avg</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 rounded-full bg-chart-2" />
+            <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-chart-2" />
             <span>Low</span>
           </div>
         </div>
       </div>
 
       {/* Precipitation */}
-      <div>
-        <h4 className="text-sm font-medium mb-3">Precipitation</h4>
-        <ResponsiveContainer width="100%" height={150}>
-          <BarChart data={precipChartData}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="date" className="text-xs" stroke="hsl(var(--muted-foreground))" />
-            <YAxis className="text-xs" stroke="hsl(var(--muted-foreground))" />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: "8px",
-              }}
-            />
-            <Bar dataKey="precipitation" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="w-full">
+        <h4 className="text-xs sm:text-sm font-medium mb-2 sm:mb-3">Precipitation</h4>
+        <div className="w-full" style={{ height: 150 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={precipChartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 10 }} 
+                stroke="hsl(var(--muted-foreground))" 
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                tick={{ fontSize: 10 }} 
+                stroke="hsl(var(--muted-foreground))" 
+                width={40}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                }}
+              />
+              <Bar dataKey="precipitation" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} name="Precipitation" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </Card>
   );
