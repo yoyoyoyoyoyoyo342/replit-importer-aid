@@ -156,16 +156,32 @@ export const WeatherPredictionForm = ({
           <Label htmlFor="condition">Weather Condition</Label>
           <Select value={predictedCondition} onValueChange={setPredictedCondition}>
             <SelectTrigger className="bg-background/60">
-              <SelectValue placeholder="Select condition" />
+              {predictedCondition ? (
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const selected = weatherConditions.find(c => c.value === predictedCondition);
+                    if (!selected) return <SelectValue placeholder="Select condition" />;
+                    const Icon = selected.icon;
+                    return (
+                      <>
+                        <Icon className="h-4 w-4" />
+                        <span>{selected.label}</span>
+                      </>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <SelectValue placeholder="Select condition" />
+              )}
             </SelectTrigger>
             <SelectContent>
               {weatherConditions.map((condition) => {
                 const Icon = condition.icon;
                 return (
-                  <SelectItem key={condition.value} value={condition.value}>
+                  <SelectItem key={condition.value} value={condition.value} className="cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Icon className="h-4 w-4" />
-                      {condition.label}
+                      <span>{condition.label}</span>
                     </div>
                   </SelectItem>
                 );

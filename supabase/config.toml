@@ -12,3 +12,9 @@ verify_jwt = true
 [functions.generate-landmark-image]
 verify_jwt = true
 
+[functions.send-feedback]
+verify_jwt = true
+
+[functions.verify-predictions]
+verify_jwt = false
+
