@@ -22,9 +22,10 @@ const displayNameSchema = z.string()
 interface DisplayNameDialogProps {
   open: boolean;
   onClose: (displayName: string | null) => void;
+  allowSkip?: boolean;
 }
 
-export const DisplayNameDialog = ({ open, onClose }: DisplayNameDialogProps) => {
+export const DisplayNameDialog = ({ open, onClose, allowSkip = true }: DisplayNameDialogProps) => {
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +66,7 @@ export const DisplayNameDialog = ({ open, onClose }: DisplayNameDialogProps) => 
   };
 
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onClose(null)}>
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && allowSkip && onClose(null)}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Set Your Display Name</DialogTitle>
@@ -90,9 +91,16 @@ export const DisplayNameDialog = ({ open, onClose }: DisplayNameDialogProps) => 
             </p>
           </div>
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Setting..." : "Continue to Leaderboard"}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button type="submit" className="w-full" disabled={loading || !displayName.trim()}>
+              {loading ? "Setting..." : "Save Name"}
+            </Button>
+            {allowSkip && (
+              <Button type="button" variant="ghost" onClick={() => onClose(null)}>
+                Skip for now
+              </Button>
+            )}
+          </div>
         </form>
       </DialogContent>
     </Dialog>
