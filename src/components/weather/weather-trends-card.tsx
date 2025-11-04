@@ -35,9 +35,9 @@ export function WeatherTrendsCard({
   const { is24Hour } = useUserPreferences();
   
   const { data: historyData = [], isLoading } = useQuery({
-    queryKey: ["weather-history", latitude, longitude],
+    queryKey: ["weather-history", location],
     queryFn: async () => {
-      if (!latitude || !longitude) return [];
+      if (!location) return [];
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
@@ -48,15 +48,14 @@ export function WeatherTrendsCard({
         .from("weather_history")
         .select("*")
         .eq("user_id", user.id)
-        .eq("latitude", latitude)
-        .eq("longitude", longitude)
+        .eq("location_name", location)
         .gte("date", thirtyDaysAgo)
         .order("date", { ascending: true });
 
       if (error) throw error;
       return data as WeatherHistoryEntry[];
     },
-    enabled: !!latitude && !!longitude,
+    enabled: !!location,
   });
 
   // Save current weather to history
@@ -69,22 +68,48 @@ export function WeatherTrendsCard({
 
       const today = format(new Date(), "yyyy-MM-dd");
 
-      await supabase.from("weather_history").upsert({
-        user_id: user.id,
-        location_name: location,
-        latitude,
-        longitude,
-        date: today,
-        avg_temp: currentWeather.temperature,
-        high_temp: currentWeather.temperature,
-        low_temp: currentWeather.temperature,
-        precipitation: currentWeather.precipitation || 0,
-        condition: currentWeather.condition,
-        humidity: currentWeather.humidity,
-        wind_speed: currentWeather.windSpeed,
-      }, {
-        onConflict: "latitude,longitude,date",
-      });
+      // Check if entry exists for today
+      const { data: existing } = await supabase
+        .from("weather_history")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("location_name", location)
+        .eq("date", today)
+        .single();
+
+      if (existing) {
+        // Update existing entry with current weather
+        await supabase
+          .from("weather_history")
+          .update({
+            latitude,
+            longitude,
+            avg_temp: currentWeather.temperature,
+            high_temp: Math.max(existing.high_temp, currentWeather.temperature),
+            low_temp: Math.min(existing.low_temp, currentWeather.temperature),
+            precipitation: (currentWeather.precipitation || 0),
+            condition: currentWeather.condition,
+            humidity: currentWeather.humidity,
+            wind_speed: currentWeather.windSpeed,
+          })
+          .eq("id", existing.id);
+      } else {
+        // Insert new entry
+        await supabase.from("weather_history").insert({
+          user_id: user.id,
+          location_name: location,
+          latitude,
+          longitude,
+          date: today,
+          avg_temp: currentWeather.temperature,
+          high_temp: currentWeather.temperature,
+          low_temp: currentWeather.temperature,
+          precipitation: currentWeather.precipitation || 0,
+          condition: currentWeather.condition,
+          humidity: currentWeather.humidity,
+          wind_speed: currentWeather.windSpeed,
+        });
+      }
     };
 
     saveWeatherHistory();
