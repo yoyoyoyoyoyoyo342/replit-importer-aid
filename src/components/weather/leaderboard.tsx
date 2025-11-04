@@ -156,12 +156,14 @@ export const Leaderboard = () => {
                   <p className="font-bold text-foreground truncate">
                     {entry.display_name}
                   </p>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                    <span>{accuracy}% accurate</span>
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1">
+                    <span className="font-medium">{accuracy}% accurate</span>
                     <span>•</span>
-                    <span>{entry.current_streak}🔥 streak</span>
+                    <span className="font-medium">{entry.current_streak}🔥</span>
                     <span>•</span>
-                    <span>{entry.total_predictions} predictions</span>
+                    <span>Longest: {entry.longest_streak}🔥</span>
+                    <span>•</span>
+                    <span>{entry.total_predictions} total</span>
                   </div>
                 </div>
 
