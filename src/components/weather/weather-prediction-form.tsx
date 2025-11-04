@@ -129,17 +129,6 @@ export const WeatherPredictionForm = ({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="high">High Temp ({isImperial ? '°F' : '°C'})</Label>
-            <Input
-              id="high"
-              type="number"
-              value={predictedHigh}
-              onChange={(e) => setPredictedHigh(e.target.value)}
-              placeholder={isImperial ? "75" : "24"}
-              className="bg-background/60"
-            />
-          </div>
-          <div>
             <Label htmlFor="low">Low Temp ({isImperial ? '°F' : '°C'})</Label>
             <Input
               id="low"
@@ -147,6 +136,17 @@ export const WeatherPredictionForm = ({
               value={predictedLow}
               onChange={(e) => setPredictedLow(e.target.value)}
               placeholder={isImperial ? "55" : "13"}
+              className="bg-background/60"
+            />
+          </div>
+          <div>
+            <Label htmlFor="high">High Temp ({isImperial ? '°F' : '°C'})</Label>
+            <Input
+              id="high"
+              type="number"
+              value={predictedHigh}
+              onChange={(e) => setPredictedHigh(e.target.value)}
+              placeholder={isImperial ? "75" : "24"}
               className="bg-background/60"
             />
           </div>
