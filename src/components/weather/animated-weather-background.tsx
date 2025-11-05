@@ -148,22 +148,6 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
         <div className="lightning" />
       )}
 
-      {/* Atmospheric glow for sunrise */}
-      {weatherType === 'sunrise' && (
-        <>
-          <div className="sunrise-glow" />
-          <div className="sunrise-rays" />
-        </>
-      )}
-
-      {/* Atmospheric glow for sunset */}
-      {weatherType === 'sunset' && (
-        <>
-          <div className="sunset-glow" />
-          <div className="sunset-rays" />
-        </>
-      )}
-
       {/* Subtle stars for night */}
       {weatherType === 'night' && (
         <div className="stars-container">
@@ -179,52 +163,6 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
       )}
 
       <style>{`
-        /* Sunrise atmospheric effects */
-        .sunrise-glow {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 50%;
-          background: radial-gradient(ellipse at bottom, rgba(255, 200, 100, 0.4), transparent 70%);
-          animation: sunrise-pulse 8s ease-in-out infinite;
-        }
-        
-        .sunrise-rays {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to top, rgba(255, 150, 100, 0.1), transparent 40%);
-          animation: fade-in 2s ease-out;
-        }
-        
-        @keyframes sunrise-pulse {
-          0%, 100% { opacity: 0.6; }
-          50% { opacity: 0.8; }
-        }
-        
-        /* Sunset atmospheric effects */
-        .sunset-glow {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 60%;
-          background: radial-gradient(ellipse at bottom, rgba(255, 100, 80, 0.5), transparent 70%);
-          animation: sunset-pulse 8s ease-in-out infinite;
-        }
-        
-        .sunset-rays {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to top, rgba(255, 80, 100, 0.15), transparent 50%);
-          animation: fade-in 2s ease-out;
-        }
-        
-        @keyframes sunset-pulse {
-          0%, 100% { opacity: 0.7; }
-          50% { opacity: 0.9; }
-        }
-        
         /* Stars - subtle and atmospheric */
         .stars-container {
           position: absolute;
@@ -245,11 +183,6 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
         @keyframes twinkle {
           0%, 100% { opacity: 0.3; transform: scale(1); }
           50% { opacity: 1; transform: scale(1.5); }
-        }
-        
-        @keyframes fade-in {
-          from { opacity: 0; }
-          to { opacity: 1; }
         }
         
         .cloud {
