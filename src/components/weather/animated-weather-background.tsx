@@ -148,176 +148,108 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
         <div className="lightning" />
       )}
 
-      {/* Sun for sunrise */}
+      {/* Atmospheric glow for sunrise */}
       {weatherType === 'sunrise' && (
-        <div className="sun sunrise-sun" />
-      )}
-
-      {/* Sun for sunset */}
-      {weatherType === 'sunset' && (
-        <div className="sun sunset-sun" />
-      )}
-
-      {/* Moon and stars for night */}
-      {weatherType === 'night' && (
         <>
-          <div className="stars-container">
-            {Array.from({ length: 100 }).map((_, i) => (
-              <div key={i} className="star" style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                opacity: Math.random() * 0.8 + 0.2
-              }} />
-            ))}
-          </div>
-          <div className={`moon ${getMoonPhaseClass(moonPhase)}`} />
+          <div className="sunrise-glow" />
+          <div className="sunrise-rays" />
         </>
       )}
 
+      {/* Atmospheric glow for sunset */}
+      {weatherType === 'sunset' && (
+        <>
+          <div className="sunset-glow" />
+          <div className="sunset-rays" />
+        </>
+      )}
+
+      {/* Subtle stars for night */}
+      {weatherType === 'night' && (
+        <div className="stars-container">
+          {Array.from({ length: 80 }).map((_, i) => (
+            <div key={i} className="star" style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 60}%`,
+              animationDelay: `${Math.random() * 3}s`,
+              animationDuration: `${2 + Math.random() * 2}s`
+            }} />
+          ))}
+        </div>
+      )}
+
       <style>{`
-        /* Sun animations */
-        .sun {
+        /* Sunrise atmospheric effects */
+        .sunrise-glow {
           position: absolute;
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          box-shadow: 0 0 60px rgba(255, 255, 150, 0.8);
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 50%;
+          background: radial-gradient(ellipse at bottom, rgba(255, 200, 100, 0.4), transparent 70%);
+          animation: sunrise-pulse 8s ease-in-out infinite;
         }
         
-        .sunrise-sun {
-          background: radial-gradient(circle, #FFD700, #FFA500);
-          bottom: 10%;
-          left: 10%;
-          animation: sunrise 3s ease-in-out;
+        .sunrise-rays {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(255, 150, 100, 0.1), transparent 40%);
+          animation: fade-in 2s ease-out;
         }
         
-        .sunset-sun {
-          background: radial-gradient(circle, #FF6347, #FF4500);
-          bottom: 10%;
-          right: 10%;
-          animation: sunset 3s ease-in-out;
+        @keyframes sunrise-pulse {
+          0%, 100% { opacity: 0.6; }
+          50% { opacity: 0.8; }
         }
         
-        @keyframes sunrise {
-          from {
-            bottom: -10%;
-            opacity: 0;
-          }
-          to {
-            bottom: 10%;
-            opacity: 1;
-          }
+        /* Sunset atmospheric effects */
+        .sunset-glow {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 60%;
+          background: radial-gradient(ellipse at bottom, rgba(255, 100, 80, 0.5), transparent 70%);
+          animation: sunset-pulse 8s ease-in-out infinite;
         }
         
-        @keyframes sunset {
-          from {
-            bottom: 30%;
-            opacity: 1;
-          }
-          to {
-            bottom: 10%;
-            opacity: 0.8;
-          }
+        .sunset-rays {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(255, 80, 100, 0.15), transparent 50%);
+          animation: fade-in 2s ease-out;
         }
         
-        /* Stars */
+        @keyframes sunset-pulse {
+          0%, 100% { opacity: 0.7; }
+          50% { opacity: 0.9; }
+        }
+        
+        /* Stars - subtle and atmospheric */
         .stars-container {
           position: absolute;
           inset: 0;
+          overflow: hidden;
         }
         
         .star {
           position: absolute;
-          width: 2px;
-          height: 2px;
-          background: white;
+          width: 1px;
+          height: 1px;
+          background: rgba(255, 255, 255, 0.8);
           border-radius: 50%;
-          animation: twinkle 3s infinite;
+          box-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+          animation: twinkle linear infinite;
         }
         
         @keyframes twinkle {
-          0%, 100% { opacity: 0.2; }
-          50% { opacity: 1; }
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.5); }
         }
         
-        /* Moon */
-        .moon {
-          position: absolute;
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          top: 15%;
-          right: 15%;
-          background: #f4f4f4;
-          box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
-          animation: moon-glow 4s ease-in-out infinite;
-        }
-        
-        @keyframes moon-glow {
-          0%, 100% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.6); }
-          50% { box-shadow: 0 0 60px rgba(255, 255, 255, 0.8); }
-        }
-        
-        /* Moon phases */
-        .moon-new {
-          background: #333;
-          box-shadow: 0 0 20px rgba(100, 100, 100, 0.4);
-        }
-        
-        .moon-waxing-crescent::before,
-        .moon-waning-crescent::before {
-          content: '';
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          background: #1a1a2e;
-        }
-        
-        .moon-waxing-crescent::before {
-          right: -30%;
-        }
-        
-        .moon-waning-crescent::before {
-          left: -30%;
-        }
-        
-        .moon-first-quarter::before,
-        .moon-last-quarter::before {
-          content: '';
-          position: absolute;
-          width: 50%;
-          height: 100%;
-          background: #1a1a2e;
-          border-radius: 60px 0 0 60px;
-        }
-        
-        .moon-first-quarter::before {
-          left: 0;
-        }
-        
-        .moon-last-quarter::before {
-          right: 0;
-          border-radius: 0 60px 60px 0;
-        }
-        
-        .moon-waxing-gibbous::before,
-        .moon-waning-gibbous::before {
-          content: '';
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          background: #1a1a2e;
-        }
-        
-        .moon-waxing-gibbous::before {
-          right: 30%;
-        }
-        
-        .moon-waning-gibbous::before {
-          left: 30%;
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         
         .cloud {
