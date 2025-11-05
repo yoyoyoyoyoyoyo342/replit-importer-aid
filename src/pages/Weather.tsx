@@ -161,7 +161,12 @@ export default function WeatherPage() {
     window.location.reload();
   };
   return <div className="min-h-screen overflow-x-hidden relative">
-      <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} />
+      <AnimatedWeatherBackground 
+        condition={weatherData?.mostAccurate?.currentWeather?.condition}
+        sunrise={weatherData?.mostAccurate?.currentWeather?.sunrise}
+        sunset={weatherData?.mostAccurate?.currentWeather?.sunset}
+        moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase}
+      />
       <div className="container mx-auto px-3 py-2 max-w-5xl relative z-10">
         {/* Header - Mobile Optimized */}
         <header className="mb-4 glass-header rounded-lg p-3 sm:p-4 relative z-[1000]">

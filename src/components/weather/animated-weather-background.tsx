@@ -2,16 +2,66 @@ import { useEffect, useState } from "react";
 
 interface AnimatedWeatherBackgroundProps {
   condition?: string;
+  sunrise?: string;
+  sunset?: string;
+  moonPhase?: string;
 }
 
-export function AnimatedWeatherBackground({ condition }: AnimatedWeatherBackgroundProps) {
-  const [weatherType, setWeatherType] = useState<'clear' | 'rain' | 'snow' | 'cloudy' | 'storm'>('clear');
+export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhase }: AnimatedWeatherBackgroundProps) {
+  const [weatherType, setWeatherType] = useState<'clear' | 'rain' | 'snow' | 'cloudy' | 'storm' | 'sunrise' | 'sunset' | 'night'>('clear');
+  const [timeOfDay, setTimeOfDay] = useState<'day' | 'night' | 'sunrise' | 'sunset'>('day');
+
+  // Determine time of day based on sunrise/sunset
+  useEffect(() => {
+    if (!sunrise || !sunset) return;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    // Parse sunrise/sunset times (format: "HH:MM")
+    const parseSunTime = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+    
+    const sunriseTime = parseSunTime(sunrise);
+    const sunsetTime = parseSunTime(sunset);
+    
+    // Define golden hour windows (30 minutes before/after sunrise/sunset)
+    const sunriseStart = sunriseTime - 30;
+    const sunriseEnd = sunriseTime + 30;
+    const sunsetStart = sunsetTime - 30;
+    const sunsetEnd = sunsetTime + 30;
+    
+    if (currentTime >= sunriseStart && currentTime <= sunriseEnd) {
+      setTimeOfDay('sunrise');
+    } else if (currentTime >= sunsetStart && currentTime <= sunsetEnd) {
+      setTimeOfDay('sunset');
+    } else if (currentTime < sunriseTime || currentTime > sunsetTime) {
+      setTimeOfDay('night');
+    } else {
+      setTimeOfDay('day');
+    }
+  }, [sunrise, sunset]);
 
   useEffect(() => {
     if (!condition) return;
     
     const lowerCondition = condition.toLowerCase();
     
+    // Check for special time of day backgrounds first
+    if (timeOfDay === 'sunrise') {
+      setWeatherType('sunrise');
+      return;
+    } else if (timeOfDay === 'sunset') {
+      setWeatherType('sunset');
+      return;
+    } else if (timeOfDay === 'night') {
+      setWeatherType('night');
+      return;
+    }
+    
+    // Regular weather conditions
     if (lowerCondition.includes('rain') || lowerCondition.includes('drizzle')) {
       setWeatherType('rain');
     } else if (lowerCondition.includes('snow') || lowerCondition.includes('sleet')) {
@@ -23,12 +73,33 @@ export function AnimatedWeatherBackground({ condition }: AnimatedWeatherBackgrou
     } else {
       setWeatherType('clear');
     }
-  }, [condition]);
+  }, [condition, timeOfDay]);
+
+  // Helper function to get moon phase CSS class
+  const getMoonPhaseClass = (phase?: string): string => {
+    if (!phase) return '';
+    
+    const phaseMap: Record<string, string> = {
+      'NEW_MOON': 'moon-new',
+      'WAXING_CRESCENT': 'moon-waxing-crescent',
+      'FIRST_QUARTER': 'moon-first-quarter',
+      'WAXING_GIBBOUS': 'moon-waxing-gibbous',
+      'FULL_MOON': '',
+      'WANING_GIBBOUS': 'moon-waning-gibbous',
+      'LAST_QUARTER': 'moon-last-quarter',
+      'WANING_CRESCENT': 'moon-waning-crescent'
+    };
+    
+    return phaseMap[phase] || '';
+  };
 
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       {/* Base gradient background */}
       <div className={`absolute inset-0 transition-all duration-1000 ${
+        weatherType === 'sunrise' ? 'bg-gradient-to-br from-orange-400 via-pink-400 to-purple-300' :
+        weatherType === 'sunset' ? 'bg-gradient-to-br from-orange-500 via-red-400 to-purple-500' :
+        weatherType === 'night' ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900' :
         weatherType === 'clear' ? 'bg-gradient-to-br from-blue-400 via-blue-300 to-blue-200' :
         weatherType === 'rain' ? 'bg-gradient-to-br from-gray-500 via-gray-400 to-gray-300' :
         weatherType === 'snow' ? 'bg-gradient-to-br from-blue-200 via-blue-100 to-gray-100' :
@@ -77,7 +148,178 @@ export function AnimatedWeatherBackground({ condition }: AnimatedWeatherBackgrou
         <div className="lightning" />
       )}
 
+      {/* Sun for sunrise */}
+      {weatherType === 'sunrise' && (
+        <div className="sun sunrise-sun" />
+      )}
+
+      {/* Sun for sunset */}
+      {weatherType === 'sunset' && (
+        <div className="sun sunset-sun" />
+      )}
+
+      {/* Moon and stars for night */}
+      {weatherType === 'night' && (
+        <>
+          <div className="stars-container">
+            {Array.from({ length: 100 }).map((_, i) => (
+              <div key={i} className="star" style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                opacity: Math.random() * 0.8 + 0.2
+              }} />
+            ))}
+          </div>
+          <div className={`moon ${getMoonPhaseClass(moonPhase)}`} />
+        </>
+      )}
+
       <style>{`
+        /* Sun animations */
+        .sun {
+          position: absolute;
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          box-shadow: 0 0 60px rgba(255, 255, 150, 0.8);
+        }
+        
+        .sunrise-sun {
+          background: radial-gradient(circle, #FFD700, #FFA500);
+          bottom: 10%;
+          left: 10%;
+          animation: sunrise 3s ease-in-out;
+        }
+        
+        .sunset-sun {
+          background: radial-gradient(circle, #FF6347, #FF4500);
+          bottom: 10%;
+          right: 10%;
+          animation: sunset 3s ease-in-out;
+        }
+        
+        @keyframes sunrise {
+          from {
+            bottom: -10%;
+            opacity: 0;
+          }
+          to {
+            bottom: 10%;
+            opacity: 1;
+          }
+        }
+        
+        @keyframes sunset {
+          from {
+            bottom: 30%;
+            opacity: 1;
+          }
+          to {
+            bottom: 10%;
+            opacity: 0.8;
+          }
+        }
+        
+        /* Stars */
+        .stars-container {
+          position: absolute;
+          inset: 0;
+        }
+        
+        .star {
+          position: absolute;
+          width: 2px;
+          height: 2px;
+          background: white;
+          border-radius: 50%;
+          animation: twinkle 3s infinite;
+        }
+        
+        @keyframes twinkle {
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 1; }
+        }
+        
+        /* Moon */
+        .moon {
+          position: absolute;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          top: 15%;
+          right: 15%;
+          background: #f4f4f4;
+          box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
+          animation: moon-glow 4s ease-in-out infinite;
+        }
+        
+        @keyframes moon-glow {
+          0%, 100% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.6); }
+          50% { box-shadow: 0 0 60px rgba(255, 255, 255, 0.8); }
+        }
+        
+        /* Moon phases */
+        .moon-new {
+          background: #333;
+          box-shadow: 0 0 20px rgba(100, 100, 100, 0.4);
+        }
+        
+        .moon-waxing-crescent::before,
+        .moon-waning-crescent::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: #1a1a2e;
+        }
+        
+        .moon-waxing-crescent::before {
+          right: -30%;
+        }
+        
+        .moon-waning-crescent::before {
+          left: -30%;
+        }
+        
+        .moon-first-quarter::before,
+        .moon-last-quarter::before {
+          content: '';
+          position: absolute;
+          width: 50%;
+          height: 100%;
+          background: #1a1a2e;
+          border-radius: 60px 0 0 60px;
+        }
+        
+        .moon-first-quarter::before {
+          left: 0;
+        }
+        
+        .moon-last-quarter::before {
+          right: 0;
+          border-radius: 0 60px 60px 0;
+        }
+        
+        .moon-waxing-gibbous::before,
+        .moon-waning-gibbous::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: #1a1a2e;
+        }
+        
+        .moon-waxing-gibbous::before {
+          right: 30%;
+        }
+        
+        .moon-waning-gibbous::before {
+          left: 30%;
+        }
+        
         .cloud {
           position: absolute;
           background: rgba(255, 255, 255, 0.3);
