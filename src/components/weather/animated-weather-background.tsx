@@ -97,8 +97,8 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       {/* Base gradient background */}
       <div className={`absolute inset-0 transition-all duration-1000 ${
-        weatherType === 'sunrise' ? 'bg-gradient-to-br from-orange-400 via-pink-400 to-purple-300' :
-        weatherType === 'sunset' ? 'bg-gradient-to-br from-orange-500 via-red-400 to-purple-500' :
+        weatherType === 'sunrise' ? 'bg-gradient-to-br from-orange-300 via-pink-200 to-blue-300' :
+        weatherType === 'sunset' ? 'bg-gradient-to-br from-orange-400 via-pink-300 to-purple-400' :
         weatherType === 'night' ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900' :
         weatherType === 'clear' ? 'bg-gradient-to-br from-blue-400 via-blue-300 to-blue-200' :
         weatherType === 'rain' ? 'bg-gradient-to-br from-gray-500 via-gray-400 to-gray-300' :
