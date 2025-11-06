@@ -71,9 +71,11 @@ export function SettingsDialog({
     visibleCards,
     cardOrder,
     is24Hour,
+    isHighContrast,
     updateVisibility,
     updateOrder,
     updateTimeFormat,
+    updateHighContrast,
     resetToDefaults
   } = useUserPreferences();
   const { language, setLanguage, t } = useLanguage();
@@ -230,6 +232,29 @@ export function SettingsDialog({
               </div>
               <p className="text-xs text-muted-foreground">
                 {is24Hour ? 'Currently using 24-hour format (e.g., 15:30)' : 'Currently using 12-hour format (e.g., 3:30 PM)'}
+              </p>
+            </div>
+
+            {/* High Contrast Mode */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">High contrast mode</span>
+                </div>
+                <Switch 
+                  checked={isHighContrast} 
+                  onCheckedChange={(checked) => {
+                    updateHighContrast(checked);
+                    toast({
+                      title: "High contrast mode updated",
+                      description: `High contrast mode ${checked ? 'enabled' : 'disabled'}`
+                    });
+                  }} 
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {isHighContrast ? 'Text is displayed with enhanced contrast' : 'Text is displayed with normal contrast'}
               </p>
             </div>
           </div>

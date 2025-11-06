@@ -38,8 +38,17 @@ export default function WeatherPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const { toast } = useToast();
   const { user, profile, loading: authLoading } = useAuth();
-  const { visibleCards, cardOrder, is24Hour, loading: preferencesLoading } = useUserPreferences();
+  const { visibleCards, cardOrder, is24Hour, isHighContrast, loading: preferencesLoading } = useUserPreferences();
   const { t } = useLanguage();
+
+  // Apply high contrast mode
+  useEffect(() => {
+    if (isHighContrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+  }, [isHighContrast]);
 
   // Initialize push notifications
   usePushNotifications();

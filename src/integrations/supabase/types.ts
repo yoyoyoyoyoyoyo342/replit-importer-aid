@@ -164,6 +164,7 @@ export type Database = {
           created_at: string
           id: string
           is_24_hour: boolean | null
+          is_high_contrast: boolean | null
           language: string | null
           updated_at: string
           user_id: string
@@ -174,6 +175,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_24_hour?: boolean | null
+          is_high_contrast?: boolean | null
           language?: string | null
           updated_at?: string
           user_id: string
@@ -184,6 +186,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_24_hour?: boolean | null
+          is_high_contrast?: boolean | null
           language?: string | null
           updated_at?: string
           user_id?: string

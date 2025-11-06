@@ -29,6 +29,7 @@ export function useUserPreferences() {
   const [visibleCards, setVisibleCards] = useState<CardVisibility>(DEFAULT_VISIBILITY);
   const [cardOrder, setCardOrder] = useState<CardType[]>(DEFAULT_ORDER);
   const [is24Hour, setIs24Hour] = useState(true); // Default to 24-hour format
+  const [isHighContrast, setIsHighContrast] = useState(false); // Default to off
   const [loading, setLoading] = useState(true);
 
   // Fetch user preferences
@@ -37,6 +38,7 @@ export function useUserPreferences() {
       setVisibleCards(DEFAULT_VISIBILITY);
       setCardOrder(DEFAULT_ORDER);
       setIs24Hour(true);
+      setIsHighContrast(false);
       setLoading(false);
       return;
     }
@@ -45,7 +47,7 @@ export function useUserPreferences() {
       try {
         const { data, error } = await supabase
           .from("user_preferences")
-          .select("visible_cards, card_order, is_24_hour")
+          .select("visible_cards, card_order, is_24_hour, is_high_contrast")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -83,6 +85,7 @@ export function useUserPreferences() {
           setVisibleCards(visibleCards);
           setCardOrder(cardOrder);
           setIs24Hour(data.is_24_hour ?? true);
+          setIsHighContrast(data.is_high_contrast ?? false);
           
           // Update the database with migrated preferences
           await supabase
@@ -101,6 +104,7 @@ export function useUserPreferences() {
               visible_cards: DEFAULT_VISIBILITY as any,
               card_order: DEFAULT_ORDER as any,
               is_24_hour: true,
+              is_high_contrast: false,
             });
 
           if (insertError) {
@@ -133,6 +137,7 @@ export function useUserPreferences() {
           visible_cards: newVisibility as any,
           card_order: cardOrder as any,
           is_24_hour: is24Hour,
+          is_high_contrast: isHighContrast,
         }, {
           onConflict: 'user_id'
         });
@@ -170,6 +175,7 @@ export function useUserPreferences() {
           visible_cards: visibleCards as any,
           card_order: newOrder as any,
           is_24_hour: is24Hour,
+          is_high_contrast: isHighContrast,
         }, {
           onConflict: 'user_id'
         });
@@ -206,6 +212,7 @@ export function useUserPreferences() {
           visible_cards: visibleCards as any,
           card_order: cardOrder as any,
           is_24_hour: use24Hour,
+          is_high_contrast: isHighContrast,
         }, {
           onConflict: 'user_id'
         });
@@ -225,12 +232,46 @@ export function useUserPreferences() {
     }
   };
 
+  const updateHighContrast = async (useHighContrast: boolean) => {
+    if (!user) return;
+
+    setIsHighContrast(useHighContrast);
+
+    try {
+      const { error } = await supabase
+        .from("user_preferences")
+        .upsert({ 
+          user_id: user.id,
+          visible_cards: visibleCards as any,
+          card_order: cardOrder as any,
+          is_24_hour: is24Hour,
+          is_high_contrast: useHighContrast,
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error("Error updating high contrast mode:", error);
+        toast({
+          title: "Failed to save high contrast mode",
+          description: error.message,
+          variant: "destructive",
+        });
+        setIsHighContrast(!useHighContrast);
+      }
+    } catch (error) {
+      console.error("Error in updateHighContrast:", error);
+      setIsHighContrast(!useHighContrast);
+    }
+  };
+
   const resetToDefaults = async () => {
     if (!user) return;
 
     setVisibleCards(DEFAULT_VISIBILITY);
     setCardOrder(DEFAULT_ORDER);
     setIs24Hour(true);
+    setIsHighContrast(false);
 
     try {
       const { error } = await supabase
@@ -240,6 +281,7 @@ export function useUserPreferences() {
           visible_cards: DEFAULT_VISIBILITY as any,
           card_order: DEFAULT_ORDER as any,
           is_24_hour: true,
+          is_high_contrast: false,
         }, {
           onConflict: 'user_id'
         });
@@ -266,10 +308,12 @@ export function useUserPreferences() {
     visibleCards,
     cardOrder,
     is24Hour,
+    isHighContrast,
     loading,
     updateVisibility,
     updateOrder,
     updateTimeFormat,
+    updateHighContrast,
     resetToDefaults,
     isAuthenticated: !!user,
   };

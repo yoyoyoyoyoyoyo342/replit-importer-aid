@@ -83,6 +83,14 @@
     --sidebar-border: 0 0% 90%;
     --sidebar-ring: 210 100% 50%;
   }
+
+  .high-contrast {
+    --foreground: 0 0% 0%;
+    --card-foreground: 0 0% 0%;
+    --popover-foreground: 0 0% 0%;
+    --secondary-foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 10%;
+  }
 }
 
 @layer base {
