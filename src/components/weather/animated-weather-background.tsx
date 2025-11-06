@@ -97,15 +97,30 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       {/* Base gradient background */}
       <div className={`absolute inset-0 transition-all duration-1000 ${
-        weatherType === 'sunrise' ? 'bg-gradient-to-br from-orange-300 via-pink-200 to-blue-300' :
-        weatherType === 'sunset' ? 'bg-gradient-to-br from-orange-400 via-pink-300 to-purple-400' :
-        weatherType === 'night' ? 'bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900' :
+        weatherType === 'sunrise' ? 'bg-gradient-to-b from-blue-300 via-blue-200 to-red-200' :
+        weatherType === 'sunset' ? 'bg-gradient-to-b from-orange-300 via-pink-300 to-indigo-800' :
+        weatherType === 'night' ? 'bg-gradient-to-br from-indigo-950 via-blue-950 to-blue-900' :
         weatherType === 'clear' ? 'bg-gradient-to-br from-blue-400 via-blue-300 to-blue-200' :
         weatherType === 'rain' ? 'bg-gradient-to-br from-gray-500 via-gray-400 to-gray-300' :
         weatherType === 'snow' ? 'bg-gradient-to-br from-blue-200 via-blue-100 to-gray-100' :
         weatherType === 'storm' ? 'bg-gradient-to-br from-gray-700 via-gray-600 to-gray-500' :
         'bg-gradient-to-br from-gray-400 via-gray-300 to-gray-200'
       }`} />
+
+      {/* Moon for night */}
+      {weatherType === 'night' && (
+        <div className={`moon ${getMoonPhaseClass(moonPhase)}`} />
+      )}
+
+      {/* Sun for sunrise */}
+      {weatherType === 'sunrise' && (
+        <div className="sun sun-rise" />
+      )}
+
+      {/* Sun for sunset */}
+      {weatherType === 'sunset' && (
+        <div className="sun sun-set" />
+      )}
 
       {/* Animated clouds */}
       {(weatherType === 'cloudy' || weatherType === 'rain' || weatherType === 'storm') && (
@@ -163,6 +178,101 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
       )}
 
       <style>{`
+        /* Moon - minimalist style */
+        .moon {
+          position: absolute;
+          width: 80px;
+          height: 80px;
+          top: 15%;
+          right: 15%;
+          background: rgba(255, 255, 255, 0.9);
+          border-radius: 50%;
+          box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Moon phases */
+        .moon-new {
+          background: rgba(255, 255, 255, 0.1);
+          border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .moon-waxing-crescent::before,
+        .moon-waning-crescent::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: rgba(20, 30, 60, 0.9);
+        }
+        
+        .moon-waxing-crescent::before {
+          right: 20%;
+        }
+        
+        .moon-waning-crescent::before {
+          left: 20%;
+        }
+        
+        .moon-first-quarter::before,
+        .moon-last-quarter::before {
+          content: '';
+          position: absolute;
+          width: 50%;
+          height: 100%;
+          background: rgba(20, 30, 60, 0.9);
+        }
+        
+        .moon-first-quarter::before {
+          right: 0;
+          border-radius: 0 50% 50% 0;
+        }
+        
+        .moon-last-quarter::before {
+          left: 0;
+          border-radius: 50% 0 0 50%;
+        }
+        
+        .moon-waxing-gibbous::before,
+        .moon-waning-gibbous::before {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: rgba(20, 30, 60, 0.9);
+        }
+        
+        .moon-waxing-gibbous::before {
+          right: -50%;
+        }
+        
+        .moon-waning-gibbous::before {
+          left: -50%;
+        }
+        
+        /* Sun - minimalist style */
+        .sun {
+          position: absolute;
+          width: 100px;
+          height: 100px;
+          background: rgba(255, 230, 100, 0.9);
+          border-radius: 50%;
+          box-shadow: 0 0 50px rgba(255, 230, 100, 0.5);
+        }
+        
+        .sun-rise {
+          bottom: 10%;
+          left: 50%;
+          transform: translateX(-50%);
+        }
+        
+        .sun-set {
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+        
         /* Stars - subtle and atmospheric */
         .stars-container {
           position: absolute;
@@ -172,17 +282,16 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
         
         .star {
           position: absolute;
-          width: 1px;
-          height: 1px;
+          width: 2px;
+          height: 2px;
           background: rgba(255, 255, 255, 0.8);
           border-radius: 50%;
-          box-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
           animation: twinkle linear infinite;
         }
         
         @keyframes twinkle {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.5); }
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 1; }
         }
         
         .cloud {
