@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun } from "lucide-react";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { FeedbackForm } from "./feedback-form";
+import { useTheme } from "@/components/theme-provider";
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
@@ -79,6 +80,7 @@ export function SettingsDialog({
     resetToDefaults
   } = useUserPreferences();
   const { language, setLanguage, t } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const cardLabels = {
     pollen: t('pollen.pollenIndex'),
     hourly: t('pollen.hourlyForecast'),
@@ -198,6 +200,33 @@ export function SettingsDialog({
           <div className="space-y-4">
             <Label className="text-base font-medium">Display Settings</Label>
             
+            {/* Dark Mode */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {theme === 'dark' ? (
+                    <Moon className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <Sun className="w-4 h-4 text-muted-foreground" />
+                  )}
+                  <span className="text-sm">Dark mode</span>
+                </div>
+                <Switch 
+                  checked={theme === 'dark'} 
+                  onCheckedChange={(checked) => {
+                    setTheme(checked ? 'dark' : 'light');
+                    toast({
+                      title: "Theme updated",
+                      description: `Switched to ${checked ? 'dark' : 'light'} mode`
+                    });
+                  }} 
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {theme === 'dark' ? 'Currently using dark mode' : 'Currently using light mode'}
+              </p>
+            </div>
+
             {/* Temperature Units */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
