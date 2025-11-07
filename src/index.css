@@ -92,6 +92,14 @@
     --secondary-foreground: 0 0% 0%;
     --muted-foreground: 0 0% 10%;
   }
+
+  .night-mode {
+    --foreground: 0 0% 98%;
+    --card-foreground: 0 0% 98%;
+    --popover-foreground: 0 0% 98%;
+    --secondary-foreground: 0 0% 98%;
+    --muted-foreground: 0 0% 85%;
+  }
 }
 
 @layer base {

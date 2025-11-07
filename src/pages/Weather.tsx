@@ -81,6 +81,34 @@ export default function WeatherPage() {
       }
     }
   }, [weatherData, profile, toast]);
+
+  // Apply night mode text visibility
+  useEffect(() => {
+    if (!weatherData?.mostAccurate?.currentWeather) return;
+    
+    const { sunrise, sunset } = weatherData.mostAccurate.currentWeather;
+    if (!sunrise || !sunset) return;
+
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const parseSunTime = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+    
+    const sunriseTime = parseSunTime(sunrise);
+    const sunsetTime = parseSunTime(sunset);
+    
+    // Check if it's night time
+    const isNightTime = currentTime < sunriseTime || currentTime > sunsetTime;
+    
+    if (isNightTime) {
+      document.documentElement.classList.add('night-mode');
+    } else {
+      document.documentElement.classList.remove('night-mode');
+    }
+  }, [weatherData]);
   useEffect(() => {
     if (error) {
       toast({
