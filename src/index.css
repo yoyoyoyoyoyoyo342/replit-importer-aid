@@ -99,6 +99,8 @@
     --popover-foreground: 0 0% 98%;
     --secondary-foreground: 0 0% 98%;
     --muted-foreground: 0 0% 85%;
+    --primary-foreground: 0 0% 0%;
+    --accent-foreground: 0 0% 0%;
   }
 }
 
