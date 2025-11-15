@@ -457,6 +457,48 @@ export type Database = {
         }
         Relationships: []
       }
+      weather_reports: {
+        Row: {
+          accuracy: string
+          actual_condition: string
+          created_at: string | null
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+          report_date: string
+          report_details: string | null
+          reported_condition: string
+          user_id: string
+        }
+        Insert: {
+          accuracy: string
+          actual_condition: string
+          created_at?: string | null
+          id?: string
+          latitude: number
+          location_name: string
+          longitude: number
+          report_date?: string
+          report_details?: string | null
+          reported_condition: string
+          user_id: string
+        }
+        Update: {
+          accuracy?: string
+          actual_condition?: string
+          created_at?: string | null
+          id?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          report_date?: string
+          report_details?: string | null
+          reported_condition?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       leaderboard: {

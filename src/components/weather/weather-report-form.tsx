@@ -7,16 +7,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { MessageSquare, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WeatherReportFormProps {
   location: string;
   currentCondition: string;
+  locationData?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
-export function WeatherReportForm({ location, currentCondition }: WeatherReportFormProps) {
+export function WeatherReportForm({ location, currentCondition, locationData }: WeatherReportFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [accuracy, setAccuracy] = useState("");
   const [report, setReport] = useState("");
+  const [actualCondition, setActualCondition] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { user, profile } = useAuth();
@@ -40,10 +46,10 @@ export function WeatherReportForm({ location, currentCondition }: WeatherReportF
       return;
     }
 
-    if (!accuracy || !report.trim()) {
+    if (!accuracy || !actualCondition) {
       toast({
         title: "Please fill all fields",
-        description: "Both accuracy rating and report are required.",
+        description: "Accuracy rating and actual condition are required.",
         variant: "destructive",
       });
       return;
@@ -51,18 +57,41 @@ export function WeatherReportForm({ location, currentCondition }: WeatherReportF
 
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Report submitted",
-      description: "Thank you for helping improve weather accuracy!",
-    });
-    
-    setIsOpen(false);
-    setAccuracy("");
-    setReport("");
-    setIsSubmitting(false);
+    try {
+      const { error } = await supabase
+        .from('weather_reports')
+        .insert({
+          user_id: user!.id,
+          location_name: location,
+          latitude: locationData?.latitude || 0,
+          longitude: locationData?.longitude || 0,
+          reported_condition: currentCondition,
+          actual_condition: actualCondition,
+          accuracy: accuracy,
+          report_details: report,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Report submitted",
+        description: "Thank you for helping improve weather accuracy!",
+      });
+      
+      setIsOpen(false);
+      setAccuracy("");
+      setReport("");
+      setActualCondition("");
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      toast({
+        title: "Error submitting report",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Don't show the button if user can't report weather
@@ -109,9 +138,31 @@ export function WeatherReportForm({ location, currentCondition }: WeatherReportF
             </Select>
           </div>
 
+
           <div>
             <label className="text-sm font-medium mb-2 block">
-              What's the actual weather like?
+              What is the actual condition?
+            </label>
+            <Select value={actualCondition} onValueChange={setActualCondition}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select actual condition" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Sunny">Sunny</SelectItem>
+                <SelectItem value="Partly Cloudy">Partly Cloudy</SelectItem>
+                <SelectItem value="Cloudy">Cloudy</SelectItem>
+                <SelectItem value="Overcast">Overcast</SelectItem>
+                <SelectItem value="Rainy">Rainy</SelectItem>
+                <SelectItem value="Snowy">Snowy</SelectItem>
+                <SelectItem value="Stormy">Stormy</SelectItem>
+                <SelectItem value="Foggy">Foggy</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">
+              Additional details (optional)
             </label>
             <Textarea
               value={report}
@@ -120,6 +171,7 @@ export function WeatherReportForm({ location, currentCondition }: WeatherReportF
               rows={3}
             />
           </div>
+
 
           <Button 
             onClick={handleSubmit} 
