@@ -124,7 +124,7 @@ export function SettingsDialog({
   };
   return <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-neutral-600 hover:text-primary rounded-xl">
+        <Button variant="ghost" size="icon" className="text-foreground hover:text-primary rounded-xl">
           <Settings className="w-5 h-5" />
         </Button>
       </DialogTrigger>
