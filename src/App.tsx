@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Weather from "./pages/Weather";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Weather />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/weather" element={<Navigate to="/" replace />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
