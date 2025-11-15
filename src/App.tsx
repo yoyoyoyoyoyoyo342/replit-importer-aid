@@ -11,8 +11,14 @@ import Weather from "./pages/Weather";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
+import { useAnalytics } from "@/hooks/use-analytics";
 
 const queryClient = new QueryClient();
+
+function AnalyticsTracker() {
+  useAnalytics();
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -23,6 +29,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <AnalyticsTracker />
               <Routes>
                 <Route path="/" element={<Weather />} />
                 <Route path="/auth" element={<Auth />} />
