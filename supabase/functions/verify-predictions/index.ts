@@ -75,7 +75,16 @@ serve(async (req) => {
         const conditionAccurate = prediction.predicted_condition === actualCondition;
         
         const isCorrect = highAccurate && lowAccurate && conditionAccurate;
-        const pointsEarned = isCorrect ? 100 : -50;
+        
+        // Get user's current streak to calculate daily points (25 points per day of streak)
+        const { data: streakData } = await supabase
+          .from('user_streaks')
+          .select('current_streak')
+          .eq('user_id', prediction.user_id)
+          .single();
+        
+        const streakBonus = (streakData?.current_streak || 1) * 25;
+        const pointsEarned = isCorrect ? streakBonus : 0;
 
         // Update prediction with verification
         const { error: updateError } = await supabase

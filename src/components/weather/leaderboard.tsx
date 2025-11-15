@@ -181,7 +181,7 @@ export const Leaderboard = () => {
 
       <div className="mt-6 p-4 bg-secondary/20 rounded-lg">
         <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">Scoring:</span> +100 points for correct predictions, -50 for incorrect ones
+          <span className="font-semibold text-foreground">Scoring:</span> Earn 25 points per day of your current streak for correct predictions
         </p>
       </div>
 

@@ -18,3 +18,6 @@ verify_jwt = true
 [functions.verify-predictions]
 verify_jwt = false
 
+[functions.process-weather-corrections]
+verify_jwt = false
+

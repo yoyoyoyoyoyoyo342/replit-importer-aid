@@ -252,7 +252,11 @@ export default function WeatherPage() {
                 {weatherData && (
                   <WeatherReportForm 
                     location={selectedLocation?.name || "Unknown"} 
-                    currentCondition={weatherData.mostAccurate.currentWeather.condition} 
+                    currentCondition={weatherData.mostAccurate.currentWeather.condition}
+                    locationData={{
+                      latitude: selectedLocation?.lat || 0,
+                      longitude: selectedLocation?.lon || 0
+                    }}
                   />
                 )}
               </div>
