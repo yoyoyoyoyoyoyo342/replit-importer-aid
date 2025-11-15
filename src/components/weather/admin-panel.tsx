@@ -1,0 +1,158 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface WeatherReport {
+  id: string;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  report_date: string;
+  reported_condition: string;
+  actual_condition: string;
+  accuracy: string;
+  status: string;
+  created_at: string;
+  report_details: string | null;
+}
+
+export function AdminPanel() {
+  const [reports, setReports] = useState<WeatherReport[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  async function loadReports() {
+    try {
+      const { data, error } = await supabase
+        .from('weather_reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setReports(data || []);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load weather reports',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updateReportStatus(reportId: string, status: 'approved' | 'rejected') {
+    try {
+      const { error } = await supabase
+        .from('weather_reports')
+        .update({ status })
+        .eq('id', reportId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: `Report ${status}`,
+      });
+
+      await loadReports();
+    } catch (error) {
+      console.error('Error updating report:', error);
+      toast({
+        title: 'Error',
+        description: `Failed to ${status} report`,
+        variant: 'destructive',
+      });
+    }
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-500"><CheckCircle2 className="w-3 h-3 mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Weather Correction Reports</CardTitle>
+        <CardDescription>Review and approve/reject weather correction reports</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Location</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Reported</TableHead>
+              <TableHead>Actual</TableHead>
+              <TableHead>Accuracy</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {reports.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                  No reports found
+                </TableCell>
+              </TableRow>
+            ) : (
+              reports.map((report) => (
+                <TableRow key={report.id}>
+                  <TableCell className="font-medium">{report.location_name}</TableCell>
+                  <TableCell>{format(new Date(report.report_date), 'MMM dd, yyyy')}</TableCell>
+                  <TableCell>{report.reported_condition}</TableCell>
+                  <TableCell>{report.actual_condition}</TableCell>
+                  <TableCell>{report.accuracy}</TableCell>
+                  <TableCell>{getStatusBadge(report.status)}</TableCell>
+                  <TableCell>
+                    {report.status === 'pending' && (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateReportStatus(report.id, 'approved')}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateReportStatus(report.id, 'rejected')}
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}

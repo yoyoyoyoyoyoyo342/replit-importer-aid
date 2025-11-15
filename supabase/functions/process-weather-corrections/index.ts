@@ -19,7 +19,7 @@ serve(async (req) => {
 
     console.log('Processing weather corrections...');
 
-    // Get all reports from yesterday
+    // Get all approved reports from yesterday
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const reportDate = yesterday.toISOString().split('T')[0];
@@ -27,7 +27,8 @@ serve(async (req) => {
     const { data: reports, error: fetchError } = await supabase
       .from('weather_reports')
       .select('*')
-      .eq('report_date', reportDate);
+      .eq('report_date', reportDate)
+      .eq('status', 'approved');
 
     if (fetchError) {
       console.error('Error fetching reports:', fetchError);

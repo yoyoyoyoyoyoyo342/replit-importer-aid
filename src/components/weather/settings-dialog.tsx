@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield } from "lucide-react";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { FeedbackForm } from "./feedback-form";
 import { useTheme } from "@/components/theme-provider";
+import { useIsAdmin } from "@/hooks/use-is-admin";
+import { useNavigate } from "react-router-dom";
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
@@ -81,6 +83,8 @@ export function SettingsDialog({
   } = useUserPreferences();
   const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const { isAdmin } = useIsAdmin();
+  const navigate = useNavigate();
   const cardLabels = {
     pollen: t('pollen.pollenIndex'),
     hourly: t('pollen.hourlyForecast'),
@@ -311,6 +315,23 @@ export function SettingsDialog({
                 </DndContext>
               </div>
             </>}
+
+          {/* Admin Panel Button - Only for admins */}
+          {isAdmin && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => navigate('/admin')}
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Admin Panel
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>;
