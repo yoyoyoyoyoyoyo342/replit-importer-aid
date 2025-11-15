@@ -214,7 +214,7 @@ export default function WeatherPage() {
                 <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-8 sm:h-8" />
                 <div>
                   <h1 className="text-xl sm:text-lg font-bold text-foreground">Rainz</h1>
-                  <p className="text-xs sm:text-[10px] text-slate-950 hidden sm:block">{t('app.tagline')}</p>
+                  <p className="text-xs sm:text-[10px] text-foreground hidden sm:block">{t('app.tagline')}</p>
                 </div>
               </div>
 
