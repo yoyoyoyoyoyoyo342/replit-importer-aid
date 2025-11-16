@@ -12,11 +12,17 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
 import { useAnalytics } from "@/hooks/use-analytics";
+import { useBroadcastListener } from "@/hooks/use-broadcast-listener";
 
 const queryClient = new QueryClient();
 
 function AnalyticsTracker() {
   useAnalytics();
+  return null;
+}
+
+function BroadcastListener() {
+  useBroadcastListener();
   return null;
 }
 
@@ -30,6 +36,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AnalyticsTracker />
+              <BroadcastListener />
               <Routes>
                 <Route path="/" element={<Weather />} />
                 <Route path="/auth" element={<Auth />} />
