@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { WeatherSource } from "@/types/weather";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/contexts/language-context";
+import paiLogo from "@/assets/pai-logo.png";
 
 interface Message {
   id: string;
@@ -27,7 +28,7 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `👋 Hi! I'm your AI Weather Companion. I've analyzed the weather in ${location} and I'm ready to provide personalized insights, recommendations, and answer any weather-related questions you have!`,
+      content: `👋 Hi! I'm PAI, your personal weather assistant. I've analyzed the weather in ${location} and I'm ready to provide personalized insights, recommendations, and answer any weather-related questions you have!`,
       role: 'assistant',
       timestamp: new Date(),
       insights: ['Smart Recommendations', 'Personalized Insights', 'Proactive Alerts']
@@ -168,12 +169,16 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0 bg-card">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-          <Brain className="w-5 h-5 text-white" />
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center p-1.5">
+          <img 
+            src={paiLogo} 
+            alt="PAI" 
+            className={`w-full h-full object-contain ${isLoading ? 'animate-spin' : ''}`}
+          />
         </div>
         <div className="flex-1">
-          <h3 className="text-base font-semibold">AI Weather Companion</h3>
-          <p className="text-xs text-muted-foreground">Online</p>
+          <h3 className="text-base font-semibold">PAI</h3>
+          <p className="text-xs text-muted-foreground">{isLoading ? "Thinking..." : "Online"}</p>
         </div>
         <Badge variant="secondary" className="text-xs">
           <Sparkles className="w-3 h-3 mr-1" />
@@ -188,8 +193,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
             <div className={`flex gap-2 max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               {/* Avatar - only show for assistant */}
               {message.role === 'assistant' && (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 self-end">
-                  <Bot className="w-4 h-4 text-white" />
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0 self-end p-1">
+                  <img src={paiLogo} alt="PAI" className="w-full h-full object-contain" />
                 </div>
               )}
               
@@ -221,8 +226,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
         {isLoading && (
           <div className="flex justify-start">
             <div className="flex gap-2 max-w-[75%]">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 self-end">
-                <Bot className="w-4 h-4 text-white" />
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0 self-end p-1">
+                <img src={paiLogo} alt="PAI thinking" className="w-full h-full object-contain animate-spin" />
               </div>
               <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex space-x-1.5">
