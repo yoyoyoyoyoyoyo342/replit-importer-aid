@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
 import { ImportLovableAnalyticsButton } from './import-lovable-analytics-button';
+import { ClearAnalyticsButton } from './clear-analytics-button';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -232,7 +233,10 @@ export function AnalyticsDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <ImportLovableAnalyticsButton />
+            <div className="flex gap-2">
+              <ClearAnalyticsButton />
+              <ImportLovableAnalyticsButton />
+            </div>
           <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)}>
             <TabsList>
               <TabsTrigger value="24h">24 Hours</TabsTrigger>
