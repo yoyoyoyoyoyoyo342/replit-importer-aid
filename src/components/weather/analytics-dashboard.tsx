@@ -114,16 +114,19 @@ export function AnalyticsDashboard() {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
+      // Hourly data - only show for 24h timeframe
       const hourlyMap = new Map<string, number>();
-      events.filter(e => new Date(e.created_at || '') > subDays(now, 1)).forEach(e => {
-        const hour = format(new Date(e.created_at || ''), 'HH:00');
-        hourlyMap.set(hour, (hourlyMap.get(hour) || 0) + 1);
-      });
+      if (timeRange === '24h') {
+        events.forEach(e => {
+          const hour = format(new Date(e.created_at || ''), 'HH:00');
+          hourlyMap.set(hour, (hourlyMap.get(hour) || 0) + 1);
+        });
+      }
       const hourlyData = Array.from(hourlyMap.entries())
         .map(([hour, views]) => ({ hour, views }))
-        .sort((a, b) => a.hour.localeCompare(b.hour))
-        .slice(-24);
+        .sort((a, b) => a.hour.localeCompare(b.hour));
 
+      // Daily data - adapt to timeframe
       const dailyMap = new Map<string, { views: number; users: Set<string> }>();
       events.forEach(e => {
         const date = format(new Date(e.created_at || ''), 'MMM dd');
@@ -132,9 +135,21 @@ export function AnalyticsDashboard() {
         if (e.session_id) existing.users.add(e.session_id);
         dailyMap.set(date, existing);
       });
+      
+      // Determine how many days to show based on timeframe
+      const daysToShow = timeRange === '24h' ? 1 : 
+                         timeRange === '7d' ? 7 : 
+                         timeRange === '30d' ? 30 : 
+                         -999; // Show all for "all" timerange
+      
       const dailyData = Array.from(dailyMap.entries())
         .map(([date, data]) => ({ date, views: data.views, users: data.users.size }))
-        .slice(-14);
+        .sort((a, b) => {
+          const dateA = new Date(a.date + ', ' + new Date().getFullYear());
+          const dateB = new Date(b.date + ', ' + new Date().getFullYear());
+          return dateA.getTime() - dateB.getTime();
+        })
+        .slice(daysToShow > 0 ? -daysToShow : 0);
 
       const deviceCounts = events.reduce((acc, e) => {
         const ua = e.user_agent || '';
