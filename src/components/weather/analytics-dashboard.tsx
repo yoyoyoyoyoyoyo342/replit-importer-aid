@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
+import { BackfillAnalyticsButton } from './backfill-analytics-button';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -22,6 +23,7 @@ interface AnalyticsStats {
   hourlyActivity: { hour: number; count: number }[];
   dailyTraffic: { date: string; visitors: number; pageviews: number; requests: number }[];
   recentActivity: any[];
+  oldestEvent?: string;
 }
 
 export function AnalyticsDashboard() {
@@ -205,6 +207,9 @@ export function AnalyticsDashboard() {
           created_at: event.created_at,
         }));
 
+      // Get oldest event date
+      stats.oldestEvent = events[events.length - 1]?.created_at;
+
       setStats(stats);
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -219,16 +224,24 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
-        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)}>
-          <TabsList>
-            <TabsTrigger value="24h">24 Hours</TabsTrigger>
-            <TabsTrigger value="7d">7 Days</TabsTrigger>
-            <TabsTrigger value="30d">30 Days</TabsTrigger>
-            <TabsTrigger value="all">All Time</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {stats.oldestEvent ? `Data available from ${new Date(stats.oldestEvent).toLocaleDateString()}` : 'No historical data'}
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <BackfillAnalyticsButton />
+          <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)}>
+            <TabsList>
+              <TabsTrigger value="24h">24 Hours</TabsTrigger>
+              <TabsTrigger value="7d">7 Days</TabsTrigger>
+              <TabsTrigger value="30d">30 Days</TabsTrigger>
+              <TabsTrigger value="all">All Time</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {/* Summary Cards */}
