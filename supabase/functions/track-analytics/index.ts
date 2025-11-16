@@ -34,9 +34,13 @@ serve(async (req) => {
       userId = user?.id || null;
     }
 
-    const { event_type, page_path, session_id } = await req.json();
+    const body = await req.json();
+    
+    // Handle both single event and batch events
+    const events = body.events || [body];
+    const results = [];
 
-    // Extract request metadata
+    // Extract request metadata (same for all events in batch)
     const userAgent = req.headers.get('user-agent') || null;
     const referrer = req.headers.get('referer') || null;
     
@@ -69,38 +73,49 @@ serve(async (req) => {
       }
     }
 
-    console.log('Analytics event:', {
-      event_type,
-      page_path,
-      user_id: userId,
-      session_id,
-      country,
-      city,
-      user_agent: userAgent,
-      referrer,
-    });
-
-    // Insert analytics event
-    const { error } = await supabaseClient
-      .from('analytics_events')
-      .insert({
+    // Process each event
+    for (const event of events) {
+      const { event_type, page_path, session_id, method, hostname, status_code, duration_ms, query, error: eventError } = event;
+      
+      console.log('Analytics event:', {
         event_type,
         page_path,
         user_id: userId,
         session_id,
+        method,
+        hostname,
+        status_code,
+        duration_ms,
         country,
         city,
         user_agent: userAgent,
         referrer,
       });
 
-    if (error) {
-      console.error('Error inserting analytics event:', error);
-      throw error;
+      // Insert analytics event
+      const { error } = await supabaseClient
+        .from('analytics_events')
+        .insert({
+          event_type,
+          page_path: page_path || '/',
+          user_id: userId,
+          session_id,
+          country,
+          city,
+          user_agent: userAgent,
+          referrer,
+        });
+
+      if (error) {
+        console.error('Error inserting analytics event:', error);
+        results.push({ success: false, error: error.message });
+      } else {
+        results.push({ success: true });
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ success: true, results }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
