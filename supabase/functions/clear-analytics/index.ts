@@ -37,12 +37,16 @@ serve(async (req) => {
     }
 
     // Check if user is admin
-    const { data: roles } = await supabaseClient
+    const { data: roles, error: roleError } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .eq('role', 'admin')
-      .single();
+      .maybeSingle();
+
+    if (roleError) {
+      console.error('Error checking roles:', roleError);
+    }
 
     if (!roles) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
@@ -53,19 +57,31 @@ serve(async (req) => {
 
     console.log('Clearing all analytics events...');
 
-    // Delete all analytics events
-    const { error } = await supabaseClient
+    // First, count how many events exist
+    const { count: beforeCount } = await supabaseClient
       .from('analytics_events')
-      .delete()
+      .select('*', { count: 'exact', head: true });
+
+    console.log(`Found ${beforeCount} analytics events to delete`);
+
+    // Delete all analytics events using service role (bypasses RLS)
+    const { data, error, count } = await supabaseClient
+      .from('analytics_events')
+      .delete({ count: 'exact' })
       .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all rows
 
     if (error) {
       console.error('Error clearing analytics:', error);
-      return new Response(JSON.stringify({ error: 'Failed to clear analytics data' }), {
+      return new Response(JSON.stringify({ 
+        error: 'Failed to clear analytics data',
+        details: error.message 
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
       });
     }
+
+    console.log(`Successfully deleted ${count ?? 0} analytics events`);
 
     return new Response(
       JSON.stringify({ 
