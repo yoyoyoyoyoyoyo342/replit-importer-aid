@@ -52,24 +52,39 @@ export function AnalyticsDashboard() {
   useEffect(() => {
     loadAnalytics();
   }, [timeRange]);
+  
+  // Force reload when component mounts to ensure fresh data
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
 
   async function loadAnalytics() {
     try {
       setLoading(true);
       const now = new Date();
+      
+      // Calculate start date based on timeRange
+      let startDate: Date | null = null;
+      if (timeRange === '24h') {
+        startDate = subDays(now, 1);
+      } else if (timeRange === '7d') {
+        startDate = subDays(now, 7);
+      } else if (timeRange === '30d') {
+        startDate = subDays(now, 30);
+      }
+      
+      // Build query with proper filtering
       let query = supabase
         .from('analytics_events')
-        .select('*');
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      // Only apply date filter if not "all time"
-      if (timeRange !== 'all') {
-        const startDate = timeRange === '24h' ? subDays(now, 1) : 
-                         timeRange === '7d' ? subDays(now, 7) : 
-                         subDays(now, 30);
+      // Apply date filter if not "all time"
+      if (startDate) {
         query = query.gte('created_at', startDate.toISOString());
       }
 
-      const { data: events, error } = await query.order('created_at', { ascending: false });
+      const { data: events, error } = await query;
 
       if (error) throw error;
 
