@@ -7,6 +7,8 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { format, subDays } from 'date-fns';
 import { ImportLovableAnalyticsButton } from './import-lovable-analytics-button';
 import { ClearAnalyticsButton } from './clear-analytics-button';
+import { useActiveUsers } from '@/hooks/use-active-users';
+import { Users } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -45,6 +47,7 @@ export function AnalyticsDashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d');
+  const activeUsers = useActiveUsers();
 
   useEffect(() => {
     loadAnalytics();
@@ -249,7 +252,20 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Active Users
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">{activeUsers}</div>
+            <p className="text-sm text-muted-foreground mt-1">Currently online</p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Total Requests</CardTitle>
