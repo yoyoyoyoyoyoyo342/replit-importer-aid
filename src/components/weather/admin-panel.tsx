@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle2, XCircle, Clock, BarChart3 } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, BarChart3, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { AnalyticsDashboard } from './analytics-dashboard';
+import { BroadcastMessage } from './broadcast-message';
 
 interface WeatherReport {
   id: string;
@@ -98,6 +99,10 @@ export function AdminPanel() {
     <Tabs defaultValue="reports" className="space-y-4">
       <TabsList>
         <TabsTrigger value="reports">Weather Reports</TabsTrigger>
+        <TabsTrigger value="broadcast">
+          <MessageSquare className="w-4 h-4 mr-2" />
+          Broadcast
+        </TabsTrigger>
         <TabsTrigger value="analytics">
           <BarChart3 className="w-4 h-4 mr-2" />
           Analytics
@@ -166,6 +171,10 @@ export function AdminPanel() {
           </Table>
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="broadcast">
+        <BroadcastMessage />
       </TabsContent>
 
       <TabsContent value="analytics">
