@@ -38,7 +38,7 @@ export function AnalyticsDashboard() {
     recentActivity: [],
   });
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('7d');
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | 'all'>('7d');
 
   useEffect(() => {
     loadAnalytics();
@@ -46,17 +46,22 @@ export function AnalyticsDashboard() {
 
   async function loadAnalytics() {
     try {
+      setLoading(true);
       const now = new Date();
-      const startDate = timeRange === '24h' ? subDays(now, 1) : 
-                       timeRange === '7d' ? subDays(now, 7) : 
-                       subDays(now, 30);
-
-      const { data: events, error } = await supabase
+      let query = supabase
         .from('analytics_events')
         .select('*')
-        .eq('event_type', 'pageview')
-        .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: false });
+        .eq('event_type', 'pageview');
+
+      // Only apply date filter if not "all time"
+      if (timeRange !== 'all') {
+        const startDate = timeRange === '24h' ? subDays(now, 1) : 
+                         timeRange === '7d' ? subDays(now, 7) : 
+                         subDays(now, 30);
+        query = query.gte('created_at', startDate.toISOString());
+      }
+
+      const { data: events, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -177,11 +182,12 @@ export function AnalyticsDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex justify-end">
-        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as '24h' | '7d' | '30d')}>
+        <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as '24h' | '7d' | '30d' | 'all')}>
           <TabsList>
             <TabsTrigger value="24h">Last 24h</TabsTrigger>
             <TabsTrigger value="7d">Last 7 days</TabsTrigger>
             <TabsTrigger value="30d">Last 30 days</TabsTrigger>
+            <TabsTrigger value="all">All Time</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
