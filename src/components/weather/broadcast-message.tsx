@@ -24,34 +24,20 @@ export function BroadcastMessage() {
     try {
       setSending(true);
       
-      // Send broadcast message via Realtime channel
-      const channel = supabase.channel('admin-broadcasts');
-      
-      await channel.subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          const broadcastResponse = await channel.send({
-            type: 'broadcast',
-            event: 'admin-message',
-            payload: {
-              message: message.trim(),
-              timestamp: new Date().toISOString(),
-            },
-          });
+      // Insert broadcast message into database
+      const { error } = await supabase
+        .from('broadcast_messages')
+        .insert({
+          message: message.trim(),
+        });
 
-          if (broadcastResponse === 'ok') {
-            toast({
-              title: 'Success',
-              description: 'Message broadcasted to all users',
-            });
-            setMessage('');
-          } else {
-            throw new Error('Failed to send broadcast');
-          }
+      if (error) throw error;
 
-          // Unsubscribe after sending
-          await supabase.removeChannel(channel);
-        }
+      toast({
+        title: 'Success',
+        description: 'Message broadcasted to all users',
       });
+      setMessage('');
 
     } catch (error) {
       console.error('Error sending broadcast:', error);
