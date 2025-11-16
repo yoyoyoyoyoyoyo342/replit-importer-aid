@@ -51,118 +51,53 @@ serve(async (req) => {
       });
     }
 
-    const { lovableApiKey, projectId } = await req.json();
+    const { analyticsData } = await req.json();
 
-    if (!lovableApiKey || !projectId) {
-      return new Response(JSON.stringify({ error: 'Missing lovableApiKey or projectId' }), {
+    if (!analyticsData || !Array.isArray(analyticsData)) {
+      return new Response(JSON.stringify({ error: 'Invalid analytics data format' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
       });
     }
 
-    console.log('Fetching Lovable analytics...');
+    console.log(`Importing ${analyticsData.length} analytics events...`);
 
-    // Fetch analytics from Lovable API
-    const lovableResponse = await fetch(
-      `https://api.lovable.app/v1/projects/${projectId}/analytics?startDate=2025-08-01&endDate=2025-11-30&metric=totalVisits`,
-      {
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    if (!lovableResponse.ok) {
-      const errorText = await lovableResponse.text();
-      console.error('Lovable API error:', errorText);
-      return new Response(JSON.stringify({ error: 'Failed to fetch Lovable analytics', details: errorText }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: lovableResponse.status
-      });
-    }
-
-    const lovableData = await lovableResponse.json();
-    console.log('Received Lovable data:', JSON.stringify(lovableData).substring(0, 500));
-
-    // Transform Lovable analytics to analytics_events format
-    const events = [];
-    
-    // Process daily traffic data
-    if (lovableData.timeSeries?.visitors?.data) {
-      for (const dayData of lovableData.timeSeries.visitors.data) {
-        const date = new Date(dayData.date);
-        const visitors = dayData.value;
-        
-        // Find corresponding pageview data for this date
-        const pageviewData = lovableData.timeSeries?.pageviews?.data?.find(
-          (pv: any) => pv.date === dayData.date
-        );
-        const pageviews = pageviewData?.value || visitors;
-        
-        // Generate events spread throughout the day for each visitor
-        for (let i = 0; i < visitors; i++) {
-          const eventDate = new Date(date);
-          eventDate.setHours(Math.floor(Math.random() * 24));
-          eventDate.setMinutes(Math.floor(Math.random() * 60));
-          
-          // Create pageview events
-          const sessionId = crypto.randomUUID();
-          const pagesPerVisitor = Math.ceil(pageviews / visitors);
-          
-          for (let p = 0; p < pagesPerVisitor; p++) {
-            events.push({
-              event_type: 'pageview',
-              page_path: '/',
-              session_id: sessionId,
-              country: null,
-              city: null,
-              user_agent: 'Imported from Lovable Analytics',
-              referrer: null,
-              created_at: new Date(eventDate.getTime() + (p * 60000)).toISOString(),
-              user_id: null
-            });
-          }
-        }
-      }
-    }
-
-    console.log(`Generated ${events.length} events from Lovable analytics`);
-
-    // Insert in batches of 100
+    // Insert events in batches
+    const batchSize = 100;
     let inserted = 0;
-    for (let i = 0; i < events.length; i += 100) {
-      const batch = events.slice(i, i + 100);
+
+    for (let i = 0; i < analyticsData.length; i += batchSize) {
+      const batch = analyticsData.slice(i, i + batchSize);
+      
       const { error } = await supabaseClient
         .from('analytics_events')
         .insert(batch);
-      
+
       if (error) {
-        console.error('Batch insert error:', error);
-      } else {
-        inserted += batch.length;
+        console.error('Error inserting batch:', error);
+        throw error;
       }
+
+      inserted += batch.length;
+      console.log(`Inserted ${inserted}/${analyticsData.length} events`);
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         inserted,
-        total: events.length,
-        message: `Imported ${inserted} events from Lovable analytics`
+        message: `Successfully imported ${inserted} analytics events`
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error) {
-    console.error('Error in import-lovable-analytics function:', error);
+    console.error('Error in import-lovable-analytics:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
