@@ -57,24 +57,32 @@ export function AdminPanel() {
 
   async function updateReportStatus(reportId: string, status: 'approved' | 'rejected') {
     try {
-      const { error } = await supabase
+      console.log(`Updating report ${reportId} to ${status}`);
+      
+      const { data, error } = await supabase
         .from('weather_reports')
         .update({ status })
-        .eq('id', reportId);
+        .eq('id', reportId)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      console.log('Update result:', data);
 
       toast({
         title: 'Success',
-        description: `Report ${status}`,
+        description: `Report ${status} successfully`,
       });
 
       await loadReports();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating report:', error);
       toast({
         title: 'Error',
-        description: `Failed to ${status} report`,
+        description: error.message || `Failed to ${status} report`,
         variant: 'destructive',
       });
     }

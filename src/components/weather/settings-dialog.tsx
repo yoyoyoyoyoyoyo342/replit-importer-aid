@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -85,6 +86,68 @@ export function SettingsDialog({
   const { theme, setTheme } = useTheme();
   const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationTime, setNotificationTime] = useState('08:00');
+  const [loadingNotifications, setLoadingNotifications] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadNotificationSettings();
+    }
+  }, [user]);
+
+  async function loadNotificationSettings() {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('notification_enabled, notification_time')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setNotificationsEnabled(data.notification_enabled || false);
+        setNotificationTime(data.notification_time || '08:00');
+      }
+    } catch (error) {
+      console.error('Error loading notification settings:', error);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }
+
+  async function updateNotificationSettings(enabled: boolean, time?: string) {
+    if (!user) return;
+
+    try {
+      const updates: any = { notification_enabled: enabled };
+      if (time !== undefined) {
+        updates.notification_time = time;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Notifications updated",
+        description: enabled 
+          ? `Daily notifications enabled for ${time || notificationTime}` 
+          : "Notifications disabled"
+      });
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update notification settings",
+        variant: "destructive"
+      });
+    }
+  }
   const cardLabels = {
     pollen: t('pollen.pollenIndex'),
     hourly: t('pollen.hourlyForecast'),
@@ -290,6 +353,61 @@ export function SettingsDialog({
                 {isHighContrast ? 'Text is displayed with enhanced contrast' : 'Text is displayed with normal contrast'}
               </p>
             </div>
+          </div>
+
+          <Separator />
+
+          {/* Notification Settings */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Notifications</Label>
+            
+            {/* Enable Notifications */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Daily weather notifications</span>
+                </div>
+                <Switch 
+                  checked={notificationsEnabled}
+                  disabled={loadingNotifications}
+                  onCheckedChange={(checked) => {
+                    setNotificationsEnabled(checked);
+                    updateNotificationSettings(checked);
+                  }} 
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {notificationsEnabled 
+                  ? 'Receive AI-powered morning weather updates' 
+                  : 'Enable to get daily weather notifications'}
+              </p>
+            </div>
+
+            {/* Notification Time */}
+            {notificationsEnabled && (
+              <div className="space-y-2">
+                <Label htmlFor="notification-time" className="text-sm">
+                  Notification time
+                </Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="notification-time"
+                    type="time"
+                    value={notificationTime}
+                    onChange={(e) => {
+                      const newTime = e.target.value;
+                      setNotificationTime(newTime);
+                      updateNotificationSettings(true, newTime);
+                    }}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  You'll receive notifications at {notificationTime} daily
+                </p>
+              </div>
+            )}
           </div>
 
           <Separator />
