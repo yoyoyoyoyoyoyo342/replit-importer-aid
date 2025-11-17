@@ -75,22 +75,38 @@ export function AnalyticsDashboard() {
       
       console.log('Loading analytics for timeRange:', timeRange, 'startDate:', startDate?.toISOString());
       
-      // Build query - fetch ALL events first, then filter in memory for consistency
-      const { data: allEvents, error } = await supabase
+      // Build query with proper filtering
+      let query = supabase
         .from('analytics_events')
         .select('*')
         .order('created_at', { ascending: false });
 
+      // Apply time filter if not "all"
+      if (startDate) {
+        query = query.gte('created_at', startDate.toISOString());
+      }
+
+      const { data: events, error } = await query;
+
       if (error) throw error;
 
-      // Filter events based on timeRange
-      const events = startDate 
-        ? allEvents?.filter(e => new Date(e.created_at!) >= startDate) 
-        : allEvents;
-
-      console.log('Filtered events count:', events?.length, 'All events:', allEvents?.length);
+      console.log('Loaded events count:', events?.length, 'for timeRange:', timeRange);
 
       if (!events || events.length === 0) {
+        setStats({
+          totalPageviews: 0,
+          totalRequests: 0,
+          uniqueVisitors: 0,
+          bounceRate: 0,
+          avgSessionDuration: 0,
+          topPages: [],
+          topReferrers: [],
+          deviceTypes: [],
+          requestTypes: [],
+          hourlyActivity: [],
+          dailyTraffic: [],
+          recentActivity: [],
+        });
         setLoading(false);
         return;
       }

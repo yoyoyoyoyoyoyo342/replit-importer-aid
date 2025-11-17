@@ -88,6 +88,12 @@ export function SettingsDialog({
   const navigate = useNavigate();
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
+  const [notifySettings, setNotifySettings] = useState({
+    severe_weather: true,
+    pollen: true,
+    daily_summary: true,
+    ai_preview: true,
+  });
   const [loadingNotifications, setLoadingNotifications] = useState(true);
 
   useEffect(() => {
@@ -100,7 +106,7 @@ export function SettingsDialog({
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('notification_enabled, notification_time')
+        .select('notification_enabled, notification_time, notify_severe_weather, notify_pollen, notify_daily_summary, notify_ai_preview')
         .eq('user_id', user?.id)
         .single();
 
@@ -109,6 +115,12 @@ export function SettingsDialog({
       if (data) {
         setNotificationsEnabled(data.notification_enabled || false);
         setNotificationTime(data.notification_time || '08:00');
+        setNotifySettings({
+          severe_weather: data.notify_severe_weather ?? true,
+          pollen: data.notify_pollen ?? true,
+          daily_summary: data.notify_daily_summary ?? true,
+          ai_preview: data.notify_ai_preview ?? true,
+        });
       }
     } catch (error) {
       console.error('Error loading notification settings:', error);
@@ -144,6 +156,40 @@ export function SettingsDialog({
       toast({
         title: "Error",
         description: "Failed to update notification settings",
+        variant: "destructive"
+      });
+    }
+  }
+
+  async function updateNotificationPreference(type: keyof typeof notifySettings, enabled: boolean) {
+    if (!user) return;
+
+    const columnMap = {
+      severe_weather: 'notify_severe_weather',
+      pollen: 'notify_pollen',
+      daily_summary: 'notify_daily_summary',
+      ai_preview: 'notify_ai_preview',
+    };
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ [columnMap[type]]: enabled })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setNotifySettings(prev => ({ ...prev, [type]: enabled }));
+
+      toast({
+        title: "Preference updated",
+        description: `${type.replace('_', ' ')} notifications ${enabled ? 'enabled' : 'disabled'}`
+      });
+    } catch (error) {
+      console.error('Error updating preference:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update notification preference",
         variant: "destructive"
       });
     }
@@ -405,6 +451,51 @@ export function SettingsDialog({
                 </div>
                 <p className="text-xs text-muted-foreground">
                   You'll receive notifications at {notificationTime} daily
+                </p>
+              </div>
+            )}
+
+            {/* Notification Type Preferences */}
+            {notificationsEnabled && (
+              <div className="space-y-3 pt-2">
+                <Label className="text-sm font-medium">Notification types</Label>
+                
+                <div className="space-y-2 pl-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Severe weather alerts</span>
+                    <Switch 
+                      checked={notifySettings.severe_weather}
+                      onCheckedChange={(checked) => updateNotificationPreference('severe_weather', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Pollen alerts</span>
+                    <Switch 
+                      checked={notifySettings.pollen}
+                      onCheckedChange={(checked) => updateNotificationPreference('pollen', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Daily summary</span>
+                    <Switch 
+                      checked={notifySettings.daily_summary}
+                      onCheckedChange={(checked) => updateNotificationPreference('daily_summary', checked)}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">AI weather preview</span>
+                    <Switch 
+                      checked={notifySettings.ai_preview}
+                      onCheckedChange={(checked) => updateNotificationPreference('ai_preview', checked)}
+                    />
+                  </div>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Choose which types of weather notifications you want to receive
                 </p>
               </div>
             )}
