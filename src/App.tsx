@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
 import { LanguageProvider } from "@/contexts/language-context";
+import { TimeOfDayProvider, useTimeOfDayContext } from "@/contexts/time-of-day-context";
 import Index from "./pages/Index";
 import Weather from "./pages/Weather";
 import Auth from "./pages/Auth";
@@ -26,9 +27,11 @@ function BroadcastListener() {
   return null;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider defaultTheme="light" storageKey="weather-app-theme">
+function AppContent() {
+  const { isNightTime } = useTimeOfDayContext();
+
+  return (
+    <ThemeProvider defaultTheme="light" storageKey="weather-app-theme" isNightTime={isNightTime}>
       <LanguageProvider>
         <AuthProvider>
           <TooltipProvider>
@@ -50,6 +53,14 @@ const App = () => (
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
+  );
+}
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TimeOfDayProvider>
+      <AppContent />
+    </TimeOfDayProvider>
   </QueryClientProvider>
 );
 
