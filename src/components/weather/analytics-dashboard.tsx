@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -9,7 +9,7 @@ import { format, subDays } from 'date-fns';
 import { ClearAnalyticsButton } from './clear-analytics-button';
 import { PopulateRealAnalyticsButton } from './populate-real-analytics-button';
 import { useActiveUsers } from '@/hooks/use-active-users';
-import { Users } from 'lucide-react';
+import { Users, Database } from 'lucide-react';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -253,6 +253,21 @@ export function AnalyticsDashboard() {
           </Tabs>
         </div>
       </div>
+
+      {/* No Data Message */}
+      {!stats.oldestEvent && (
+        <Card className="border-primary/50 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="w-5 h-5" />
+              No Analytics Data Yet
+            </CardTitle>
+            <CardDescription>
+              Click "Populate Real Analytics" above to import your real Lovable analytics data (2,484 pageviews, 690 visitors from all time)
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
