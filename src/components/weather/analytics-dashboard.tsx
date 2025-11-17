@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
-import { ImportLovableAnalyticsButton } from './import-lovable-analytics-button';
+
 import { ClearAnalyticsButton } from './clear-analytics-button';
 import { useActiveUsers } from '@/hooks/use-active-users';
 import { Users } from 'lucide-react';
@@ -19,7 +19,6 @@ interface AnalyticsStats {
   bounceRate: number;
   avgSessionDuration: number;
   topPages: { page: string; views: number }[];
-  topCountries: { country: string; views: number }[];
   topReferrers: { referrer: string; views: number }[];
   deviceTypes: { type: string; count: number }[];
   requestTypes: { type: string; count: number }[];
@@ -37,7 +36,6 @@ export function AnalyticsDashboard() {
     bounceRate: 0,
     avgSessionDuration: 0,
     topPages: [],
-    topCountries: [],
     topReferrers: [],
     deviceTypes: [],
     requestTypes: [],
@@ -106,7 +104,6 @@ export function AnalyticsDashboard() {
         bounceRate: 0,
         avgSessionDuration: 0,
         topPages: [],
-        topCountries: [],
         topReferrers: [],
         deviceTypes: [],
         requestTypes: [],
@@ -137,18 +134,6 @@ export function AnalyticsDashboard() {
       });
       stats.topPages = Object.entries(pageCounts)
         .map(([page, views]) => ({ page, views }))
-        .sort((a, b) => b.views - a.views)
-        .slice(0, 10);
-
-      // Calculate top countries
-      const countryCounts: Record<string, number> = {};
-      events.forEach(event => {
-        if (event.country) {
-          countryCounts[event.country] = (countryCounts[event.country] || 0) + 1;
-        }
-      });
-      stats.topCountries = Object.entries(countryCounts)
-        .map(([country, views]) => ({ country, views }))
         .sort((a, b) => b.views - a.views)
         .slice(0, 10);
 
@@ -225,7 +210,6 @@ export function AnalyticsDashboard() {
         .slice(0, 20)
         .map(event => ({
           page_path: event.page_path,
-          country: event.country,
           created_at: event.created_at,
         }));
 
@@ -254,10 +238,7 @@ export function AnalyticsDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-            <div className="flex gap-2">
-              <ClearAnalyticsButton />
-              <ImportLovableAnalyticsButton />
-            </div>
+            <ClearAnalyticsButton />
           <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)}>
             <TabsList>
               <TabsTrigger value="24h">24 Hours</TabsTrigger>
@@ -410,22 +391,6 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Top Countries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={stats.topCountries}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="country" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="views" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Tables */}
@@ -497,7 +462,6 @@ export function AnalyticsDashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead>Page</TableHead>
-                <TableHead>Country</TableHead>
                 <TableHead>Time</TableHead>
               </TableRow>
             </TableHeader>
@@ -505,7 +469,6 @@ export function AnalyticsDashboard() {
               {stats.recentActivity.map((activity, index) => (
                 <TableRow key={index}>
                   <TableCell className="font-mono text-sm">{activity.page_path}</TableCell>
-                  <TableCell>{activity.country || 'Unknown'}</TableCell>
                   <TableCell>{format(new Date(activity.created_at), 'PPp')}</TableCell>
                 </TableRow>
               ))}
