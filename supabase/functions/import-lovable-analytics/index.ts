@@ -51,59 +51,72 @@ serve(async (req) => {
       });
     }
 
-    console.log('Generating realistic analytics data with geodata...');
-
-    // Generate realistic analytics events with geodata
-    const geoLocations = [
-      { country: 'United States', city: 'New York' },
-      { country: 'United States', city: 'San Francisco' },
-      { country: 'United Kingdom', city: 'London' },
-      { country: 'Germany', city: 'Berlin' },
-      { country: 'France', city: 'Paris' },
-      { country: 'Japan', city: 'Tokyo' },
-      { country: 'Canada', city: 'Toronto' },
-      { country: 'Australia', city: 'Sydney' },
-      { country: 'Brazil', city: 'São Paulo' },
-      { country: 'India', city: 'Mumbai' },
-      { country: 'Spain', city: 'Madrid' },
-      { country: 'Netherlands', city: 'Amsterdam' },
-    ];
-
-    const pages = ['/', '/weather', '/admin', '/auth'];
-    const userAgents = [
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15',
-      'Mozilla/5.0 (Android 11; Mobile) AppleWebKit/537.36',
-    ];
-    const referrers = ['https://google.com', 'https://twitter.com', 'direct', 'https://facebook.com'];
-
-    const now = new Date();
-    const analyticsData = [];
+    const projectId = Deno.env.get('SUPABASE_PROJECT_ID') || 'ohwtbkudpkfbakynikyj';
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     
-    // Generate 500 realistic events over the past 30 days
-    for (let i = 0; i < 500; i++) {
-      const daysAgo = Math.floor(Math.random() * 30);
-      const hoursAgo = Math.floor(Math.random() * 24);
-      const minutesAgo = Math.floor(Math.random() * 60);
-      const eventDate = new Date(now);
-      eventDate.setDate(eventDate.getDate() - daysAgo);
-      eventDate.setHours(eventDate.getHours() - hoursAgo);
-      eventDate.setMinutes(eventDate.getMinutes() - minutesAgo);
-
-      const geo = geoLocations[Math.floor(Math.random() * geoLocations.length)];
-      
-      analyticsData.push({
-        event_type: 'pageview',
-        page_path: pages[Math.floor(Math.random() * pages.length)],
-        session_id: `session_${Math.random().toString(36).substring(7)}`,
-        country: geo.country,
-        city: geo.city,
-        user_agent: userAgents[Math.floor(Math.random() * userAgents.length)],
-        referrer: referrers[Math.floor(Math.random() * referrers.length)],
-        created_at: eventDate.toISOString(),
+    if (!lovableApiKey) {
+      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
       });
     }
+
+    console.log('Fetching analytics from Lovable API for project:', projectId);
+
+    // Fetch analytics from Lovable Project Analytics API
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 30); // Last 30 days
+
+    const analyticsUrl = `https://api.lovable.app/v1/projects/${projectId}/analytics?start=${startDate.toISOString()}&end=${endDate.toISOString()}`;
+    
+    const lovableResponse = await fetch(analyticsUrl, {
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!lovableResponse.ok) {
+      const errorText = await lovableResponse.text();
+      console.error('Lovable API error:', lovableResponse.status, errorText);
+      return new Response(JSON.stringify({ 
+        error: 'Failed to fetch analytics from Lovable',
+        details: errorText 
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    const lovableData = await lovableResponse.json();
+    console.log('Received Lovable analytics data');
+
+    // Transform Lovable analytics data to analytics_events format
+    const analyticsData = [];
+    
+    // Process timeSeries data for pageviews
+    if (lovableData.timeSeries?.pageviews?.data) {
+      lovableData.timeSeries.pageviews.data.forEach((item: any) => {
+        if (item.value > 0) {
+          // Create events for each pageview
+          for (let i = 0; i < item.value; i++) {
+            analyticsData.push({
+              event_type: 'pageview',
+              page_path: '/',
+              session_id: `session_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+              created_at: new Date(item.date).toISOString(),
+              country: null,
+              city: null,
+              user_agent: null,
+              referrer: null,
+            });
+          }
+        }
+      });
+    }
+
+    console.log(`Transformed ${analyticsData.length} analytics events from Lovable data`);
 
     console.log(`Transformed ${analyticsData.length} analytics events...`);
 
