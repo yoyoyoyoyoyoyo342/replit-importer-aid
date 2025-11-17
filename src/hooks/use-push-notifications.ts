@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { weatherApi } from '@/lib/weather-api';
 
 interface NotificationData {
   temperature: number;
@@ -117,32 +119,109 @@ export function usePushNotifications() {
     if (permission !== 'granted') return;
 
     try {
-      // Create a basic notification with general weather info
-      const now = new Date();
-      const timeString = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      // Check if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not logged in, skipping AI notification');
+        return;
+      }
+
+      // Get user's primary location
+      const { data: locations } = await supabase
+        .from('saved_locations')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_primary', true)
+        .limit(1);
+
+      if (!locations || locations.length === 0) {
+        console.log('No primary location found, sending generic notification');
+        await sendGenericNotification();
+        return;
+      }
+
+      const location = locations[0];
       
-      const notificationBody = `Good morning! Check your weather app for today's forecast and pollen alerts. Time: ${timeString}`;
+      // Fetch current weather data
+      const weatherData = await weatherApi.getWeatherData(location.latitude, location.longitude, location.name);
+      
+      // Get user preferences for temperature units
+      const { data: preferences } = await supabase
+        .from('user_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      const isImperial = true; // Default to imperial, can be from preferences
+
+      // Call AI insights function for morning review
+      const { data: aiResponse, error: aiError } = await supabase.functions.invoke('ai-weather-insights', {
+        body: {
+          type: 'morning_review',
+          weatherData,
+          location: location.name,
+          isImperial,
+          language: preferences?.language || 'en'
+        }
+      });
+
+      if (aiError || !aiResponse) {
+        console.error('AI insights error:', aiError);
+        await sendGenericNotification();
+        return;
+      }
+
+      // Format notification with AI-generated content
+      const summary = aiResponse.summary || 'Check your weather app for today\'s forecast';
+      const currentTemp = weatherData.aggregated?.currentWeather?.temperature || weatherData.mostAccurate?.currentWeather?.temperature || 70;
+      const temp = isImperial ? 
+        `${Math.round(currentTemp)}°F` : 
+        `${Math.round((currentTemp - 32) * 5/9)}°C`;
+      
+      const notificationBody = `${temp} - ${summary}`;
 
       if (registration && 'showNotification' in registration) {
-        // Use service worker notification for better functionality
-        await registration.showNotification('Daily Weather & Pollen Update', {
+        await registration.showNotification('Good Morning! ☀️', {
           body: notificationBody,
           icon: '/logo.png',
           badge: '/logo.png',
-          tag: 'daily-weather',
-          requireInteraction: false
+          tag: 'daily-weather-ai',
+          requireInteraction: false,
+          data: {
+            url: '/',
+            location: location.name
+          }
         });
       } else {
-        // Fallback to basic notification
-        new Notification('Daily Weather & Pollen Update', {
+        new Notification('Good Morning! ☀️', {
           body: notificationBody,
           icon: '/logo.png'
         });
       }
       
-      console.log('Daily notification sent successfully');
+      console.log('AI-powered morning notification sent successfully');
     } catch (error) {
       console.error('Error sending daily notification:', error);
+      await sendGenericNotification();
+    }
+  };
+
+  const sendGenericNotification = async () => {
+    const notificationBody = `Good morning! Check your weather app for today's forecast and pollen alerts.`;
+
+    if (registration && 'showNotification' in registration) {
+      await registration.showNotification('Daily Weather & Pollen Update', {
+        body: notificationBody,
+        icon: '/logo.png',
+        badge: '/logo.png',
+        tag: 'daily-weather',
+        requireInteraction: false
+      });
+    } else {
+      new Notification('Daily Weather & Pollen Update', {
+        body: notificationBody,
+        icon: '/logo.png'
+      });
     }
   };
 
