@@ -45,15 +45,15 @@ export function ImportLovableAnalyticsButton() {
         <AlertDialogHeader>
           <AlertDialogTitle>Import Lovable Analytics?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will generate realistic sample analytics data, including:
+            This will import your real analytics data from Lovable, including:
             <div className="mt-3 space-y-1 font-medium">
-              <div>• 500 pageview events from the past 30 days</div>
-              <div>• Geographic data from 12 global cities</div>
-              <div>• Realistic user agents and referrer information</div>
-              <div>• Varied traffic patterns and session data</div>
+              <div>• All pageviews from the last 30 days</div>
+              <div>• Visitor counts and session data</div>
+              <div>• Page paths and traffic patterns</div>
+              <div>• Historical timeline of visits</div>
             </div>
             <div className="mt-3 text-sm text-muted-foreground">
-              This sample data will be added to your analytics dashboard for testing and visualization.
+              This data will be fetched from Lovable's analytics and added to your admin dashboard.
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
