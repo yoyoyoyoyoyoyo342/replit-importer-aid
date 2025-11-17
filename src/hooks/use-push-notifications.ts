@@ -51,11 +51,11 @@ export function usePushNotifications() {
       if (result === 'granted') {
         toast({
           title: "Notifications enabled",
-          description: "You'll receive daily weather and pollen updates at 8 AM.",
+          description: "You'll receive daily weather and pollen updates.",
         });
         
         // Schedule daily notifications
-        scheduleDailyNotifications();
+        await scheduleDailyNotifications();
         return true;
       } else {
         toast({
@@ -71,7 +71,7 @@ export function usePushNotifications() {
     }
   };
 
-  const scheduleDailyNotifications = () => {
+  const scheduleDailyNotifications = async () => {
     console.log('Scheduling daily notifications...');
     
     // Clear any existing intervals first
@@ -82,12 +82,41 @@ export function usePushNotifications() {
       clearTimeout((window as any).weatherNotificationTimeout);
     }
 
-    // Schedule notification for 8 AM daily
+    // Get user's preferred notification time
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('No user logged in, using default time');
+    }
+
+    let notificationHour = 8;
+    let notificationMinute = 0;
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('notification_time, notification_enabled')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile && !profile.notification_enabled) {
+        console.log('Notifications disabled by user');
+        return;
+      }
+
+      if (profile?.notification_time) {
+        const [hours, minutes] = profile.notification_time.split(':').map(Number);
+        notificationHour = hours;
+        notificationMinute = minutes;
+        console.log(`Using user's preferred time: ${notificationHour}:${notificationMinute}`);
+      }
+    }
+
+    // Schedule notification for user's preferred time daily
     const now = new Date();
     const scheduledTime = new Date();
-    scheduledTime.setHours(8, 0, 0, 0);
+    scheduledTime.setHours(notificationHour, notificationMinute, 0, 0);
 
-    // If it's already past 8 AM today, schedule for tomorrow
+    // If it's already past the scheduled time today, schedule for tomorrow
     if (now > scheduledTime) {
       scheduledTime.setDate(scheduledTime.getDate() + 1);
     }
