@@ -205,6 +205,10 @@ export type Database = {
           id: string
           notification_enabled: boolean | null
           notification_time: string | null
+          notify_ai_preview: boolean | null
+          notify_daily_summary: boolean | null
+          notify_pollen: boolean | null
+          notify_severe_weather: boolean | null
           total_points: number | null
           updated_at: string
           user_id: string
@@ -218,6 +222,10 @@ export type Database = {
           id?: string
           notification_enabled?: boolean | null
           notification_time?: string | null
+          notify_ai_preview?: boolean | null
+          notify_daily_summary?: boolean | null
+          notify_pollen?: boolean | null
+          notify_severe_weather?: boolean | null
           total_points?: number | null
           updated_at?: string
           user_id: string
@@ -231,6 +239,10 @@ export type Database = {
           id?: string
           notification_enabled?: boolean | null
           notification_time?: string | null
+          notify_ai_preview?: boolean | null
+          notify_daily_summary?: boolean | null
+          notify_pollen?: boolean | null
+          notify_severe_weather?: boolean | null
           total_points?: number | null
           updated_at?: string
           user_id?: string
