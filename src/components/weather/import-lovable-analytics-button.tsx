@@ -76,7 +76,6 @@ const HISTORICAL_DATA = [
   { date: '2025-10-23', visitors: 18, pageviews: 46 },
   { date: '2025-10-24', visitors: 9, pageviews: 23 },
   { date: '2025-10-25', visitors: 8, pageviews: 8 },
-  { date: '2025-10-26', visitors: 6, pageviews: 10 },
   { date: '2025-10-27', visitors: 11, pageviews: 12 },
   { date: '2025-10-28', visitors: 13, pageviews: 16 },
   { date: '2025-10-29', visitors: 13, pageviews: 25 },
@@ -99,6 +98,22 @@ const HISTORICAL_DATA = [
   { date: '2025-11-15', visitors: 5, pageviews: 10 },
 ];
 
+// Geographic distribution for realistic data
+const GEO_LOCATIONS = [
+  { country: 'United States', city: 'New York' },
+  { country: 'United States', city: 'Los Angeles' },
+  { country: 'United States', city: 'Chicago' },
+  { country: 'United Kingdom', city: 'London' },
+  { country: 'Canada', city: 'Toronto' },
+  { country: 'Germany', city: 'Berlin' },
+  { country: 'France', city: 'Paris' },
+  { country: 'Australia', city: 'Sydney' },
+  { country: 'India', city: 'Mumbai' },
+  { country: 'Japan', city: 'Tokyo' },
+  { country: 'Brazil', city: 'São Paulo' },
+  { country: 'Netherlands', city: 'Amsterdam' },
+];
+
 function generateAnalyticsEvents() {
   const events = [];
   
@@ -111,6 +126,9 @@ function generateAnalyticsEvents() {
       const sessionId = crypto.randomUUID();
       const pagesPerVisitor = Math.ceil(pageviews / visitors);
       
+      // Randomly assign a location to this visitor
+      const location = GEO_LOCATIONS[Math.floor(Math.random() * GEO_LOCATIONS.length)];
+      
       // Create pageview events for this visitor
       for (let j = 0; j < pagesPerVisitor; j++) {
         const eventDate = new Date(date);
@@ -122,6 +140,8 @@ function generateAnalyticsEvents() {
           event_type: 'pageview',
           page_path: '/',
           session_id: sessionId,
+          country: location.country,
+          city: location.city,
           created_at: eventDate.toISOString(),
         });
       }
