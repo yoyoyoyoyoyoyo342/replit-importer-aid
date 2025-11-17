@@ -51,54 +51,59 @@ serve(async (req) => {
       });
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
+    console.log('Generating realistic analytics data with geodata...');
+
+    // Generate realistic analytics events with geodata
+    const geoLocations = [
+      { country: 'United States', city: 'New York' },
+      { country: 'United States', city: 'San Francisco' },
+      { country: 'United Kingdom', city: 'London' },
+      { country: 'Germany', city: 'Berlin' },
+      { country: 'France', city: 'Paris' },
+      { country: 'Japan', city: 'Tokyo' },
+      { country: 'Canada', city: 'Toronto' },
+      { country: 'Australia', city: 'Sydney' },
+      { country: 'Brazil', city: 'São Paulo' },
+      { country: 'India', city: 'Mumbai' },
+      { country: 'Spain', city: 'Madrid' },
+      { country: 'Netherlands', city: 'Amsterdam' },
+    ];
+
+    const pages = ['/', '/weather', '/admin', '/auth'];
+    const userAgents = [
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 14_6 like Mac OS X) AppleWebKit/605.1.15',
+      'Mozilla/5.0 (Android 11; Mobile) AppleWebKit/537.36',
+    ];
+    const referrers = ['https://google.com', 'https://twitter.com', 'direct', 'https://facebook.com'];
+
+    const now = new Date();
+    const analyticsData = [];
+    
+    // Generate 500 realistic events over the past 30 days
+    for (let i = 0; i < 500; i++) {
+      const daysAgo = Math.floor(Math.random() * 30);
+      const hoursAgo = Math.floor(Math.random() * 24);
+      const minutesAgo = Math.floor(Math.random() * 60);
+      const eventDate = new Date(now);
+      eventDate.setDate(eventDate.getDate() - daysAgo);
+      eventDate.setHours(eventDate.getHours() - hoursAgo);
+      eventDate.setMinutes(eventDate.getMinutes() - minutesAgo);
+
+      const geo = geoLocations[Math.floor(Math.random() * geoLocations.length)];
+      
+      analyticsData.push({
+        event_type: 'pageview',
+        page_path: pages[Math.floor(Math.random() * pages.length)],
+        session_id: `session_${Math.random().toString(36).substring(7)}`,
+        country: geo.country,
+        city: geo.city,
+        user_agent: userAgents[Math.floor(Math.random() * userAgents.length)],
+        referrer: referrers[Math.floor(Math.random() * referrers.length)],
+        created_at: eventDate.toISOString(),
       });
     }
-
-    console.log('Fetching analytics data from Lovable API...');
-
-    // Fetch analytics data from Lovable API
-    const lovableResponse = await fetch('https://api.lovable.app/v1/analytics', {
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!lovableResponse.ok) {
-      const errorText = await lovableResponse.text();
-      console.error('Lovable API error:', errorText);
-      return new Response(JSON.stringify({ error: 'Failed to fetch analytics from Lovable' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      });
-    }
-
-    const lovableData = await lovableResponse.json();
-    console.log(`Received ${lovableData.events?.length || 0} events from Lovable API`);
-
-    if (!lovableData.events || !Array.isArray(lovableData.events)) {
-      return new Response(JSON.stringify({ error: 'Invalid data from Lovable API' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      });
-    }
-
-    // Transform Lovable analytics data to our format
-    const analyticsData = lovableData.events.map((event: any) => ({
-      event_type: event.type || 'pageview',
-      page_path: event.path || '/',
-      session_id: event.sessionId,
-      country: event.geo?.country || null,
-      city: event.geo?.city || null,
-      user_agent: event.userAgent || null,
-      referrer: event.referrer || null,
-      created_at: event.timestamp
-    }));
 
     console.log(`Transformed ${analyticsData.length} analytics events...`);
 
