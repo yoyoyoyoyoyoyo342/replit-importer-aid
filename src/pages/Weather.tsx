@@ -29,6 +29,12 @@ import { StreakDisplay } from "@/components/weather/streak-display";
 import { PredictionDialog } from "@/components/weather/prediction-dialog";
 import { useTimeOfDay } from "@/hooks/use-time-of-day";
 import { useTimeOfDayContext } from "@/contexts/time-of-day-context";
+import { LockedFeature } from "@/components/ui/locked-feature";
+import { LockedStreakDisplay } from "@/components/weather/locked-streak-display";
+import { LockedPredictionButton } from "@/components/weather/locked-prediction-button";
+import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
+import { MinuteByMinuteCard } from "@/components/weather/minute-by-minute-card";
+import { AQICard } from "@/components/weather/aqi-card";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -43,6 +49,12 @@ export default function WeatherPage() {
   const { visibleCards, cardOrder, is24Hour, isHighContrast, loading: preferencesLoading } = useUserPreferences();
   const { t } = useLanguage();
   const { setTimeOfDay } = useTimeOfDayContext();
+
+  // Fetch hyperlocal weather data
+  const { data: hyperlocalData } = useHyperlocalWeather(
+    selectedLocation?.lat,
+    selectedLocation?.lon
+  );
 
   // Apply high contrast mode
   useEffect(() => {
@@ -274,15 +286,21 @@ export default function WeatherPage() {
               </div>
             </div>
 
-            {/* Third Row: User Actions (Predictions & Leaderboard) - Only for logged in users */}
-            {user && selectedLocation && (
-              <PredictionDialog
-                location={selectedLocation.name}
-                latitude={selectedLocation.lat}
-                longitude={selectedLocation.lon}
-                isImperial={isImperial}
-                onPredictionMade={() => refetch()}
-              />
+            {/* Third Row: User Actions (Predictions & Leaderboard) */}
+            {selectedLocation && (
+              user ? (
+                <PredictionDialog
+                  location={selectedLocation.name}
+                  latitude={selectedLocation.lat}
+                  longitude={selectedLocation.lon}
+                  isImperial={isImperial}
+                  onPredictionMade={() => refetch()}
+                />
+              ) : (
+                <LockedFeature isLocked={true}>
+                  <LockedPredictionButton />
+                </LockedFeature>
+              )
             )}
           </div>
         </header>
@@ -328,12 +346,16 @@ export default function WeatherPage() {
                 </div>
               </div>}
 
-            {/* Streak Display for Logged In Users */}
-            {user && (
-              <div className="mb-4">
+            {/* Streak Display */}
+            <div className="mb-4">
+              {user ? (
                 <StreakDisplay />
-              </div>
-            )}
+              ) : (
+                <LockedFeature isLocked={true}>
+                  <LockedStreakDisplay />
+                </LockedFeature>
+              )}
+            </div>
 
             {/* Morning Weather Review */}
             <MorningWeatherReview 
@@ -436,6 +458,41 @@ export default function WeatherPage() {
                   return null;
               }
             })}
+
+            {/* Hyperlocal Weather Data */}
+            {hyperlocalData && (
+              <>
+                {hyperlocalData.minuteByMinute.length > 0 && (
+                  <div className="mb-4">
+                    <MinuteByMinuteCard data={hyperlocalData.minuteByMinute} />
+                  </div>
+                )}
+                
+                {hyperlocalData.aqi && (
+                  <div className="mb-4">
+                    <AQICard data={hyperlocalData.aqi} />
+                  </div>
+                )}
+
+                {hyperlocalData.alerts.length > 0 && (
+                  <div className="mb-4">
+                    {hyperlocalData.alerts.map((alert, index) => (
+                      <Card key={index} className="glass-card rounded-2xl shadow-lg border border-destructive/50 mb-2">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-2">
+                            <span className="text-xl">⚠️</span>
+                            <div>
+                              <h3 className="font-semibold text-destructive">{alert.headline}</h3>
+                              <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 mt-4 glass-header rounded-lg p-4">
