@@ -72,21 +72,24 @@ export function AnalyticsDashboard() {
       } else if (timeRange === '30d') {
         startDate = subDays(now, 30);
       }
+      // For 'all' time, startDate remains null
       
-      // Build query with proper filtering
-      let query = supabase
+      console.log('Loading analytics for timeRange:', timeRange, 'startDate:', startDate?.toISOString());
+      
+      // Build query - fetch ALL events first, then filter in memory for consistency
+      const { data: allEvents, error } = await supabase
         .from('analytics_events')
         .select('*')
         .order('created_at', { ascending: false });
 
-      // Apply date filter if not "all time"
-      if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
-      }
-
-      const { data: events, error } = await query;
-
       if (error) throw error;
+
+      // Filter events based on timeRange
+      const events = startDate 
+        ? allEvents?.filter(e => new Date(e.created_at!) >= startDate) 
+        : allEvents;
+
+      console.log('Filtered events count:', events?.length, 'All events:', allEvents?.length);
 
       if (!events || events.length === 0) {
         setLoading(false);
@@ -283,13 +286,10 @@ export function AnalyticsDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Total Requests</CardTitle>
+            <CardTitle>Total Pageviews</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{stats.totalRequests.toLocaleString()}</div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {stats.totalPageviews.toLocaleString()} pageviews
-            </p>
+            <div className="text-3xl font-bold">{stats.totalPageviews.toLocaleString()}</div>
           </CardContent>
         </Card>
 
