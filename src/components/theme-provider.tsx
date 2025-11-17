@@ -6,16 +6,19 @@ type ThemeProviderProps = {
   children: React.ReactNode
   defaultTheme?: Theme
   storageKey?: string
+  isNightTime?: boolean
 }
 
 type ThemeProviderState = {
   theme: Theme
   setTheme: (theme: Theme) => void
+  userPreferredTheme: Theme
 }
 
 const initialState: ThemeProviderState = {
   theme: "system",
   setTheme: () => null,
+  userPreferredTheme: "system",
 }
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
@@ -24,11 +27,25 @@ export function ThemeProvider({
   children,
   defaultTheme = "system",
   storageKey = "vite-ui-theme",
+  isNightTime = false,
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
+  // Store user's preferred theme separately
+  const [userPreferredTheme, setUserPreferredTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   )
+  
+  // Active theme (may be overridden by night mode)
+  const [theme, setTheme] = useState<Theme>(userPreferredTheme)
+
+  // Override theme to dark when it's night time
+  useEffect(() => {
+    if (isNightTime) {
+      setTheme("dark")
+    } else {
+      setTheme(userPreferredTheme)
+    }
+  }, [isNightTime, userPreferredTheme])
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -50,9 +67,14 @@ export function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+    userPreferredTheme,
+    setTheme: (newTheme: Theme) => {
+      localStorage.setItem(storageKey, newTheme)
+      setUserPreferredTheme(newTheme)
+      // If not night time, apply immediately
+      if (!isNightTime) {
+        setTheme(newTheme)
+      }
     },
   }
 

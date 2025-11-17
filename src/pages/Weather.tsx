@@ -27,6 +27,8 @@ import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
 import { StreakDisplay } from "@/components/weather/streak-display";
 import { PredictionDialog } from "@/components/weather/prediction-dialog";
+import { useTimeOfDay } from "@/hooks/use-time-of-day";
+import { useTimeOfDayContext } from "@/contexts/time-of-day-context";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -40,6 +42,7 @@ export default function WeatherPage() {
   const { user, profile, loading: authLoading } = useAuth();
   const { visibleCards, cardOrder, is24Hour, isHighContrast, loading: preferencesLoading } = useUserPreferences();
   const { t } = useLanguage();
+  const { setTimeOfDay } = useTimeOfDayContext();
 
   // Apply high contrast mode
   useEffect(() => {
@@ -62,6 +65,15 @@ export default function WeatherPage() {
     enabled: !!selectedLocation,
     queryFn: () => weatherApi.getWeatherData(selectedLocation!.lat, selectedLocation!.lon, selectedLocation!.name)
   });
+
+  // Track time of day and update context for theme
+  const sunrise = weatherData?.mostAccurate?.currentWeather?.sunrise;
+  const sunset = weatherData?.mostAccurate?.currentWeather?.sunset;
+  const timeOfDay = useTimeOfDay(sunrise, sunset);
+
+  useEffect(() => {
+    setTimeOfDay(timeOfDay);
+  }, [timeOfDay, setTimeOfDay]);
 
   // After query: side effects for success/error
   useEffect(() => {
