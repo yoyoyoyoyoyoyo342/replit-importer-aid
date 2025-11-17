@@ -6,8 +6,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, subDays } from 'date-fns';
 
-import { ImportLovableAnalyticsButton } from './import-lovable-analytics-button';
 import { ClearAnalyticsButton } from './clear-analytics-button';
+import { PopulateRealAnalyticsButton } from './populate-real-analytics-button';
 import { useActiveUsers } from '@/hooks/use-active-users';
 import { Users } from 'lucide-react';
 
@@ -240,7 +240,7 @@ export function AnalyticsDashboard() {
         </div>
         <div className="flex items-center gap-4">
           <div className="flex gap-2">
-            <ImportLovableAnalyticsButton />
+            <PopulateRealAnalyticsButton />
             <ClearAnalyticsButton />
           </div>
           <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as any)}>
