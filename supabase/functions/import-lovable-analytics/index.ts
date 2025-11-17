@@ -42,7 +42,7 @@ serve(async (req) => {
       .select('role')
       .eq('user_id', user.id)
       .eq('role', 'admin')
-      .single();
+      .maybeSingle();
 
     if (!roles) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
@@ -51,16 +51,56 @@ serve(async (req) => {
       });
     }
 
-    const { analyticsData } = await req.json();
-
-    if (!analyticsData || !Array.isArray(analyticsData)) {
-      return new Response(JSON.stringify({ error: 'Invalid analytics data format' }), {
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
+        status: 500
       });
     }
 
-    console.log(`Importing ${analyticsData.length} analytics events...`);
+    console.log('Fetching analytics data from Lovable API...');
+
+    // Fetch analytics data from Lovable API
+    const lovableResponse = await fetch('https://api.lovable.app/v1/analytics', {
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!lovableResponse.ok) {
+      const errorText = await lovableResponse.text();
+      console.error('Lovable API error:', errorText);
+      return new Response(JSON.stringify({ error: 'Failed to fetch analytics from Lovable' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    const lovableData = await lovableResponse.json();
+    console.log(`Received ${lovableData.events?.length || 0} events from Lovable API`);
+
+    if (!lovableData.events || !Array.isArray(lovableData.events)) {
+      return new Response(JSON.stringify({ error: 'Invalid data from Lovable API' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+
+    // Transform Lovable analytics data to our format
+    const analyticsData = lovableData.events.map((event: any) => ({
+      event_type: event.type || 'pageview',
+      page_path: event.path || '/',
+      session_id: event.sessionId,
+      country: event.geo?.country || null,
+      city: event.geo?.city || null,
+      user_agent: event.userAgent || null,
+      referrer: event.referrer || null,
+      created_at: event.timestamp
+    }));
+
+    console.log(`Transformed ${analyticsData.length} analytics events...`);
 
     // Insert events in batches
     const batchSize = 100;
