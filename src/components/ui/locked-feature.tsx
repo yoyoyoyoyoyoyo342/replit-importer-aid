@@ -46,12 +46,12 @@ export function LockedFeature({ children, isLocked, className }: LockedFeaturePr
         className
       )}
     >
-      <div className="pointer-events-none opacity-50 grayscale select-none">
+      <div className="pointer-events-none opacity-60 grayscale select-none [&_*]:!text-foreground/80">
         {children}
       </div>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="bg-background/90 backdrop-blur-sm p-3 rounded-full shadow-lg border border-border">
-          <Lock className="h-5 w-5 text-muted-foreground" />
+        <div className="bg-background/95 backdrop-blur-sm p-3 rounded-full shadow-lg border-2 border-primary/30">
+          <Lock className="h-6 w-6 text-foreground" />
         </div>
       </div>
     </div>
