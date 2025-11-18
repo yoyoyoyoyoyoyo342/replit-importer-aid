@@ -199,7 +199,9 @@ export function SettingsDialog({
     hourly: t('pollen.hourlyForecast'),
     tenDay: t('pollen.tenDayForecast'),
     detailedMetrics: t('pollen.detailedMetrics'),
-    weatherTrends: 'Weather Trends'
+    weatherTrends: 'Weather Trends',
+    aqi: 'Air Quality Index',
+    alerts: 'Weather Alerts'
   };
   const handleSignOut = async () => {
     try {

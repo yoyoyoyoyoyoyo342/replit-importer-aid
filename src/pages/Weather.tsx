@@ -33,8 +33,9 @@ import { LockedFeature } from "@/components/ui/locked-feature";
 import { LockedStreakDisplay } from "@/components/weather/locked-streak-display";
 import { LockedPredictionButton } from "@/components/weather/locked-prediction-button";
 import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
-import { MinuteByMinuteCard } from "@/components/weather/minute-by-minute-card";
 import { AQICard } from "@/components/weather/aqi-card";
+import { Leaderboard } from "@/components/weather/leaderboard";
+import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -365,6 +366,17 @@ export default function WeatherPage() {
               userId={user?.id}
             />
 
+            {/* Leaderboard */}
+            <div className="mb-4">
+              {user ? (
+                <Leaderboard />
+              ) : (
+                <LockedFeature isLocked={true}>
+                  <LockedLeaderboard />
+                </LockedFeature>
+              )}
+            </div>
+
             {/* Desktop Layout - Only show on large screens */}
             <div className="hidden lg:block mb-6">
               <CurrentWeather 
@@ -453,46 +465,37 @@ export default function WeatherPage() {
                       is24Hour={is24Hour}
                     />
                   );
+
+                case "aqi":
+                  return hyperlocalData?.aqi ? (
+                    <div key="aqi" className="mb-4">
+                      <AQICard data={hyperlocalData.aqi} />
+                    </div>
+                  ) : null;
+
+                case "alerts":
+                  return hyperlocalData?.alerts?.length > 0 ? (
+                    <div key="alerts" className="mb-4">
+                      {hyperlocalData.alerts.map((alert, index) => (
+                        <Card key={index} className="glass-card rounded-2xl shadow-lg border border-destructive/50 mb-2">
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-2">
+                              <span className="text-xl">⚠️</span>
+                              <div>
+                                <h3 className="font-semibold text-destructive">{alert.headline}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : null;
                 
                 default:
                   return null;
               }
             })}
-
-            {/* Hyperlocal Weather Data */}
-            {hyperlocalData && (
-              <>
-                {hyperlocalData.minuteByMinute.length > 0 && (
-                  <div className="mb-4">
-                    <MinuteByMinuteCard data={hyperlocalData.minuteByMinute} />
-                  </div>
-                )}
-                
-                {hyperlocalData.aqi && (
-                  <div className="mb-4">
-                    <AQICard data={hyperlocalData.aqi} />
-                  </div>
-                )}
-
-                {hyperlocalData.alerts.length > 0 && (
-                  <div className="mb-4">
-                    {hyperlocalData.alerts.map((alert, index) => (
-                      <Card key={index} className="glass-card rounded-2xl shadow-lg border border-destructive/50 mb-2">
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-2">
-                            <span className="text-xl">⚠️</span>
-                            <div>
-                              <h3 className="font-semibold text-destructive">{alert.headline}</h3>
-                              <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 mt-4 glass-header rounded-lg p-4">
