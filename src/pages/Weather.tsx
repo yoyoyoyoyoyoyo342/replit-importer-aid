@@ -23,13 +23,13 @@ import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
+import { LockedFeature } from "@/components/ui/locked-feature";
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
 import { StreakDisplay } from "@/components/weather/streak-display";
 import { PredictionDialog } from "@/components/weather/prediction-dialog";
 import { useTimeOfDay } from "@/hooks/use-time-of-day";
 import { useTimeOfDayContext } from "@/contexts/time-of-day-context";
-import { LockedFeature } from "@/components/ui/locked-feature";
 import { LockedStreakDisplay } from "@/components/weather/locked-streak-display";
 import { LockedPredictionButton } from "@/components/weather/locked-prediction-button";
 import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
@@ -168,13 +168,14 @@ export default function WeatherPage() {
           longitude
         } = position.coords;
         
-        // Reverse geocode to get city name
+        // Reverse geocode to get precise location name (neighborhood/suburb first, then city)
         try {
           const geocodeResponse = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
           );
           const geocodeData = await geocodeResponse.json();
-          const cityName = geocodeData.city || geocodeData.locality || geocodeData.principalSubdivision || "Current Location";
+          // Prioritize locality (neighborhood/suburb) for precision, then fall back to city
+          const cityName = geocodeData.locality || geocodeData.city || geocodeData.principalSubdivision || "Current Location";
           
           const newLocation = {
             lat: latitude,
@@ -244,9 +245,11 @@ export default function WeatherPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                {user ? (
+                <LockedFeature isLocked={!user}>
                   <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
-                ) : (
+                </LockedFeature>
+                
+                {!user && (
                   <Button 
                     variant="outline" 
                     size="sm" 
