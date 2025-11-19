@@ -168,14 +168,52 @@ export default function WeatherPage() {
           longitude
         } = position.coords;
         
-        // Reverse geocode to get precise location name (neighborhood/suburb first, then city)
+        // Reverse geocode to get best matching nearby place name
         try {
           const geocodeResponse = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
           );
           const geocodeData = await geocodeResponse.json();
-          // Prioritize locality (neighborhood/suburb) for precision, then fall back to city
-          const cityName = geocodeData.locality || geocodeData.city || geocodeData.principalSubdivision || "Current Location";
+
+          // Choose the closest named place from localityInfo when available,
+          // otherwise fall back to locality/city/subdivision
+          const getBestLocationName = (data: any): string => {
+            try {
+              const localityInfo = data.localityInfo;
+              const candidateGroups = [
+                localityInfo?.locality,
+                localityInfo?.administrative,
+                localityInfo?.informative,
+              ].filter(Boolean) as Array<any[]>;
+
+              for (const group of candidateGroups) {
+                if (Array.isArray(group) && group.length > 0) {
+                  const sorted = [...group].sort((a, b) => {
+                    const da = typeof a.distance === "number" ? a.distance : Number.POSITIVE_INFINITY;
+                    const db = typeof b.distance === "number" ? b.distance : Number.POSITIVE_INFINITY;
+                    return da - db;
+                  });
+
+                  const nearest = sorted[0];
+                  if (nearest?.name) {
+                    return nearest.name as string;
+                  }
+                }
+              }
+            } catch (e) {
+              console.log("Failed to derive precise locality from reverse geocode", e);
+            }
+
+            return (
+              data.locality ||
+              data.city ||
+              data.principalSubdivision ||
+              data.localityInfo?.administrative?.[0]?.name ||
+              "Current Location"
+            );
+          };
+
+          const cityName = getBestLocationName(geocodeData);
           
           const newLocation = {
             lat: latitude,
