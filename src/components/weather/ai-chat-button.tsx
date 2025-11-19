@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { LiquidButton } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AIWeatherCompanion } from "./ai-weather-companion";
 import { WeatherSource } from "@/types/weather";
@@ -17,13 +17,13 @@ export function AIChatButton({ weatherData, location, isImperial }: AIChatButton
   return (
     <>
       {/* Floating Chat Button */}
-      <Button
+      <LiquidButton
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg bg-gradient-to-br from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 p-2"
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 p-2 hover-scale"
         size="icon"
       >
-        <img src={paiLogo} alt="PAI" className="w-full h-full object-contain" />
-      </Button>
+        <img src={paiLogo} alt="AI weather assistant PAI" className="w-full h-full object-contain" />
+      </LiquidButton>
 
       {/* Chat Dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
