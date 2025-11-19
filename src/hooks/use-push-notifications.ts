@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { weatherApi } from '@/lib/weather-api';
+import { isIOS, isPWAInstalled, needsPWAInstall, canRequestNotifications } from '@/lib/pwa-utils';
 
 interface NotificationData {
   temperature: number;
@@ -35,7 +36,13 @@ export function usePushNotifications() {
   }, []);
 
   const requestPermission = async (): Promise<boolean> => {
-    if (!('Notification' in window)) {
+    // Check if we can request notifications
+    if (!canRequestNotifications()) {
+      if (needsPWAInstall()) {
+        // Don't show error - let the settings dialog handle showing the install guide
+        console.log('iOS user needs to install PWA first');
+        return false;
+      }
       toast({
         title: "Notifications not supported",
         description: "Your browser doesn't support push notifications.",
@@ -300,6 +307,9 @@ export function usePushNotifications() {
     permission,
     requestPermission,
     sendTestNotification,
-    isSupported: 'Notification' in window && 'serviceWorker' in navigator
+    isSupported: 'Notification' in window && 'serviceWorker' in navigator,
+    isIOS: isIOS(),
+    isPWAInstalled: isPWAInstalled(),
+    needsPWAInstall: needsPWAInstall(),
   };
 }
