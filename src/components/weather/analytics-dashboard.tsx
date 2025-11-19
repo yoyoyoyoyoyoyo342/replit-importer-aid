@@ -91,6 +91,9 @@ export function AnalyticsDashboard() {
       if (error) throw error;
 
       console.log('Loaded events count:', events?.length, 'for timeRange:', timeRange);
+      if (events && events.length > 0) {
+        console.log('First event:', events[0].created_at, 'Last event:', events[events.length - 1].created_at);
+      }
 
       if (!events || events.length === 0) {
         setStats({
