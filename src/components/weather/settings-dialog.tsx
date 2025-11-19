@@ -88,7 +88,7 @@ export function SettingsDialog({
   const { theme, setTheme } = useTheme();
   const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
-  const { isIOS, isPWAInstalled, needsPWAInstall, requestPermission: requestNotificationPermission } = usePushNotifications();
+  const { isIOS, isPWAInstalled, needsPWAInstall, requestPermission: requestNotificationPermission, sendTestNotification } = usePushNotifications();
   const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
@@ -503,6 +503,32 @@ export function SettingsDialog({
                 </div>
                 <p className="text-xs text-muted-foreground">
                   You'll receive notifications at {notificationTime} daily
+                </p>
+              </div>
+            )}
+
+            {/* Test Notification Button */}
+            {notificationsEnabled && (
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={async () => {
+                    await sendTestNotification({
+                      temperature: 72,
+                      condition: 'Partly Cloudy',
+                      highTemp: 78,
+                      lowTemp: 65,
+                      pollenAlerts: ['Grass pollen: Moderate']
+                    });
+                  }}
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Send Test Notification
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  Test your notification settings with a sample weather update
                 </p>
               </div>
             )}
