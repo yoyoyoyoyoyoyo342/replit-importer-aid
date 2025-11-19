@@ -64,8 +64,27 @@ serve(async (req) => {
     };
 
     const alerts = weatherApiData?.alerts?.alert || [];
+    
+    // Get location info to filter alerts by region
+    const locationName = weatherApiData?.location?.name || '';
+    const locationRegion = weatherApiData?.location?.region || '';
+    const locationCountry = weatherApiData?.location?.country || '';
+
+    // Filter alerts to only include those relevant to the user's location
+    const relevantAlerts = alerts.filter((alert: any) => {
+      const alertAreas = alert.areas?.toLowerCase() || '';
+      const locationLower = locationName.toLowerCase();
+      const regionLower = locationRegion.toLowerCase();
+      
+      // Only include alerts that mention the specific location or region
+      // or if no areas specified, assume it's for the queried location
+      return !alert.areas || 
+             alertAreas.includes(locationLower) || 
+             alertAreas.includes(regionLower);
+    });
 
     console.log('Successfully fetched hyperlocal weather data');
+    console.log(`Filtered ${alerts.length} alerts to ${relevantAlerts.length} relevant alerts for ${locationName}, ${locationRegion}`);
 
     return new Response(
       JSON.stringify({
@@ -80,7 +99,7 @@ serve(async (req) => {
           moonPhase: astronomy.moon_phase,
           moonIllumination: astronomy.moon_illumination,
         },
-        alerts: alerts.map((alert: any) => ({
+        alerts: relevantAlerts.map((alert: any) => ({
           headline: alert.headline,
           severity: alert.severity,
           event: alert.event,
