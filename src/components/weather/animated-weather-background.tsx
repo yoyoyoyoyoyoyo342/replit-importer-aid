@@ -10,6 +10,7 @@ interface AnimatedWeatherBackgroundProps {
 export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhase }: AnimatedWeatherBackgroundProps) {
   const [weatherType, setWeatherType] = useState<'clear' | 'rain' | 'snow' | 'cloudy' | 'storm' | 'sunrise' | 'sunset' | 'night'>('clear');
   const [timeOfDay, setTimeOfDay] = useState<'day' | 'night' | 'sunrise' | 'sunset'>('day');
+  const [showConditionOverlay, setShowConditionOverlay] = useState(false);
 
   // Determine time of day based on sunrise/sunset
   useEffect(() => {
@@ -49,19 +50,34 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
     
     const lowerCondition = condition.toLowerCase();
     
+    // Determine if we should show condition overlay during special times
+    const hasWeatherCondition = 
+      lowerCondition.includes('cloud') || 
+      lowerCondition.includes('overcast') ||
+      lowerCondition.includes('rain') ||
+      lowerCondition.includes('drizzle') ||
+      lowerCondition.includes('snow') ||
+      lowerCondition.includes('sleet') ||
+      lowerCondition.includes('fog') ||
+      lowerCondition.includes('mist');
+    
     // Check for special time of day backgrounds first
     if (timeOfDay === 'sunrise') {
       setWeatherType('sunrise');
+      setShowConditionOverlay(hasWeatherCondition);
       return;
     } else if (timeOfDay === 'sunset') {
       setWeatherType('sunset');
+      setShowConditionOverlay(hasWeatherCondition);
       return;
     } else if (timeOfDay === 'night') {
       setWeatherType('night');
+      setShowConditionOverlay(hasWeatherCondition);
       return;
     }
     
-    // Regular weather conditions
+    // Regular weather conditions during day
+    setShowConditionOverlay(false);
     if (lowerCondition.includes('rain') || lowerCondition.includes('drizzle')) {
       setWeatherType('rain');
     } else if (lowerCondition.includes('snow') || lowerCondition.includes('sleet')) {
@@ -128,6 +144,52 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
           <div className="cloud cloud-1" />
           <div className="cloud cloud-2" />
           <div className="cloud cloud-3" />
+        </>
+      )}
+
+      {/* Condition overlay for night/sunrise/sunset */}
+      {showConditionOverlay && (weatherType === 'night' || weatherType === 'sunrise' || weatherType === 'sunset') && condition && (
+        <>
+          {/* Show clouds for cloudy conditions */}
+          {(condition.toLowerCase().includes('cloud') || condition.toLowerCase().includes('overcast')) && (
+            <>
+              <div className="cloud cloud-1 opacity-60" />
+              <div className="cloud cloud-2 opacity-50" />
+              <div className="cloud cloud-3 opacity-70" />
+            </>
+          )}
+          
+          {/* Show rain overlay */}
+          {(condition.toLowerCase().includes('rain') || condition.toLowerCase().includes('drizzle')) && (
+            <div className="rain-container opacity-70">
+              {Array.from({ length: 30 }).map((_, i) => (
+                <div key={i} className="raindrop" style={{
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 2}s`,
+                  animationDuration: `${0.5 + Math.random() * 0.5}s`
+                }} />
+              ))}
+            </div>
+          )}
+          
+          {/* Show snow overlay */}
+          {(condition.toLowerCase().includes('snow') || condition.toLowerCase().includes('sleet')) && (
+            <div className="snow-container opacity-70">
+              {Array.from({ length: 30 }).map((_, i) => (
+                <div key={i} className="snowflake" style={{
+                  left: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  animationDuration: `${5 + Math.random() * 5}s`,
+                  fontSize: `${10 + Math.random() * 10}px`
+                }}>❄</div>
+              ))}
+            </div>
+          )}
+          
+          {/* Show fog/mist overlay */}
+          {(condition.toLowerCase().includes('fog') || condition.toLowerCase().includes('mist')) && (
+            <div className="fog-overlay" />
+          )}
         </>
       )}
 
@@ -386,6 +448,31 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
           }
         }
         
+        /* Fog overlay */
+        .fog-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to bottom,
+            rgba(200, 200, 220, 0.4) 0%,
+            rgba(220, 220, 230, 0.3) 30%,
+            rgba(200, 200, 220, 0.2) 60%,
+            transparent 100%
+          );
+          animation: fogDrift 8s ease-in-out infinite;
+        }
+        
+        @keyframes fogDrift {
+          0%, 100% {
+            opacity: 0.5;
+            transform: translateX(0);
+          }
+          50% {
+            opacity: 0.7;
+            transform: translateX(-20px);
+          }
+        }
+        
         .rain-container {
           position: absolute;
           inset: 0;
@@ -438,6 +525,31 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
         @keyframes flash {
           0%, 100% { background: rgba(255, 255, 255, 0); }
           2%, 4% { background: rgba(255, 255, 255, 0.6); }
+        }
+        
+        /* Fog overlay */
+        .fog-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to bottom,
+            rgba(200, 200, 220, 0.4) 0%,
+            rgba(220, 220, 230, 0.3) 30%,
+            rgba(200, 200, 220, 0.2) 60%,
+            transparent 100%
+          );
+          animation: fogDrift 8s ease-in-out infinite;
+        }
+        
+        @keyframes fogDrift {
+          0%, 100% {
+            opacity: 0.5;
+            transform: translateX(0);
+          }
+          50% {
+            opacity: 0.7;
+            transform: translateX(-20px);
+          }
         }
       `}</style>
     </div>
