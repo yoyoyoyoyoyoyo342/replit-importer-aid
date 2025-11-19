@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -17,6 +17,8 @@ import { FeedbackForm } from "./feedback-form";
 import { useTheme } from "@/components/theme-provider";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { useNavigate } from "react-router-dom";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { IOSInstallGuide } from "@/components/ui/ios-install-guide";
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
@@ -86,6 +88,8 @@ export function SettingsDialog({
   const { theme, setTheme } = useTheme();
   const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
+  const { isIOS, isPWAInstalled, needsPWAInstall, requestPermission: requestNotificationPermission } = usePushNotifications();
+  const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
   const [notifySettings, setNotifySettings] = useState({
@@ -131,6 +135,21 @@ export function SettingsDialog({
 
   async function updateNotificationSettings(enabled: boolean, time?: string) {
     if (!user) return;
+
+    // If user is on iOS and not installed, show install guide instead
+    if (enabled && needsPWAInstall) {
+      setShowIOSInstallGuide(true);
+      return;
+    }
+
+    // Request browser notification permission if enabling
+    if (enabled && !needsPWAInstall) {
+      const permissionGranted = await requestNotificationPermission();
+      if (!permissionGranted) {
+        setNotificationsEnabled(false);
+        return;
+      }
+    }
 
     try {
       const updates: any = { notification_enabled: enabled };
@@ -233,12 +252,14 @@ export function SettingsDialog({
       });
     }
   };
-  return <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-foreground hover:text-primary rounded-xl">
-          <Settings className="w-5 h-5" />
-        </Button>
-      </DialogTrigger>
+  return (
+    <>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon" className="text-foreground hover:text-primary rounded-xl">
+            <Settings className="w-5 h-5" />
+          </Button>
+        </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -409,6 +430,33 @@ export function SettingsDialog({
           <div className="space-y-4">
             <Label className="text-base font-medium">Notifications</Label>
             
+            {/* iOS PWA Installation Status */}
+            {isIOS && (
+              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    {isPWAInstalled ? 'PWA Installed ✓' : 'Installation Required'}
+                  </span>
+                </div>
+                <p className="text-xs text-blue-600/90 dark:text-blue-400/90">
+                  {isPWAInstalled 
+                    ? 'Rainz is installed. You can enable notifications below.'
+                    : 'Notifications only work when Rainz is installed to your home screen.'}
+                </p>
+                {!isPWAInstalled && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowIOSInstallGuide(true)}
+                    className="w-full mt-2 border-blue-500/30 hover:bg-blue-500/10"
+                  >
+                    View Installation Instructions
+                  </Button>
+                )}
+              </div>
+            )}
+            
             {/* Enable Notifications */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -418,7 +466,7 @@ export function SettingsDialog({
                 </div>
                 <Switch 
                   checked={notificationsEnabled}
-                  disabled={loadingNotifications}
+                  disabled={loadingNotifications || (isIOS && !isPWAInstalled)}
                   onCheckedChange={(checked) => {
                     setNotificationsEnabled(checked);
                     updateNotificationSettings(checked);
@@ -428,7 +476,9 @@ export function SettingsDialog({
               <p className="text-xs text-muted-foreground">
                 {notificationsEnabled 
                   ? 'Receive AI-powered morning weather updates' 
-                  : 'Enable to get daily weather notifications'}
+                  : isIOS && !isPWAInstalled
+                    ? 'Install Rainz to enable notifications'
+                    : 'Enable to get daily weather notifications'}
               </p>
             </div>
 
@@ -545,5 +595,13 @@ export function SettingsDialog({
           )}
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+    
+    {/* iOS Install Guide Dialog */}
+    <IOSInstallGuide 
+      open={showIOSInstallGuide} 
+      onOpenChange={setShowIOSInstallGuide} 
+    />
+    </>
+  );
 }
