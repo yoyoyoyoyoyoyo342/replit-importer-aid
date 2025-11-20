@@ -1,4 +1,5 @@
 import { PollenWheel } from "./pollen-wheel";
+import { SnowIndex } from "./snow-index";
 
 interface PollenCardProps {
   pollenData?: {
@@ -10,10 +11,34 @@ interface PollenCardProps {
     ragweed: number;
   };
   userId?: string;
+  temperature?: number;
+  windSpeed?: number;
+  feelsLike?: number;
 }
 
-export function PollenCard({ pollenData, userId }: PollenCardProps) {
+export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike }: PollenCardProps) {
   if (!pollenData) return null;
+
+  // Determine if we're in winter season (December, January, February)
+  const currentMonth = new Date().getMonth(); // 0-11
+  const isWinterSeason = currentMonth === 11 || currentMonth === 0 || currentMonth === 1;
+
+  // If it's winter and we have temperature data, show snow index instead
+  if (isWinterSeason && temperature !== undefined) {
+    const snowData = {
+      snowfall: 0, // This would come from weather API in real implementation
+      snowDepth: 0,
+      temperature: temperature,
+      windChill: feelsLike || temperature,
+      iceRisk: temperature <= 32 ? Math.min(100, (32 - temperature) * 8) : 0
+    };
+
+    return (
+      <div className="glass-card rounded-2xl shadow-lg border border-border p-4">
+        <SnowIndex snowData={snowData} />
+      </div>
+    );
+  }
 
   return (
     <div className="glass-card rounded-2xl shadow-lg border border-border p-4">

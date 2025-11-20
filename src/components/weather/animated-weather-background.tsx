@@ -206,18 +206,38 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
         </div>
       )}
 
-      {/* Snow animation */}
+      {/* Snow animation with snowman */}
       {weatherType === 'snow' && (
-        <div className="snow-container">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div key={i} className="snowflake" style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${5 + Math.random() * 5}s`,
-              fontSize: `${10 + Math.random() * 10}px`
-            }}>❄</div>
-          ))}
-        </div>
+        <>
+          <div className="snow-container">
+            {Array.from({ length: 60 }).map((_, i) => (
+              <div key={i} className="snowflake" style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${5 + Math.random() * 5}s`,
+                fontSize: `${10 + Math.random() * 15}px`,
+                opacity: 0.7 + Math.random() * 0.3
+              }}>❄</div>
+            ))}
+          </div>
+          {/* Snowman in bottom right */}
+          <div className="snowman">
+            <div className="snowman-head">
+              <div className="snowman-eye snowman-eye-left">•</div>
+              <div className="snowman-eye snowman-eye-right">•</div>
+              <div className="snowman-carrot"></div>
+              <div className="snowman-smile">⌣</div>
+            </div>
+            <div className="snowman-body">
+              <div className="snowman-button snowman-button-1">•</div>
+              <div className="snowman-button snowman-button-2">•</div>
+              <div className="snowman-button snowman-button-3">•</div>
+            </div>
+            <div className="snowman-bottom"></div>
+            <div className="snowman-arm snowman-arm-left"></div>
+            <div className="snowman-arm snowman-arm-right"></div>
+          </div>
+        </>
       )}
 
       {/* Lightning for storm */}
@@ -550,6 +570,138 @@ export function AnimatedWeatherBackground({ condition, sunrise, sunset, moonPhas
             opacity: 0.7;
             transform: translateX(-20px);
           }
+        }
+        
+        /* Snowman */
+        .snowman {
+          position: absolute;
+          bottom: 5%;
+          right: 8%;
+          z-index: 5;
+          animation: snowmanWave 3s ease-in-out infinite;
+        }
+        
+        @keyframes snowmanWave {
+          0%, 100% { transform: rotate(-2deg); }
+          50% { transform: rotate(2deg); }
+        }
+        
+        .snowman-head {
+          position: relative;
+          width: 50px;
+          height: 50px;
+          background: white;
+          border-radius: 50%;
+          margin: 0 auto 5px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .snowman-eye {
+          position: absolute;
+          top: 15px;
+          width: 6px;
+          height: 6px;
+          background: black;
+          border-radius: 50%;
+          font-size: 16px;
+          line-height: 0;
+        }
+        
+        .snowman-eye-left {
+          left: 13px;
+        }
+        
+        .snowman-eye-right {
+          right: 13px;
+        }
+        
+        .snowman-carrot {
+          position: absolute;
+          top: 23px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 0;
+          height: 0;
+          border-left: 4px solid transparent;
+          border-right: 4px solid transparent;
+          border-top: 12px solid #ff6b35;
+          border-radius: 2px;
+        }
+        
+        .snowman-smile {
+          position: absolute;
+          bottom: 8px;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 20px;
+          color: black;
+        }
+        
+        .snowman-body {
+          position: relative;
+          width: 70px;
+          height: 70px;
+          background: white;
+          border-radius: 50%;
+          margin: 0 auto 5px;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .snowman-button {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 6px;
+          height: 6px;
+          background: black;
+          border-radius: 50%;
+          font-size: 12px;
+        }
+        
+        .snowman-button-1 { top: 20px; }
+        .snowman-button-2 { top: 35px; }
+        .snowman-button-3 { top: 50px; }
+        
+        .snowman-bottom {
+          width: 90px;
+          height: 90px;
+          background: white;
+          border-radius: 50%;
+          margin: 0 auto;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .snowman-arm {
+          position: absolute;
+          width: 40px;
+          height: 3px;
+          background: #8b4513;
+          border-radius: 2px;
+          top: 100px;
+        }
+        
+        .snowman-arm-left {
+          left: -15px;
+          transform: rotate(-25deg);
+          transform-origin: right center;
+          animation: armWaveLeft 3s ease-in-out infinite;
+        }
+        
+        .snowman-arm-right {
+          right: -15px;
+          transform: rotate(25deg);
+          transform-origin: left center;
+          animation: armWaveRight 3s ease-in-out infinite;
+        }
+        
+        @keyframes armWaveLeft {
+          0%, 100% { transform: rotate(-25deg); }
+          50% { transform: rotate(-35deg); }
+        }
+        
+        @keyframes armWaveRight {
+          0%, 100% { transform: rotate(25deg); }
+          50% { transform: rotate(35deg); }
         }
       `}</style>
     </div>

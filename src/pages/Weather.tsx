@@ -472,6 +472,9 @@ export default function WeatherPage() {
                       <PollenCard 
                         pollenData={weatherData.mostAccurate.currentWeather.pollenData}
                         userId={user?.id}
+                        temperature={weatherData.mostAccurate.currentWeather.temperature}
+                        windSpeed={weatherData.mostAccurate.currentWeather.windSpeed}
+                        feelsLike={weatherData.mostAccurate.currentWeather.feelsLike}
                       />
                     </div>
                   ) : null;
