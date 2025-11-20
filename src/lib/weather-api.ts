@@ -150,7 +150,11 @@ export const weatherApi = {
     const data: any = await res.json();
     console.log("Weather data received:", data);
 
-    const weatherCodeToText = (code?: number): string => {
+    const weatherCodeToText = (code?: number, temp?: number, snowfall?: number): string => {
+      // If temperature is at or below freezing and there's precipitation, it's likely snow
+      const isFreezing = temp !== undefined && temp <= 32;
+      const hasSnow = snowfall !== undefined && snowfall > 0;
+      
       switch (code) {
         case 0: return "Clear";
         case 1:
@@ -160,16 +164,16 @@ export const weatherApi = {
         case 48: return "Fog";
         case 51:
         case 53:
-        case 55: return "Drizzle";
+        case 55: return (isFreezing || hasSnow) ? "Snow" : "Drizzle";
         case 61:
         case 63:
-        case 65: return "Rain";
+        case 65: return (isFreezing || hasSnow) ? "Snow" : "Rain";
         case 71:
         case 73:
         case 75: return "Snow";
         case 80:
         case 81:
-        case 82: return "Showers";
+        case 82: return (isFreezing || hasSnow) ? "Snow" : "Showers";
         case 95:
         case 96:
         case 99: return "Thunderstorm";
@@ -401,10 +405,13 @@ export const weatherApi = {
     const snowfallCm = Math.round(currentSnow * 10) / 10; // Current hourly snowfall in cm
     const snowDepthInches = Math.round((todaySnowfall / 2.54) * 10) / 10; // Convert cm to inches
 
+    const currentTemp = Math.round(data?.current_weather?.temperature ?? 0);
+    const currentCondition = weatherCodeToText(data?.current_weather?.weathercode, currentTemp, Math.round((currentSnow / 2.54) * 10) / 10);
+    
     const current: CurrentWeather = {
-      temperature: Math.round(data?.current_weather?.temperature ?? 0),
-      condition: weatherCodeToText(data?.current_weather?.weathercode),
-      description: weatherCodeToText(data?.current_weather?.weathercode),
+      temperature: currentTemp,
+      condition: currentCondition,
+      description: currentCondition,
       humidity: Math.round(data?.hourly?.relative_humidity_2m?.[idx] ?? 0),
       windSpeed: Math.round(data?.hourly?.wind_speed_10m?.[idx] ?? (data?.current_weather?.windspeed ?? 0) * 0.621371),
       windDirection: Math.round(data?.hourly?.wind_direction_10m?.[idx] ?? data?.current_weather?.winddirection ?? 0),
@@ -464,10 +471,13 @@ export const weatherApi = {
       const snow = data?.hourly?.snowfall?.[j] ?? 0;
       const totalPrecip = Math.round((precip + rain + showers + snow) * 10) / 10;
       
+      const hourTemp = Math.round(data?.hourly?.temperature_2m?.[j] ?? 0);
+      const hourSnow = Math.round((snow / 2.54) * 10) / 10; // Convert to inches
+      
       return {
         time: hourDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        temperature: Math.round(data?.hourly?.temperature_2m?.[j] ?? 0),
-        condition: weatherCodeToText(data?.hourly?.weathercode?.[j]),
+        temperature: hourTemp,
+        condition: weatherCodeToText(data?.hourly?.weathercode?.[j], hourTemp, hourSnow),
         precipitation: Math.max(precipProb, totalPrecip > 0 ? Math.min(100, totalPrecip * 20) : 0),
         icon: "",
       };
@@ -482,12 +492,17 @@ export const weatherApi = {
       const snowSum = data?.daily?.snowfall_sum?.[i] ?? 0;
       const totalPrecip = precipSum + rainSum + showersSum + snowSum;
       
+      const dayHighTemp = Math.round(data?.daily?.temperature_2m_max?.[i] ?? 0);
+      const dayLowTemp = Math.round(data?.daily?.temperature_2m_min?.[i] ?? 0);
+      const dayAvgTemp = Math.round((dayHighTemp + dayLowTemp) / 2);
+      const daySnow = Math.round((snowSum / 2.54) * 10) / 10; // Convert to inches
+      
       return {
         day: new Date(d).toLocaleDateString([], { weekday: "short" }),
-        condition: weatherCodeToText(data?.daily?.weathercode?.[i]),
-        description: weatherCodeToText(data?.daily?.weathercode?.[i]),
-        highTemp: Math.round(data?.daily?.temperature_2m_max?.[i] ?? 0),
-        lowTemp: Math.round(data?.daily?.temperature_2m_min?.[i] ?? 0),
+        condition: weatherCodeToText(data?.daily?.weathercode?.[i], dayAvgTemp, daySnow),
+        description: weatherCodeToText(data?.daily?.weathercode?.[i], dayAvgTemp, daySnow),
+        highTemp: dayHighTemp,
+        lowTemp: dayLowTemp,
         precipitation: Math.max(precipProb, totalPrecip > 0 ? Math.min(100, totalPrecip * 5) : 0),
         icon: "",
       };
