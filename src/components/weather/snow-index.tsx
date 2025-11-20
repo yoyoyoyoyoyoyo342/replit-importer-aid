@@ -10,9 +10,10 @@ interface SnowIndexProps {
     windChill: number;
     iceRisk: number;
   };
+  isImperial?: boolean;
 }
 
-export function SnowIndex({ snowData }: SnowIndexProps) {
+export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
   if (!snowData) {
     return (
       <Card className="h-full">
@@ -51,16 +52,19 @@ export function SnowIndex({ snowData }: SnowIndexProps) {
   const snowfallLevel = getSnowfallLevel(snowData.snowfall);
   const iceRiskLevel = getIceRiskLevel(snowData.iceRisk);
 
+  const unit = isImperial ? '"' : 'cm';
+  const tempUnit = isImperial ? '°F' : '°C';
+  
   const snowMetrics = [
     {
       name: 'Snowfall',
-      value: `${snowData.snowfall.toFixed(1)}"`,
+      value: `${snowData.snowfall.toFixed(1)}${unit}`,
       level: snowfallLevel,
       icon: '❄️'
     },
     {
       name: 'Snow Depth',
-      value: `${snowData.snowDepth.toFixed(1)}"`,
+      value: `${snowData.snowDepth.toFixed(1)}${unit}`,
       level: getSnowfallLevel(snowData.snowDepth),
       icon: '🌨️'
     },
@@ -72,10 +76,10 @@ export function SnowIndex({ snowData }: SnowIndexProps) {
     },
     {
       name: 'Wind Chill',
-      value: `${Math.round(snowData.windChill)}°`,
+      value: `${Math.round(snowData.windChill)}${tempUnit}`,
       level: { 
-        label: snowData.windChill < 0 ? 'Dangerous' : 'Cold', 
-        color: snowData.windChill < 0 ? 'bg-purple-700' : 'bg-blue-500' 
+        label: snowData.windChill < (isImperial ? 0 : -18) ? 'Dangerous' : 'Cold', 
+        color: snowData.windChill < (isImperial ? 0 : -18) ? 'bg-purple-700' : 'bg-blue-500' 
       },
       icon: '🌬️'
     }

@@ -150,10 +150,21 @@ export const weatherApi = {
     const data: any = await res.json();
     console.log("Weather data received:", data);
 
-    const weatherCodeToText = (code?: number, temp?: number, snowfall?: number): string => {
-      // Treat near-freezing precipitation as snow to better match real conditions
-      const isFreezing = temp !== undefined && temp <= 35; // use 35°F threshold for wet snow
+    const weatherCodeToText = (code?: number, temp?: number, snowfall?: number, humidity?: number, windSpeed?: number): string => {
+      // Enhanced snow detection considering multiple factors
       const hasSnow = snowfall !== undefined && snowfall > 0;
+      const isFreezing = temp !== undefined && temp <= 37; // 37°F threshold for wet snow
+      const isVeryWet = humidity !== undefined && humidity > 85; // High humidity suggests wet precip
+      const isWindy = windSpeed !== undefined && windSpeed > 15; // Wind affects precipitation type
+      
+      // Snow probability scoring system
+      const snowScore = 
+        (hasSnow ? 3 : 0) + // Actual snowfall is strongest indicator
+        (temp !== undefined && temp <= 32 ? 2 : temp !== undefined && temp <= 37 ? 1 : 0) + // Temperature factor
+        (isVeryWet && isFreezing ? 1 : 0) + // Wet + cold = likely snow
+        (isWindy && isFreezing ? 1 : 0); // Wind + cold = blowing snow
+      
+      const isSnowing = snowScore >= 3; // Need strong evidence for snow
       
       switch (code) {
         case 0: return "Clear";
@@ -164,16 +175,16 @@ export const weatherApi = {
         case 48: return "Fog";
         case 51:
         case 53:
-        case 55: return (isFreezing || hasSnow) ? "Snow" : "Drizzle";
+        case 55: return isSnowing ? "Snow" : "Drizzle";
         case 61:
         case 63:
-        case 65: return (isFreezing || hasSnow) ? "Snow" : "Rain";
+        case 65: return isSnowing ? "Snow" : "Rain";
         case 71:
         case 73:
         case 75: return "Snow";
         case 80:
         case 81:
-        case 82: return (isFreezing || hasSnow) ? "Snow" : "Showers";
+        case 82: return isSnowing ? "Snow" : "Showers";
         case 95:
         case 96:
         case 99: return "Thunderstorm";
@@ -406,7 +417,15 @@ export const weatherApi = {
     const snowDepthInches = Math.round((todaySnowfall / 2.54) * 10) / 10; // Convert cm to inches
 
     const currentTemp = Math.round(data?.current_weather?.temperature ?? 0);
-    const currentCondition = weatherCodeToText(data?.current_weather?.weathercode, currentTemp, Math.round((currentSnow / 2.54) * 10) / 10);
+    const currentHumidity = Math.round(data?.hourly?.relative_humidity_2m?.[idx] ?? 0);
+    const currentWindSpeed = Math.round(data?.hourly?.wind_speed_10m?.[idx] ?? (data?.current_weather?.windspeed ?? 0) * 0.621371);
+    const currentCondition = weatherCodeToText(
+      data?.current_weather?.weathercode, 
+      currentTemp, 
+      Math.round((currentSnow / 2.54) * 10) / 10,
+      currentHumidity,
+      currentWindSpeed
+    );
     
     const current: CurrentWeather = {
       temperature: currentTemp,
