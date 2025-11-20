@@ -16,9 +16,10 @@ interface PollenCardProps {
   feelsLike?: number;
   snowfall?: number;
   snowDepth?: number;
+  isImperial?: boolean;
 }
 
-export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth }: PollenCardProps) {
+export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth, isImperial = false }: PollenCardProps) {
   if (!pollenData) return null;
 
   // Determine if we're in winter season (November 20th to February)
@@ -43,7 +44,7 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
 
     return (
       <div className="glass-card rounded-2xl shadow-lg border border-border p-4">
-        <SnowIndex snowData={snowData} />
+        <SnowIndex snowData={snowData} isImperial={isImperial} />
       </div>
     );
   }
