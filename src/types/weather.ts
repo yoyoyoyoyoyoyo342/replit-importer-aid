@@ -42,6 +42,8 @@ export interface CurrentWeather {
   precipitationProbability?: number;
   cloudCover?: number;
   windGusts?: number;
+  snowfall?: number;
+  snowDepth?: number;
 }
 
 export interface HourlyForecast {
