@@ -14,10 +14,11 @@ interface PollenCardProps {
   temperature?: number;
   windSpeed?: number;
   feelsLike?: number;
-  dailySnowfall?: number;
+  snowfall?: number;
+  snowDepth?: number;
 }
 
-export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, dailySnowfall }: PollenCardProps) {
+export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth }: PollenCardProps) {
   if (!pollenData) return null;
 
   // Determine if we're in winter season (November 20th to February)
@@ -33,8 +34,8 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
   // If it's winter and we have temperature data, show snow index instead
   if (isWinterSeason && temperature !== undefined) {
     const snowData = {
-      snowfall: dailySnowfall || 0,
-      snowDepth: dailySnowfall || 0, // Cumulative would require tracking
+      snowfall: snowfall || 0,
+      snowDepth: snowDepth || 0,
       temperature: temperature,
       windChill: feelsLike || temperature,
       iceRisk: temperature <= 32 ? Math.min(100, (32 - temperature) * 8) : 0

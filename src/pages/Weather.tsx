@@ -475,7 +475,8 @@ export default function WeatherPage() {
                         temperature={weatherData.mostAccurate.currentWeather.temperature}
                         windSpeed={weatherData.mostAccurate.currentWeather.windSpeed}
                         feelsLike={weatherData.mostAccurate.currentWeather.feelsLike}
-                        dailySnowfall={weatherData.mostAccurate.dailyForecast[0]?.precipitation || 0}
+                        snowfall={weatherData.mostAccurate.currentWeather.snowfall}
+                        snowDepth={weatherData.mostAccurate.currentWeather.snowDepth}
                       />
                     </div>
                   ) : null;

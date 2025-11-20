@@ -396,6 +396,11 @@ export const weatherApi = {
     // More accurate precipitation calculation
     const totalPrecipitation = Math.round((currentPrecip + currentRain + currentShowers + currentSnow) * 10) / 10;
 
+    // Calculate snow depth (sum of snowfall from today)
+    const todaySnowfall = data?.daily?.snowfall_sum?.[0] ?? 0;
+    const snowfallCm = Math.round(currentSnow * 10) / 10; // Current hourly snowfall in cm
+    const snowDepthInches = Math.round((todaySnowfall / 2.54) * 10) / 10; // Convert cm to inches
+
     const current: CurrentWeather = {
       temperature: Math.round(data?.current_weather?.temperature ?? 0),
       condition: weatherCodeToText(data?.current_weather?.weathercode),
@@ -420,6 +425,8 @@ export const weatherApi = {
       precipitationProbability: currentPrecipProb,
       cloudCover: Math.round(data?.hourly?.cloud_cover?.[idx] ?? 0),
       windGusts: Math.round(data?.hourly?.wind_gusts_10m?.[idx] ?? 0),
+      snowfall: Math.round((snowfallCm / 2.54) * 10) / 10, // Convert cm to inches
+      snowDepth: snowDepthInches,
     };
 
     console.log("Processed current weather:", {
