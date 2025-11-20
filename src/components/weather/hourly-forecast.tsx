@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Clock, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, Snowflake, CloudLightning, CloudFog, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -20,7 +20,7 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
     if (c.includes("thunder")) return <CloudLightning className="w-6 h-6 text-primary" />;
     if (c.includes("drizzle")) return <CloudDrizzle className="w-6 h-6 text-primary" />;
     if (c.includes("shower") || c.includes("rain")) return <CloudRain className="w-6 h-6 text-primary" />;
-    if (c.includes("snow")) return <CloudSnow className="w-6 h-6 text-primary" />;
+    if (c.includes("snow")) return <Snowflake className="w-6 h-6 text-primary" />;
     if (c.includes("fog")) return <CloudFog className="w-6 h-6 text-primary" />;
     if (c.includes("partly") || c.includes("sun")) return <CloudSun className="w-6 h-6 text-primary" />;
     if (c.includes("cloud")) return <Cloud className="w-6 h-6 text-primary" />;
