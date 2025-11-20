@@ -19,9 +19,15 @@ interface PollenCardProps {
 export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike }: PollenCardProps) {
   if (!pollenData) return null;
 
-  // Determine if we're in winter season (December, January, February)
-  const currentMonth = new Date().getMonth(); // 0-11
-  const isWinterSeason = currentMonth === 11 || currentMonth === 0 || currentMonth === 1;
+  // Determine if we're in winter season (November 20th to February)
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-11
+  const currentDate = now.getDate();
+  const isWinterSeason = 
+    (currentMonth === 10 && currentDate >= 20) || // November 20th onwards
+    currentMonth === 11 || // December
+    currentMonth === 0 || // January
+    currentMonth === 1; // February
 
   // If it's winter and we have temperature data, show snow index instead
   if (isWinterSeason && temperature !== undefined) {
