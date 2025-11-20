@@ -151,8 +151,8 @@ export const weatherApi = {
     console.log("Weather data received:", data);
 
     const weatherCodeToText = (code?: number, temp?: number, snowfall?: number): string => {
-      // If temperature is at or below freezing and there's precipitation, it's likely snow
-      const isFreezing = temp !== undefined && temp <= 32;
+      // Treat near-freezing precipitation as snow to better match real conditions
+      const isFreezing = temp !== undefined && temp <= 35; // use 35°F threshold for wet snow
       const hasSnow = snowfall !== undefined && snowfall > 0;
       
       switch (code) {
