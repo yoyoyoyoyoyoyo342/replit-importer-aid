@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CalendarDays, Droplets, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { CalendarDays, Droplets, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, Snowflake, CloudLightning, CloudFog, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DailyForecast, WeatherSource, HourlyForecast } from "@/types/weather";
@@ -21,7 +21,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
     if (c.includes("thunder")) return <CloudLightning className="w-7 h-7 text-primary" />;
     if (c.includes("drizzle")) return <CloudDrizzle className="w-7 h-7 text-primary" />;
     if (c.includes("shower") || c.includes("rain")) return <CloudRain className="w-7 h-7 text-primary" />;
-    if (c.includes("snow")) return <CloudSnow className="w-7 h-7 text-primary" />;
+    if (c.includes("snow")) return <Snowflake className="w-7 h-7 text-primary" />;
     if (c.includes("fog")) return <CloudFog className="w-7 h-7 text-primary" />;
     if (c.includes("partly") || c.includes("sun")) return <CloudSun className="w-7 h-7 text-primary" />;
     if (c.includes("cloud")) return <Cloud className="w-7 h-7 text-primary" />;

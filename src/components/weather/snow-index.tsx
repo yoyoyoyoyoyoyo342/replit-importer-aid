@@ -80,6 +80,15 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
     ? actualSnowDepth
     : actualSnowDepth * 2.54; // inches -> cm
   
+  // Convert temperature and wind chill from Fahrenheit to Celsius if needed
+  const temperatureDisplay = isImperial
+    ? snowData.temperature
+    : (snowData.temperature - 32) * 5 / 9;
+  
+  const windChillDisplay = isImperial
+    ? snowData.windChill
+    : (snowData.windChill - 32) * 5 / 9;
+  
   const snowMetrics = [
     {
       name: 'Snowfall',
@@ -101,10 +110,10 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
     },
     {
       name: 'Wind Chill',
-      value: `${Math.round(snowData.windChill)}${tempUnit}`,
+      value: `${Math.round(windChillDisplay)}${tempUnit}`,
       level: { 
-        label: snowData.windChill < (isImperial ? 0 : -18) ? 'Dangerous' : 'Cold', 
-        color: snowData.windChill < (isImperial ? 0 : -18) ? 'bg-purple-700' : 'bg-blue-500' 
+        label: windChillDisplay < (isImperial ? 0 : -18) ? 'Dangerous' : 'Cold', 
+        color: windChillDisplay < (isImperial ? 0 : -18) ? 'bg-purple-700' : 'bg-blue-500' 
       },
       icon: '🌬️'
     }
