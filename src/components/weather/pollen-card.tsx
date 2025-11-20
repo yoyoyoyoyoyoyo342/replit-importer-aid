@@ -18,9 +18,16 @@ interface PollenCardProps {
   snowDepth?: number;
   condition?: string;
   isImperial?: boolean;
+  hyperlocalSnow?: {
+    snowIntensity?: number;
+    snowAccumulation?: number;
+    iceAccumulation?: number;
+    temperature?: number;
+    windChill?: number;
+  };
 }
 
-export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth, condition, isImperial = false }: PollenCardProps) {
+export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth, condition, isImperial = false, hyperlocalSnow }: PollenCardProps) {
   if (!pollenData) return null;
 
   // Determine if we're in winter season (November 20th to February)
@@ -35,7 +42,23 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
 
   // If it's winter and we have temperature data, show snow index instead
   if (isWinterSeason && temperature !== undefined) {
+    // Use Tomorrow.io hyperlocal data if available, otherwise fall back to Open-Meteo
     let effectiveSnowfall = snowfall || 0;
+    let effectiveSnowDepth = snowDepth || 0;
+    let effectiveIceRisk = temperature <= 32 ? Math.min(100, (32 - temperature) * 8) : 0;
+
+    // Prioritize Tomorrow.io data
+    if (hyperlocalSnow?.snowIntensity !== undefined && hyperlocalSnow.snowIntensity > 0) {
+      effectiveSnowfall = hyperlocalSnow.snowIntensity;
+    }
+    
+    if (hyperlocalSnow?.snowAccumulation !== undefined && hyperlocalSnow.snowAccumulation > 0) {
+      effectiveSnowDepth = hyperlocalSnow.snowAccumulation;
+    }
+
+    if (hyperlocalSnow?.iceAccumulation !== undefined && hyperlocalSnow.iceAccumulation > 0) {
+      effectiveIceRisk = Math.min(100, hyperlocalSnow.iceAccumulation * 100);
+    }
 
     // If API snowfall is zero but condition says snow, assume light snow
     if (effectiveSnowfall === 0 && condition?.toLowerCase().includes("snow")) {
@@ -44,10 +67,13 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
 
     const snowData = {
       snowfall: effectiveSnowfall,
-      snowDepth: snowDepth || 0,
-      temperature: temperature,
-      windChill: feelsLike || temperature,
-      iceRisk: temperature <= 32 ? Math.min(100, (32 - temperature) * 8) : 0
+      snowDepth: effectiveSnowDepth,
+      temperature: hyperlocalSnow?.temperature || temperature,
+      windChill: hyperlocalSnow?.windChill || feelsLike || temperature,
+      iceRisk: effectiveIceRisk,
+      snowIntensity: hyperlocalSnow?.snowIntensity,
+      snowAccumulation: hyperlocalSnow?.snowAccumulation,
+      iceAccumulation: hyperlocalSnow?.iceAccumulation,
     };
 
     return (

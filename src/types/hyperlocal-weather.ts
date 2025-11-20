@@ -36,10 +36,19 @@ export interface WeatherAlert {
   description: string;
 }
 
+export interface SnowData {
+  snowIntensity: number; // inches/hour
+  snowAccumulation: number; // inches
+  iceAccumulation: number; // inches
+  temperature: number;
+  windChill: number;
+}
+
 export interface HyperlocalWeatherData {
   minuteByMinute: MinuteByMinute[];
   pollen: PollenData | null;
   aqi: AQIData | null;
   astronomy: AstronomyData | null;
+  snow: SnowData | null;
   alerts: WeatherAlert[];
 }

@@ -42,6 +42,16 @@ serve(async (req) => {
       precipitationProbability: item.values.precipitationProbability || 0,
     })) || [];
 
+    // Extract snow-specific data from Tomorrow.io hourly data
+    const hourlyData = tomorrowData?.timelines?.hourly?.[0]?.values || {};
+    const snowData = {
+      snowIntensity: hourlyData.snowIntensity || 0, // inches/hour
+      snowAccumulation: hourlyData.snowAccumulation || 0, // inches
+      iceAccumulation: hourlyData.iceAccumulation || 0, // inches
+      temperature: hourlyData.temperature || current.temp_f || 0,
+      windChill: hourlyData.windChill || current.feelslike_f || 0,
+    };
+
     // Parse WeatherAPI data
     const current = weatherApiData?.current || {};
     const forecast = weatherApiData?.forecast?.forecastday || [];
@@ -99,6 +109,7 @@ serve(async (req) => {
           moonPhase: astronomy.moon_phase,
           moonIllumination: astronomy.moon_illumination,
         },
+        snow: snowData,
         alerts: relevantAlerts.map((alert: any) => ({
           headline: alert.headline,
           severity: alert.severity,
@@ -119,6 +130,7 @@ serve(async (req) => {
         pollen: null,
         aqi: null,
         astronomy: null,
+        snow: null,
         alerts: [],
       }),
       {
