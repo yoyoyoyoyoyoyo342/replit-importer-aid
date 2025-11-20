@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Snowflake } from "lucide-react";
-import { useLanguage } from "@/contexts/language-context";
 
 interface SnowIndexProps {
   snowData?: {
@@ -14,22 +13,20 @@ interface SnowIndexProps {
 }
 
 export function SnowIndex({ snowData }: SnowIndexProps) {
-  const { t } = useLanguage();
-
   if (!snowData) {
     return (
       <Card className="h-full">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Snowflake className="w-5 h-5" />
-            {t('snow.snowIndex') || 'Snow Index'}
+            Snow Index
           </CardTitle>
-          <CardDescription>{t('snow.liveData') || 'Live winter conditions'}</CardDescription>
+          <CardDescription>Live winter conditions</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
-            <div>{t('snow.noData') || 'No snow data available'}</div>
-            <div className="text-xs mt-1">{t('snow.locationRequired') || 'Location required'}</div>
+            <div>No snow data available</div>
+            <div className="text-xs mt-1">Location required</div>
           </div>
         </CardContent>
       </Card>
@@ -37,18 +34,18 @@ export function SnowIndex({ snowData }: SnowIndexProps) {
   }
 
   const getSnowfallLevel = (value: number) => {
-    if (value === 0) return { label: t('snow.noSnow') || 'No Snow', color: 'bg-green-500' };
-    if (value < 0.5) return { label: t('snow.light') || 'Light', color: 'bg-blue-300' };
-    if (value < 2) return { label: t('snow.moderate') || 'Moderate', color: 'bg-blue-500' };
-    if (value < 6) return { label: t('snow.heavy') || 'Heavy', color: 'bg-blue-700' };
-    return { label: t('snow.extreme') || 'Extreme', color: 'bg-purple-700' };
+    if (value === 0) return { label: 'No Snow', color: 'bg-green-500' };
+    if (value < 0.5) return { label: 'Light', color: 'bg-blue-300' };
+    if (value < 2) return { label: 'Moderate', color: 'bg-blue-500' };
+    if (value < 6) return { label: 'Heavy', color: 'bg-blue-700' };
+    return { label: 'Extreme', color: 'bg-purple-700' };
   };
 
   const getIceRiskLevel = (value: number) => {
-    if (value < 20) return { label: t('snow.lowRisk') || 'Low Risk', color: 'bg-green-500' };
-    if (value < 50) return { label: t('snow.mediumRisk') || 'Medium Risk', color: 'bg-yellow-500' };
-    if (value < 80) return { label: t('snow.highRisk') || 'High Risk', color: 'bg-orange-500' };
-    return { label: t('snow.extremeRisk') || 'Extreme Risk', color: 'bg-red-500' };
+    if (value < 20) return { label: 'Low Risk', color: 'bg-green-500' };
+    if (value < 50) return { label: 'Medium Risk', color: 'bg-yellow-500' };
+    if (value < 80) return { label: 'High Risk', color: 'bg-orange-500' };
+    return { label: 'Extreme Risk', color: 'bg-red-500' };
   };
 
   const snowfallLevel = getSnowfallLevel(snowData.snowfall);
@@ -56,28 +53,28 @@ export function SnowIndex({ snowData }: SnowIndexProps) {
 
   const snowMetrics = [
     {
-      name: t('snow.snowfall') || 'Snowfall',
-      value: `${snowData.snowfall}"`,
+      name: 'Snowfall',
+      value: `${snowData.snowfall.toFixed(1)}"`,
       level: snowfallLevel,
       icon: '❄️'
     },
     {
-      name: t('snow.snowDepth') || 'Snow Depth',
-      value: `${snowData.snowDepth}"`,
+      name: 'Snow Depth',
+      value: `${snowData.snowDepth.toFixed(1)}"`,
       level: getSnowfallLevel(snowData.snowDepth),
       icon: '🌨️'
     },
     {
-      name: t('snow.iceRisk') || 'Ice Risk',
-      value: `${snowData.iceRisk}%`,
+      name: 'Ice Risk',
+      value: `${Math.round(snowData.iceRisk)}%`,
       level: iceRiskLevel,
       icon: '🧊'
     },
     {
-      name: t('snow.windChill') || 'Wind Chill',
+      name: 'Wind Chill',
       value: `${Math.round(snowData.windChill)}°`,
       level: { 
-        label: snowData.windChill < 0 ? (t('snow.dangerousCold') || 'Dangerous') : (t('snow.cold') || 'Cold'), 
+        label: snowData.windChill < 0 ? 'Dangerous' : 'Cold', 
         color: snowData.windChill < 0 ? 'bg-purple-700' : 'bg-blue-500' 
       },
       icon: '🌬️'
@@ -89,9 +86,9 @@ export function SnowIndex({ snowData }: SnowIndexProps) {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Snowflake className="w-5 h-5 animate-spin-slow" />
-          {t('snow.snowIndex') || 'Snow Index'}
+          Snow Index
         </CardTitle>
-        <CardDescription>{t('snow.liveData') || 'Live winter conditions'}</CardDescription>
+        <CardDescription>Live winter conditions</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Snow metrics grid */}
@@ -119,16 +116,16 @@ export function SnowIndex({ snowData }: SnowIndexProps) {
         <div className="glass-card p-3 rounded-xl border border-border/50">
           <div className="flex items-center gap-2 mb-2">
             <Snowflake className="w-4 h-4" />
-            <span className="text-sm font-medium">{t('snow.advisory') || 'Winter Advisory'}</span>
+            <span className="text-sm font-medium">Winter Advisory</span>
           </div>
           <p className="text-xs text-muted-foreground">
             {snowData.snowfall > 2 
-              ? (t('snow.heavySnowWarning') || '⚠️ Heavy snowfall expected. Travel not recommended.')
+              ? '⚠️ Heavy snowfall expected. Travel not recommended.'
               : snowData.iceRisk > 50
-              ? (t('snow.iceWarning') || '⚠️ Icy conditions likely. Drive carefully.')
+              ? '⚠️ Icy conditions likely. Drive carefully.'
               : snowData.windChill < 0
-              ? (t('snow.coldWarning') || '🥶 Dangerous wind chill. Limit outdoor exposure.')
-              : (t('snow.safeConditions') || '✅ Winter conditions manageable.')}
+              ? '🥶 Dangerous wind chill. Limit outdoor exposure.'
+              : '✅ Winter conditions manageable.'}
           </p>
         </div>
       </CardContent>
