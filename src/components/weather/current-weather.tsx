@@ -1,4 +1,4 @@
-import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, ChevronLeft, ChevronRight, Snowflake } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
@@ -120,9 +120,9 @@ export function CurrentWeather({
   const getConditionIcon = (condition: string) => {
     const c = condition.toLowerCase();
     if (c.includes("thunder")) return <CloudLightning className="w-5 h-5 text-primary" />;
+    if (c.includes("snow")) return <Snowflake className="w-5 h-5 text-primary" />;
     if (c.includes("drizzle")) return <CloudDrizzle className="w-5 h-5 text-primary" />;
     if (c.includes("shower") || c.includes("rain")) return <CloudRain className="w-5 h-5 text-primary" />;
-    if (c.includes("snow")) return <CloudSnow className="w-5 h-5 text-primary" />;
     if (c.includes("fog")) return <CloudFog className="w-5 h-5 text-primary" />;
     if (c.includes("partly") || c.includes("sun")) return <CloudSun className="w-5 h-5 text-primary" />;
     if (c.includes("cloud")) return <Cloud className="w-5 h-5 text-primary" />;

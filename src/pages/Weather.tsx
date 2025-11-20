@@ -485,6 +485,7 @@ export default function WeatherPage() {
                         feelsLike={weatherData.mostAccurate.currentWeather.feelsLike}
                         snowfall={weatherData.mostAccurate.currentWeather.snowfall}
                         snowDepth={weatherData.mostAccurate.currentWeather.snowDepth}
+                        condition={weatherData.mostAccurate.currentWeather.condition}
                         isImperial={isImperial}
                       />
                     </div>

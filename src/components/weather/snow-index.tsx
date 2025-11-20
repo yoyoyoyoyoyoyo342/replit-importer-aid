@@ -34,11 +34,11 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
     );
   }
 
-  const getSnowfallLevel = (value: number) => {
-    if (value === 0) return { label: 'No Snow', color: 'bg-green-500' };
-    if (value < 0.5) return { label: 'Light', color: 'bg-blue-300' };
-    if (value < 2) return { label: 'Moderate', color: 'bg-blue-500' };
-    if (value < 6) return { label: 'Heavy', color: 'bg-blue-700' };
+  const getSnowfallLevel = (valueInInches: number) => {
+    if (valueInInches === 0) return { label: 'No Snow', color: 'bg-green-500' };
+    if (valueInInches < 0.5) return { label: 'Light', color: 'bg-blue-300' };
+    if (valueInInches < 2) return { label: 'Moderate', color: 'bg-blue-500' };
+    if (valueInInches < 6) return { label: 'Heavy', color: 'bg-blue-700' };
     return { label: 'Extreme', color: 'bg-purple-700' };
   };
 
@@ -49,22 +49,31 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
     return { label: 'Extreme Risk', color: 'bg-red-500' };
   };
 
+  // snowfall and snowDepth are stored in inches from the API
   const snowfallLevel = getSnowfallLevel(snowData.snowfall);
   const iceRiskLevel = getIceRiskLevel(snowData.iceRisk);
 
   const unit = isImperial ? '"' : 'cm';
   const tempUnit = isImperial ? '°F' : '°C';
+
+  const snowfallDisplay = isImperial
+    ? snowData.snowfall
+    : snowData.snowfall * 2.54; // inches -> cm
+
+  const snowDepthDisplay = isImperial
+    ? snowData.snowDepth
+    : snowData.snowDepth * 2.54; // inches -> cm
   
   const snowMetrics = [
     {
       name: 'Snowfall',
-      value: `${snowData.snowfall.toFixed(1)}${unit}`,
+      value: `${snowfallDisplay.toFixed(1)}${unit}`,
       level: snowfallLevel,
       icon: '❄️'
     },
     {
       name: 'Snow Depth',
-      value: `${snowData.snowDepth.toFixed(1)}${unit}`,
+      value: `${snowDepthDisplay.toFixed(1)}${unit}`,
       level: getSnowfallLevel(snowData.snowDepth),
       icon: '🌨️'
     },

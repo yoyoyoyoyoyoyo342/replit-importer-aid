@@ -16,10 +16,11 @@ interface PollenCardProps {
   feelsLike?: number;
   snowfall?: number;
   snowDepth?: number;
+  condition?: string;
   isImperial?: boolean;
 }
 
-export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth, isImperial = false }: PollenCardProps) {
+export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth, condition, isImperial = false }: PollenCardProps) {
   if (!pollenData) return null;
 
   // Determine if we're in winter season (November 20th to February)
@@ -34,8 +35,15 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
 
   // If it's winter and we have temperature data, show snow index instead
   if (isWinterSeason && temperature !== undefined) {
+    let effectiveSnowfall = snowfall || 0;
+
+    // If API snowfall is zero but condition says snow, assume light snow
+    if (effectiveSnowfall === 0 && condition?.toLowerCase().includes("snow")) {
+      effectiveSnowfall = isImperial ? 0.1 : 0.25;
+    }
+
     const snowData = {
-      snowfall: snowfall || 0,
+      snowfall: effectiveSnowfall,
       snowDepth: snowDepth || 0,
       temperature: temperature,
       windChill: feelsLike || temperature,
