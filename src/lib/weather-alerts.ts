@@ -90,5 +90,67 @@ export function checkWeatherAlerts(weather: CurrentWeather): WeatherAlert[] {
     });
   }
 
+  // Winter weather alerts
+  // Heavy snowfall warning
+  if (weather.snowfall && weather.snowfall > 2) {
+    alerts.push({
+      id: "snow-heavy",
+      title: "Heavy Snowfall Warning",
+      description: `${weather.snowfall.toFixed(1)}" of snow expected. Travel not recommended.`,
+      severity: "extreme",
+      icon: "❄️"
+    });
+  } else if (weather.snowfall && weather.snowfall > 0.5) {
+    alerts.push({
+      id: "snow-moderate",
+      title: "Snowfall Alert",
+      description: `${weather.snowfall.toFixed(1)}" of snow expected. Drive with caution.`,
+      severity: "high",
+      icon: "🌨️"
+    });
+  }
+
+  // Ice risk warning (based on temperature + precipitation)
+  const iceRisk = weather.temperature <= 32 && weather.precipitation && weather.precipitation > 0;
+  if (iceRisk) {
+    alerts.push({
+      id: "ice-danger",
+      title: "Icy Conditions Warning",
+      description: `Freezing rain creating hazardous ice. Avoid travel if possible.`,
+      severity: "extreme",
+      icon: "🧊"
+    });
+  }
+
+  // Dangerous wind chill
+  if (weather.feelsLike <= 0) {
+    alerts.push({
+      id: "windchill-extreme",
+      title: "Dangerous Wind Chill",
+      description: `Feels like ${weather.feelsLike}°F. Frostbite possible in minutes. Limit outdoor exposure.`,
+      severity: "extreme",
+      icon: "🌬️"
+    });
+  } else if (weather.feelsLike <= 20 && weather.feelsLike < weather.temperature - 10) {
+    alerts.push({
+      id: "windchill-high",
+      title: "High Wind Chill Advisory",
+      description: `Feels like ${weather.feelsLike}°F. Dress in warm layers.`,
+      severity: "high",
+      icon: "🥶"
+    });
+  }
+
+  // Blizzard conditions (heavy snow + high wind)
+  if (weather.snowfall && weather.snowfall > 3 && weather.windSpeed >= 35) {
+    alerts.push({
+      id: "blizzard",
+      title: "Blizzard Warning",
+      description: `Heavy snow and winds ${weather.windSpeed} mph. Whiteout conditions expected. Do not travel.`,
+      severity: "extreme",
+      icon: "🌨️"
+    });
+  }
+
   return alerts;
 }

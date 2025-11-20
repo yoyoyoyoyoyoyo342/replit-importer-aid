@@ -23,6 +23,7 @@ import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
+import { WinterAlerts } from "@/components/weather/winter-alerts";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
@@ -399,8 +400,15 @@ export default function WeatherPage() {
               )}
             </div>
 
+            {/* Winter Weather Alerts */}
+            {weatherData.mostAccurate?.currentWeather && (
+              <WinterAlerts 
+                alerts={checkWeatherAlerts(weatherData.mostAccurate.currentWeather)}
+              />
+            )}
+
             {/* Morning Weather Review */}
-            <MorningWeatherReview 
+            <MorningWeatherReview
               weatherData={weatherData.mostAccurate}
               location={selectedLocation.name}
               isImperial={isImperial}
@@ -477,6 +485,7 @@ export default function WeatherPage() {
                         feelsLike={weatherData.mostAccurate.currentWeather.feelsLike}
                         snowfall={weatherData.mostAccurate.currentWeather.snowfall}
                         snowDepth={weatherData.mostAccurate.currentWeather.snowDepth}
+                        isImperial={isImperial}
                       />
                     </div>
                   ) : null;
