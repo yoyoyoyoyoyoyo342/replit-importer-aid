@@ -151,20 +151,20 @@ export const weatherApi = {
     console.log("Weather data received:", data);
 
     const weatherCodeToText = (code?: number, temp?: number, snowfall?: number, humidity?: number, windSpeed?: number): string => {
-      // Enhanced snow detection considering multiple factors
+      // Enhanced snow detection with stricter temperature thresholds
       const hasSnow = snowfall !== undefined && snowfall > 0;
-      const isFreezing = temp !== undefined && temp <= 37; // 37°F threshold for wet snow
+      const isFreezing = temp !== undefined && temp <= 35; // 35°F threshold (1.7°C)
       const isVeryWet = humidity !== undefined && humidity > 85; // High humidity suggests wet precip
       const isWindy = windSpeed !== undefined && windSpeed > 15; // Wind affects precipitation type
       
       // Snow probability scoring system
       const snowScore = 
-        (hasSnow ? 3 : 0) + // Actual snowfall is strongest indicator
-        (temp !== undefined && temp <= 32 ? 2 : temp !== undefined && temp <= 37 ? 1 : 0) + // Temperature factor
+        (hasSnow ? 4 : 0) + // Actual snowfall is strongest indicator (increased weight)
+        (temp !== undefined && temp <= 32 ? 3 : temp !== undefined && temp <= 35 ? 2 : 0) + // Temperature factor
         (isVeryWet && isFreezing ? 1 : 0) + // Wet + cold = likely snow
         (isWindy && isFreezing ? 1 : 0); // Wind + cold = blowing snow
       
-      const isSnowing = snowScore >= 3; // Need strong evidence for snow
+      const isSnowing = snowScore >= 4; // Need strong evidence for snow (stricter threshold)
       
       switch (code) {
         case 0: return "Clear";

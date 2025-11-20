@@ -4,11 +4,14 @@ import { Snowflake } from "lucide-react";
 
 interface SnowIndexProps {
   snowData?: {
-    snowfall: number;
-    snowDepth: number;
-    temperature: number;
-    windChill: number;
-    iceRisk: number;
+    snowfall: number; // inches
+    snowDepth: number; // inches
+    temperature: number; // fahrenheit
+    windChill: number; // fahrenheit
+    iceRisk: number; // percentage
+    snowIntensity?: number; // inches/hour from Tomorrow.io
+    snowAccumulation?: number; // inches from Tomorrow.io
+    iceAccumulation?: number; // inches from Tomorrow.io
   };
   isImperial?: boolean;
 }
@@ -49,20 +52,33 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
     return { label: 'Extreme Risk', color: 'bg-red-500' };
   };
 
-  // snowfall and snowDepth are stored in inches from the API
-  const snowfallLevel = getSnowfallLevel(snowData.snowfall);
-  const iceRiskLevel = getIceRiskLevel(snowData.iceRisk);
+  // Use Tomorrow.io data if available, otherwise fall back to Open-Meteo
+  const actualSnowfall = snowData.snowIntensity !== undefined && snowData.snowIntensity > 0 
+    ? snowData.snowIntensity 
+    : snowData.snowfall;
+  
+  const actualSnowDepth = snowData.snowAccumulation !== undefined && snowData.snowAccumulation > 0
+    ? snowData.snowAccumulation
+    : snowData.snowDepth;
+
+  // Calculate ice risk from Tomorrow.io data or use provided value
+  const calculatedIceRisk = snowData.iceAccumulation !== undefined && snowData.iceAccumulation > 0
+    ? Math.min(100, snowData.iceAccumulation * 100) // Convert accumulation to percentage
+    : snowData.iceRisk;
+
+  const snowfallLevel = getSnowfallLevel(actualSnowfall);
+  const iceRiskLevel = getIceRiskLevel(calculatedIceRisk);
 
   const unit = isImperial ? '"' : 'cm';
   const tempUnit = isImperial ? '°F' : '°C';
 
   const snowfallDisplay = isImperial
-    ? snowData.snowfall
-    : snowData.snowfall * 2.54; // inches -> cm
+    ? actualSnowfall
+    : actualSnowfall * 2.54; // inches -> cm
 
   const snowDepthDisplay = isImperial
-    ? snowData.snowDepth
-    : snowData.snowDepth * 2.54; // inches -> cm
+    ? actualSnowDepth
+    : actualSnowDepth * 2.54; // inches -> cm
   
   const snowMetrics = [
     {
@@ -74,12 +90,12 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
     {
       name: 'Snow Depth',
       value: `${snowDepthDisplay.toFixed(1)}${unit}`,
-      level: getSnowfallLevel(snowData.snowDepth),
+      level: getSnowfallLevel(actualSnowDepth),
       icon: '🌨️'
     },
     {
       name: 'Ice Risk',
-      value: `${Math.round(snowData.iceRisk)}%`,
+      value: `${Math.round(calculatedIceRisk)}%`,
       level: iceRiskLevel,
       icon: '🧊'
     },
