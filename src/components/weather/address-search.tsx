@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddressSearchProps {
   onLocationSelect: (lat: number, lon: number, address: string) => void;
@@ -55,47 +56,49 @@ export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
         return;
       }
 
-      // Rate limiting: ensure at least 1 second between requests
-      const now = Date.now();
-      const timeSinceLastFetch = now - lastFetchTime.current;
-      if (timeSinceLastFetch < 1000) {
-        await new Promise(resolve => setTimeout(resolve, 1000 - timeSinceLastFetch));
-      }
-
       setLoadingSuggestions(true);
-      lastFetchTime.current = Date.now();
 
       try {
-        const url = new URL("https://nominatim.openstreetmap.org/search");
-        url.searchParams.set("q", debouncedAddress);
-        url.searchParams.set("format", "json");
-        url.searchParams.set("addressdetails", "1");
-        url.searchParams.set("limit", "5");
+        console.log("Fetching suggestions for:", debouncedAddress);
 
-        const response = await fetch(url.toString(), {
-          headers: {
-            "User-Agent": "Rainz Weather App/1.0",
-          },
+        const { data, error } = await supabase.functions.invoke('geocode-address', {
+          body: { query: debouncedAddress }
         });
 
-        if (!response.ok) {
-          throw new Error("Autocomplete service unavailable");
+        if (error) {
+          console.error("Edge function error:", error);
+          throw error;
         }
 
-        const data: NominatimResult[] = await response.json();
-        setSuggestions(data);
-        setShowSuggestions(data.length > 0);
+        console.log("Received results:", data?.results?.length || 0);
+
+        const results: NominatimResult[] = data?.results || [];
+        setSuggestions(results);
+        setShowSuggestions(results.length > 0);
+
+        if (results.length === 0 && debouncedAddress.length >= 3) {
+          toast({
+            title: "No results found",
+            description: "Try a different address or be more specific",
+            variant: "destructive",
+          });
+        }
       } catch (error) {
         console.error("Autocomplete error:", error);
         setSuggestions([]);
         setShowSuggestions(false);
+        toast({
+          title: "Search error",
+          description: "Unable to search addresses. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setLoadingSuggestions(false);
       }
     };
 
     fetchSuggestions();
-  }, [debouncedAddress]);
+  }, [debouncedAddress, toast]);
 
   // Click outside to close suggestions
   useEffect(() => {
