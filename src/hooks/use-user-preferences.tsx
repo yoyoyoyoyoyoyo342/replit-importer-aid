@@ -34,6 +34,8 @@ export function useUserPreferences() {
   const [cardOrder, setCardOrder] = useState<CardType[]>(DEFAULT_ORDER);
   const [is24Hour, setIs24Hour] = useState(true); // Default to 24-hour format
   const [isHighContrast, setIsHighContrast] = useState(false); // Default to off
+  const [savedAddress, setSavedAddress] = useState<string>("");
+  const [savedCoordinates, setSavedCoordinates] = useState<{ lat: number; lon: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Fetch user preferences
@@ -51,7 +53,7 @@ export function useUserPreferences() {
       try {
         const { data, error } = await supabase
           .from("user_preferences")
-          .select("visible_cards, card_order, is_24_hour, is_high_contrast")
+          .select("visible_cards, card_order, is_24_hour, is_high_contrast, saved_address, saved_latitude, saved_longitude")
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -102,6 +104,10 @@ export function useUserPreferences() {
           setCardOrder(cardOrder);
           setIs24Hour(data.is_24_hour ?? true);
           setIsHighContrast(data.is_high_contrast ?? false);
+          setSavedAddress(data.saved_address || "");
+          if (data.saved_latitude && data.saved_longitude) {
+            setSavedCoordinates({ lat: data.saved_latitude, lon: data.saved_longitude });
+          }
           
           // Update the database with migrated preferences
           await supabase
@@ -320,16 +326,54 @@ export function useUserPreferences() {
     }
   };
 
+  const updateSavedAddress = async (address: string, lat: number, lon: number) => {
+    if (!user) return;
+
+    setSavedAddress(address);
+    setSavedCoordinates({ lat, lon });
+
+    try {
+      const { error } = await supabase
+        .from("user_preferences")
+        .upsert({
+          user_id: user.id,
+          visible_cards: visibleCards as any,
+          card_order: cardOrder as any,
+          is_24_hour: is24Hour,
+          is_high_contrast: isHighContrast,
+          saved_address: address,
+          saved_latitude: lat,
+          saved_longitude: lon,
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error("Error saving address:", error);
+        toast({
+          title: "Failed to save address",
+          description: error.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error in updateSavedAddress:", error);
+    }
+  };
+
   return {
     visibleCards,
     cardOrder,
     is24Hour,
     isHighContrast,
+    savedAddress,
+    savedCoordinates,
     loading,
     updateVisibility,
     updateOrder,
     updateTimeFormat,
     updateHighContrast,
+    updateSavedAddress,
     resetToDefaults,
     isAuthenticated: !!user,
   };

@@ -321,6 +321,9 @@ export type Database = {
           is_24_hour: boolean | null
           is_high_contrast: boolean | null
           language: string | null
+          saved_address: string | null
+          saved_latitude: number | null
+          saved_longitude: number | null
           updated_at: string
           user_id: string
           visible_cards: Json
@@ -332,6 +335,9 @@ export type Database = {
           is_24_hour?: boolean | null
           is_high_contrast?: boolean | null
           language?: string | null
+          saved_address?: string | null
+          saved_latitude?: number | null
+          saved_longitude?: number | null
           updated_at?: string
           user_id: string
           visible_cards?: Json
@@ -343,6 +349,9 @@ export type Database = {
           is_24_hour?: boolean | null
           is_high_contrast?: boolean | null
           language?: string | null
+          saved_address?: string | null
+          saved_latitude?: number | null
+          saved_longitude?: number | null
           updated_at?: string
           user_id?: string
           visible_cards?: Json

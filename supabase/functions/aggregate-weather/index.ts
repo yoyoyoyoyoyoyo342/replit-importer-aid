@@ -19,6 +19,12 @@ interface WeatherSource {
   latitude: number;
   longitude: number;
   accuracy: number;
+  stationInfo?: {
+    name: string;
+    region: string;
+    country: string;
+    localtime: string;
+  };
   currentWeather: {
     temperature: number;
     condition: string;
@@ -142,6 +148,12 @@ serve(async (req: Request) => {
           latitude: lat,
           longitude: lon,
           accuracy: 0.9,
+          stationInfo: {
+            name: data?.location?.name || "Unknown Station",
+            region: data?.location?.region || "",
+            country: data?.location?.country || "",
+            localtime: data?.location?.localtime || "",
+          },
           currentWeather: {
             temperature: Math.round(current?.temp_f ?? 0),
             condition: current?.condition?.text ?? "Unknown",

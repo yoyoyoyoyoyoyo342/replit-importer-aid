@@ -24,6 +24,8 @@ import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
 import { WinterAlerts } from "@/components/weather/winter-alerts";
+import { AddressSearch } from "@/components/weather/address-search";
+import { WeatherStationInfo } from "@/components/weather/weather-station-info";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
@@ -48,7 +50,16 @@ export default function WeatherPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const { toast } = useToast();
   const { user, profile, loading: authLoading } = useAuth();
-  const { visibleCards, cardOrder, is24Hour, isHighContrast, loading: preferencesLoading } = useUserPreferences();
+  const { 
+    visibleCards, 
+    cardOrder, 
+    is24Hour, 
+    isHighContrast, 
+    savedAddress,
+    savedCoordinates,
+    updateSavedAddress,
+    loading: preferencesLoading 
+  } = useUserPreferences();
   const { t } = useLanguage();
   const { setTimeOfDay } = useTimeOfDayContext();
 
@@ -305,8 +316,17 @@ export default function WeatherPage() {
 
             {/* Second Row: Location and Controls */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:items-center">
-              <div className="flex-1">
+              <div className="flex-1 space-y-2">
                 <LocationSearch onLocationSelect={handleLocationSelect} />
+                <AddressSearch 
+                  onLocationSelect={(lat, lon, address) => {
+                    handleLocationSelect(lat, lon, address);
+                    updateSavedAddress(address, lat, lon);
+                  }}
+                />
+                {weatherData?.aggregated?.stationInfo && (
+                  <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />
+                )}
               </div>
               
               <div className="flex items-center gap-2 justify-between sm:justify-start">
