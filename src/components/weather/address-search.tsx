@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { MapPin, Search, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { MapPin, Search, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface AddressSearchProps {
   onLocationSelect: (lat: number, lon: number, address: string) => void;
@@ -26,78 +27,120 @@ interface NominatimResult {
 
 export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
   const [address, setAddress] = useState("");
+  const [debouncedAddress, setDebouncedAddress] = useState("");
+  const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const { toast } = useToast();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const lastFetchTime = useRef<number>(0);
 
-  const handleSearch = async () => {
-    if (!address.trim()) {
-      toast({
-        title: "Enter an address",
-        description: "Please type an address to search",
-        variant: "destructive",
-      });
-      return;
-    }
+  // Debounce address input for autocomplete
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedAddress(address);
+    }, 500); // 500ms delay to respect Nominatim rate limit
 
-    setLoading(true);
+    return () => clearTimeout(timer);
+  }, [address]);
 
-    try {
-      // Use Nominatim for geocoding
-      const url = new URL("https://nominatim.openstreetmap.org/search");
-      url.searchParams.set("q", address);
-      url.searchParams.set("format", "json");
-      url.searchParams.set("addressdetails", "1");
-      url.searchParams.set("limit", "1");
-
-      const response = await fetch(url.toString(), {
-        headers: {
-          "User-Agent": "Rainz Weather App/1.0",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Geocoding service unavailable");
-      }
-
-      const data: NominatimResult[] = await response.json();
-
-      if (!data || data.length === 0) {
-        toast({
-          title: "Address not found",
-          description: "Could not find that address. Try being more specific.",
-          variant: "destructive",
-        });
+  // Fetch autocomplete suggestions
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (debouncedAddress.length < 3) {
+        setSuggestions([]);
+        setShowSuggestions(false);
         return;
       }
 
-      const result = data[0];
-      const lat = parseFloat(result.lat);
-      const lon = parseFloat(result.lon);
+      // Rate limiting: ensure at least 1 second between requests
+      const now = Date.now();
+      const timeSinceLastFetch = now - lastFetchTime.current;
+      if (timeSinceLastFetch < 1000) {
+        await new Promise(resolve => setTimeout(resolve, 1000 - timeSinceLastFetch));
+      }
 
-      // Use the most specific location name available
-      const locationName = 
-        result.address.suburb || 
-        result.address.village || 
-        result.address.town || 
-        result.address.city || 
-        result.display_name;
+      setLoadingSuggestions(true);
+      lastFetchTime.current = Date.now();
 
-      onLocationSelect(lat, lon, locationName);
+      try {
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("q", debouncedAddress);
+        url.searchParams.set("format", "json");
+        url.searchParams.set("addressdetails", "1");
+        url.searchParams.set("limit", "5");
 
-      toast({
-        title: "Location found",
-        description: `Weather data loading for ${locationName}`,
-      });
-    } catch (error) {
-      console.error("Geocoding error:", error);
-      toast({
-        title: "Search failed",
-        description: "Unable to search for address. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+        const response = await fetch(url.toString(), {
+          headers: {
+            "User-Agent": "Rainz Weather App/1.0",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Autocomplete service unavailable");
+        }
+
+        const data: NominatimResult[] = await response.json();
+        setSuggestions(data);
+        setShowSuggestions(data.length > 0);
+      } catch (error) {
+        console.error("Autocomplete error:", error);
+        setSuggestions([]);
+        setShowSuggestions(false);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedAddress]);
+
+  // Click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectSuggestion = (result: NominatimResult) => {
+    const lat = parseFloat(result.lat);
+    const lon = parseFloat(result.lon);
+
+    // Use the most specific location name available
+    const locationName = 
+      result.address.suburb || 
+      result.address.village || 
+      result.address.town || 
+      result.address.city || 
+      result.display_name;
+
+    setAddress(locationName);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    onLocationSelect(lat, lon, locationName);
+
+    toast({
+      title: "Location selected",
+      description: `Weather data loading for ${locationName}`,
+    });
+  };
+
+  const handleClearInput = () => {
+    setAddress("");
+    setSuggestions([]);
+    setShowSuggestions(false);
   };
 
   return (
@@ -106,31 +149,74 @@ export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
         <MapPin className="w-5 h-5 text-primary" />
         <h3 className="font-semibold">Search by Address</h3>
       </div>
-      <div className="flex gap-2">
-        <Input
-          type="text"
-          placeholder="Type your address..."
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSearch();
-            }
-          }}
-          disabled={loading}
-          className="flex-1"
-        />
-        <Button 
-          onClick={handleSearch} 
-          disabled={loading}
-          size="icon"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Search className="w-4 h-4" />
-          )}
-        </Button>
+      <div className="relative">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Input
+              ref={inputRef}
+              type="text"
+              placeholder="Type your address..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              onFocus={() => {
+                if (suggestions.length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
+              disabled={loading}
+              className="pr-8"
+            />
+            {address && !loading && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-2 hover:bg-transparent"
+                onClick={handleClearInput}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+            {loadingSuggestions && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Autocomplete Suggestions Dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div
+            ref={suggestionsRef}
+            className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-[300px] overflow-y-auto"
+          >
+            {suggestions.map((suggestion, index) => (
+              <button
+                key={`${suggestion.lat}-${suggestion.lon}-${index}`}
+                onClick={() => handleSelectSuggestion(suggestion)}
+                className={cn(
+                  "w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground",
+                  "flex items-start gap-2 border-b border-border last:border-b-0",
+                  "transition-colors"
+                )}
+              >
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {suggestion.address.suburb ||
+                      suggestion.address.village ||
+                      suggestion.address.town ||
+                      suggestion.address.city ||
+                      "Unknown Location"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {suggestion.display_name}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <p className="text-xs text-muted-foreground mt-2">
         Address geocoding by OpenStreetMap Nominatim
