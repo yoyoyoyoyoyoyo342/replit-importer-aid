@@ -4,6 +4,12 @@ export interface WeatherSource {
   latitude: number;
   longitude: number;
   accuracy: number;
+  stationInfo?: {
+    name: string;
+    region: string;
+    country: string;
+    localtime: string;
+  };
   currentWeather: CurrentWeather;
   hourlyForecast: HourlyForecast[];
   dailyForecast: DailyForecast[];
