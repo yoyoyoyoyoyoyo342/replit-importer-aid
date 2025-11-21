@@ -35,6 +35,9 @@ serve(async (req) => {
     const weatherApiResponse = await fetch(weatherApiUrl);
     const weatherApiData = await weatherApiResponse.json();
 
+    // Parse WeatherAPI data first (needed for fallback values)
+    const current = weatherApiData?.current || {};
+    
     // Parse Tomorrow.io minute-by-minute data
     const minuteByMinute = tomorrowData?.timelines?.minutely?.slice(0, 60).map((item: any) => ({
       time: item.time,
@@ -51,9 +54,6 @@ serve(async (req) => {
       temperature: hourlyData.temperature || current.temp_f || 0,
       windChill: hourlyData.windChill || current.feelslike_f || 0,
     };
-
-    // Parse WeatherAPI data
-    const current = weatherApiData?.current || {};
     const forecast = weatherApiData?.forecast?.forecastday || [];
     const astronomy = forecast[0]?.astro || {};
 
