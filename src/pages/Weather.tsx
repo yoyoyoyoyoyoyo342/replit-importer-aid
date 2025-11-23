@@ -25,7 +25,6 @@ import { AIChatButton } from "@/components/weather/ai-chat-button";
 import { AnimatedWeatherBackground } from "@/components/weather/animated-weather-background";
 import { MorningWeatherReview } from "@/components/weather/morning-weather-review";
 import { WinterAlerts } from "@/components/weather/winter-alerts";
-import { AddressSearch } from "@/components/weather/address-search";
 import { WeatherStationInfo } from "@/components/weather/weather-station-info";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useLanguage } from "@/contexts/language-context";
@@ -330,39 +329,6 @@ export default function WeatherPage() {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:items-center">
               <div className="flex-1 space-y-2">
                 <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
-                
-                {user ? (
-                  <AddressSearch 
-                    onLocationSelect={(lat, lon, address) => {
-                      handleLocationSelect(lat, lon, address);
-                      updateSavedAddress(address, lat, lon);
-                    }}
-                    isImperial={isImperial}
-                  />
-                ) : (
-                  <LockedFeature isLocked={true}>
-                    <Card className="p-4 mb-4 opacity-50 cursor-not-allowed">
-                      <div className="flex items-center gap-2 mb-2">
-                        <MapPin className="w-5 h-5 text-primary" />
-                        <h3 className="font-semibold">Search by Address</h3>
-                      </div>
-                      <div className="flex gap-2">
-                        <Input
-                          type="text"
-                          placeholder="Type your address..."
-                          disabled={true}
-                          className="flex-1"
-                        />
-                        <Button size="icon" disabled={true}>
-                          <Search className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Sign up to search by address
-                      </p>
-                    </Card>
-                  </LockedFeature>
-                )}
                 
                 {weatherData?.aggregated?.stationInfo && (
                   <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />
