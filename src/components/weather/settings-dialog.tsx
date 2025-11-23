@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -19,6 +19,7 @@ import { useIsAdmin } from "@/hooks/use-is-admin";
 import { useNavigate } from "react-router-dom";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { IOSInstallGuide } from "@/components/ui/ios-install-guide";
+import { useCookieConsent } from "@/hooks/use-cookie-consent";
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
@@ -89,6 +90,7 @@ export function SettingsDialog({
   const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
   const { isIOS, isPWAInstalled, needsPWAInstall, requestPermission: requestNotificationPermission, sendTestNotification } = usePushNotifications();
+  const { preferences: cookiePreferences, savePreferences: saveCookiePreferences } = useCookieConsent();
   const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
@@ -577,6 +579,71 @@ export function SettingsDialog({
                 </p>
               </div>
             )}
+          </div>
+
+          <Separator />
+
+          {/* Cookie Preferences */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Cookie className="w-4 h-4" />
+              <Label className="text-base font-medium">Cookie Preferences</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Manage your cookie and privacy settings
+            </p>
+
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <span className="text-sm font-medium">Necessary Cookies</span>
+                  <p className="text-xs text-muted-foreground">Required for app functionality</p>
+                </div>
+                <Switch checked disabled />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <span className="text-sm font-medium">Analytics Cookies</span>
+                  <p className="text-xs text-muted-foreground">Help us improve the app</p>
+                </div>
+                <Switch
+                  checked={cookiePreferences?.analytics || false}
+                  onCheckedChange={(checked) => {
+                    if (cookiePreferences) {
+                      saveCookiePreferences({ ...cookiePreferences, analytics: checked });
+                      toast({
+                        title: "Cookie preferences updated",
+                        description: checked 
+                          ? "Analytics tracking enabled" 
+                          : "Analytics tracking disabled",
+                      });
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <span className="text-sm font-medium">Functional Cookies</span>
+                  <p className="text-xs text-muted-foreground">Enhanced features and personalization</p>
+                </div>
+                <Switch
+                  checked={cookiePreferences?.functional || false}
+                  onCheckedChange={(checked) => {
+                    if (cookiePreferences) {
+                      saveCookiePreferences({ ...cookiePreferences, functional: checked });
+                      toast({
+                        title: "Cookie preferences updated",
+                        description: checked 
+                          ? "Functional features enabled" 
+                          : "Functional features disabled",
+                      });
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </div>
 
           <Separator />

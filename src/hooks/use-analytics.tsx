@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './use-auth';
+import { useCookieConsent } from './use-cookie-consent';
 
 // Generate a session ID that persists for the browser session
 const getSessionId = () => {
@@ -16,9 +17,15 @@ const getSessionId = () => {
 export function useAnalytics() {
   const location = useLocation();
   const { user } = useAuth();
+  const { preferences } = useCookieConsent();
 
   useEffect(() => {
     const trackPageView = async () => {
+      // Only track if analytics cookies are accepted
+      if (!preferences?.analytics) {
+        return;
+      }
+
       try {
         const sessionId = getSessionId();
         
@@ -42,5 +49,5 @@ export function useAnalytics() {
     };
 
     trackPageView();
-  }, [location.pathname, user?.id]);
+  }, [location.pathname, user?.id, preferences?.analytics]);
 }
