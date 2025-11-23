@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -579,6 +579,31 @@ export function SettingsDialog({
                 </p>
               </div>
             )}
+          </div>
+
+          <Separator />
+
+          {/* Legal Documents */}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Legal & Privacy</Label>
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate('/terms')}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Terms of Service
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate('/privacy')}
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Privacy Policy
+              </Button>
+            </div>
           </div>
 
           <Separator />

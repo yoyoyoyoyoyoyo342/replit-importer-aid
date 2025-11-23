@@ -14,6 +14,8 @@ import Weather from "./pages/Weather";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AdminPanel from "./pages/AdminPanel";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useBroadcastListener } from "@/hooks/use-broadcast-listener";
 
@@ -45,12 +47,14 @@ function AppContent() {
                 <AnalyticsTracker />
                 <BroadcastListener />
                 <Routes>
-                  <Route path="/" element={<Weather />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/admin" element={<AdminPanel />} />
-                  <Route path="/weather" element={<Navigate to="/" replace />} />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
+                <Route path="/" element={<Weather />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/admin" element={<AdminPanel />} />
+                <Route path="/terms" element={<TermsOfService />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/weather" element={<Navigate to="/" replace />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
