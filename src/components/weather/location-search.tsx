@@ -21,6 +21,21 @@ interface WeatherStation {
   reliability: number;
 }
 
+interface AddressResult {
+  lat: string;
+  lon: string;
+  display_name: string;
+  address: {
+    road?: string;
+    suburb?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    country?: string;
+  };
+}
+
 interface LocationSearchProps {
   onLocationSelect: (lat: number, lon: number, locationName: string) => void;
   isImperial: boolean;
@@ -36,6 +51,8 @@ export function LocationSearch({
   const [stations, setStations] = useState<WeatherStation[]>([]);
   const [showStations, setShowStations] = useState(false);
   const [loadingStations, setLoadingStations] = useState(false);
+  const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(false);
   const {
     toast
   } = useToast();
@@ -57,6 +74,40 @@ export function LocationSearch({
     enabled: debouncedQuery.length > 2,
     queryFn: () => weatherApi.searchLocations(debouncedQuery)
   });
+
+  // Fetch address results in parallel
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (debouncedQuery.length < 3) {
+        setAddressResults([]);
+        return;
+      }
+
+      setLoadingAddresses(true);
+
+      try {
+        const { data, error } = await supabase.functions.invoke('geocode-address', {
+          body: { query: debouncedQuery }
+        });
+
+        if (error) {
+          console.error("Geocode error:", error);
+          setAddressResults([]);
+          return;
+        }
+
+        const results: AddressResult[] = data?.results || [];
+        setAddressResults(results);
+      } catch (error) {
+        console.error("Address search error:", error);
+        setAddressResults([]);
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+
+    fetchAddresses();
+  }, [debouncedQuery]);
 
   const handleLocationClick = async (location: Location) => {
     setSearchQuery("");
@@ -92,6 +143,52 @@ export function LocationSearch({
       // Fallback to direct coordinates
       const locationName = `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`;
       onLocationSelect(location.latitude, location.longitude, locationName);
+      toast({
+        title: "Location selected",
+        description: `Weather data loading for ${locationName}`,
+      });
+    } finally {
+      setLoadingStations(false);
+    }
+  };
+
+  const handleAddressClick = async (address: AddressResult) => {
+    const lat = parseFloat(address.lat);
+    const lon = parseFloat(address.lon);
+
+    const locationName = 
+      address.address.suburb || 
+      address.address.village || 
+      address.address.town || 
+      address.address.city || 
+      address.display_name;
+
+    setSearchQuery("");
+    setLoadingStations(true);
+
+    try {
+      // Find nearby weather stations
+      const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
+        body: { latitude: lat, longitude: lon }
+      });
+
+      if (error) throw error;
+
+      const nearbyStations: WeatherStation[] = data?.stations || [];
+      
+      if (nearbyStations.length > 0) {
+        setStations(nearbyStations);
+        setShowStations(true);
+      } else {
+        onLocationSelect(lat, lon, locationName);
+        toast({
+          title: "Location selected",
+          description: `Weather data loading for ${locationName}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error finding stations:", error);
+      onLocationSelect(lat, lon, locationName);
       toast({
         title: "Location selected",
         description: `Weather data loading for ${locationName}`,
@@ -193,28 +290,69 @@ export function LocationSearch({
       </div>
 
       {/* Search Results Dropdown */}
-      {(searchQuery.length > 2 || isLoading) && (
+      {(searchQuery.length > 2 || isLoading || loadingAddresses) && (
         <Card className="absolute top-full left-0 right-0 mt-2 z-[9999] shadow-lg border border-border bg-popover">
           <CardContent className="p-0">
-            {isLoading ? (
+            {(isLoading || loadingAddresses) ? (
               <div className="p-4 text-center text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
                 {t('search.searching')}
               </div>
-            ) : locations.length > 0 ? (
+            ) : (locations.length > 0 || addressResults.length > 0) ? (
               <div className="max-h-60 overflow-y-auto">
-                {locations.map((location, index) => (
-                  <button 
-                    key={index} 
-                    onClick={() => handleLocationClick(location)} 
-                    className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0"
-                  >
-                    <div className="font-medium text-foreground">{location.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {location.state ? `${location.state}, ` : ''}{location.country}
+                {/* Location Results */}
+                {locations.length > 0 && (
+                  <>
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
+                      Cities & Places
                     </div>
-                  </button>
-                ))}
+                    {locations.map((location, index) => (
+                      <button 
+                        key={`loc-${index}`} 
+                        onClick={() => handleLocationClick(location)} 
+                        className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0 flex items-start gap-2"
+                      >
+                        <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                        <div>
+                          <div className="font-medium text-foreground">{location.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {location.state ? `${location.state}, ` : ''}{location.country}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                )}
+
+                {/* Address Results */}
+                {addressResults.length > 0 && (
+                  <>
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
+                      Addresses
+                    </div>
+                    {addressResults.slice(0, 3).map((address, index) => (
+                      <button 
+                        key={`addr-${index}`} 
+                        onClick={() => handleAddressClick(address)} 
+                        className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0 flex items-start gap-2"
+                      >
+                        <Search className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-foreground truncate">
+                            {address.address.suburb ||
+                              address.address.village ||
+                              address.address.town ||
+                              address.address.city ||
+                              "Unknown Location"}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {address.display_name}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </>
+                )}
               </div>
             ) : searchQuery.length > 2 ? (
               <div className="p-4 text-center text-muted-foreground">
