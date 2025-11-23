@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
 import { LanguageProvider } from "@/contexts/language-context";
 import { TimeOfDayProvider, useTimeOfDayContext } from "@/contexts/time-of-day-context";
+import { CookieConsentProvider } from "@/hooks/use-cookie-consent";
+import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
 import Index from "./pages/Index";
 import Weather from "./pages/Weather";
 import Auth from "./pages/Auth";
@@ -34,22 +36,25 @@ function AppContent() {
     <ThemeProvider defaultTheme="light" storageKey="weather-app-theme" isNightTime={isNightTime}>
       <LanguageProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AnalyticsTracker />
-              <BroadcastListener />
-              <Routes>
-                <Route path="/" element={<Weather />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<AdminPanel />} />
-                <Route path="/weather" element={<Navigate to="/" replace />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+          <CookieConsentProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <CookieConsentBanner />
+              <BrowserRouter>
+                <AnalyticsTracker />
+                <BroadcastListener />
+                <Routes>
+                  <Route path="/" element={<Weather />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/admin" element={<AdminPanel />} />
+                  <Route path="/weather" element={<Navigate to="/" replace />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </CookieConsentProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
