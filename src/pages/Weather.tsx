@@ -106,6 +106,17 @@ export default function WeatherPage() {
     if (weatherData) {
       setLastUpdated(new Date());
 
+      // Update location name to use actual weather station name
+      const stationInfo = weatherData.aggregated?.stationInfo || weatherData.sources?.[0]?.stationInfo;
+      if (stationInfo?.name && selectedLocation && selectedLocation.name !== stationInfo.name) {
+        const updatedLocation = {
+          ...selectedLocation,
+          name: stationInfo.name
+        };
+        setSelectedLocation(updatedLocation);
+        localStorage.setItem('userLocation', JSON.stringify(updatedLocation));
+      }
+
       // Check for weather alerts if notifications are enabled for authenticated users
       if (profile?.notification_enabled && weatherData.mostAccurate?.currentWeather) {
         const alerts = checkWeatherAlerts(weatherData.mostAccurate.currentWeather);
@@ -118,7 +129,7 @@ export default function WeatherPage() {
         });
       }
     }
-  }, [weatherData, profile, toast]);
+  }, [weatherData, profile, toast, selectedLocation]);
 
   // Apply night mode text visibility
   useEffect(() => {
