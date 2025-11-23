@@ -21,9 +21,10 @@ interface SavedLocation {
 interface SavedLocationsProps {
   onLocationSelect: (lat: number, lon: number, locationName: string) => void;
   currentLocation?: { latitude: number; longitude: number };
+  isImperial: boolean;
 }
 
-export function SavedLocations({ onLocationSelect, currentLocation }: SavedLocationsProps) {
+export function SavedLocations({ onLocationSelect, currentLocation, isImperial }: SavedLocationsProps) {
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const queryClient = useQueryClient();
 
@@ -141,7 +142,7 @@ export function SavedLocations({ onLocationSelect, currentLocation }: SavedLocat
               <DialogHeader>
                 <DialogTitle>Add Location</DialogTitle>
               </DialogHeader>
-              <LocationSearch onLocationSelect={handleLocationSelect} />
+              <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
             </DialogContent>
           </Dialog>
         </div>

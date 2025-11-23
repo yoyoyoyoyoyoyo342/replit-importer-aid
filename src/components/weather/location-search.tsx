@@ -8,15 +8,34 @@ import { weatherApi } from "@/lib/weather-api";
 import { Location } from "@/types/weather";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/language-context";
+import { supabase } from "@/integrations/supabase/client";
+import { StationSelector } from "./station-selector";
+
+interface WeatherStation {
+  name: string;
+  region: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  distance: number;
+  reliability: number;
+}
+
 interface LocationSearchProps {
   onLocationSelect: (lat: number, lon: number, locationName: string) => void;
+  isImperial: boolean;
 }
+
 export function LocationSearch({
-  onLocationSelect
+  onLocationSelect,
+  isImperial
 }: LocationSearchProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [isDetecting, setIsDetecting] = useState(false);
+  const [stations, setStations] = useState<WeatherStation[]>([]);
+  const [showStations, setShowStations] = useState(false);
+  const [loadingStations, setLoadingStations] = useState(false);
   const {
     toast
   } = useToast();
@@ -29,6 +48,7 @@ export function LocationSearch({
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+  
   const {
     data: locations = [],
     isLoading
@@ -37,6 +57,50 @@ export function LocationSearch({
     enabled: debouncedQuery.length > 2,
     queryFn: () => weatherApi.searchLocations(debouncedQuery)
   });
+
+  const handleLocationClick = async (location: Location) => {
+    setSearchQuery("");
+    setLoadingStations(true);
+
+    try {
+      // Find nearby weather stations
+      const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
+        body: { 
+          latitude: location.latitude, 
+          longitude: location.longitude 
+        }
+      });
+
+      if (error) throw error;
+
+      const nearbyStations: WeatherStation[] = data?.stations || [];
+      
+      if (nearbyStations.length > 0) {
+        setStations(nearbyStations);
+        setShowStations(true);
+      } else {
+        // If no stations found, use the location directly
+        const locationName = `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`;
+        onLocationSelect(location.latitude, location.longitude, locationName);
+        toast({
+          title: "Location selected",
+          description: `Weather data loading for ${locationName}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error finding stations:", error);
+      // Fallback to direct coordinates
+      const locationName = `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`;
+      onLocationSelect(location.latitude, location.longitude, locationName);
+      toast({
+        title: "Location selected",
+        description: `Weather data loading for ${locationName}`,
+      });
+    } finally {
+      setLoadingStations(false);
+    }
+  };
+
   const handleLocationDetection = async () => {
     setIsDetecting(true);
     try {
@@ -45,11 +109,35 @@ export function LocationSearch({
         latitude,
         longitude
       } = position.coords;
-      onLocationSelect(latitude, longitude, "Current Location");
-      toast({
-        title: "Location detected",
-        description: "Using your current location for weather data."
-      });
+
+      // Find nearby stations for current location
+      try {
+        const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
+          body: { latitude, longitude }
+        });
+
+        if (error) throw error;
+
+        const nearbyStations: WeatherStation[] = data?.stations || [];
+        
+        if (nearbyStations.length > 0) {
+          setStations(nearbyStations);
+          setShowStations(true);
+        } else {
+          onLocationSelect(latitude, longitude, "Current Location");
+          toast({
+            title: "Location detected",
+            description: "Using your current location for weather data."
+          });
+        }
+      } catch (error) {
+        console.error("Error finding stations:", error);
+        onLocationSelect(latitude, longitude, "Current Location");
+        toast({
+          title: "Location detected",
+          description: "Using your current location for weather data."
+        });
+      }
     } catch (error) {
       toast({
         title: "Location detection failed",
@@ -60,35 +148,82 @@ export function LocationSearch({
       setIsDetecting(false);
     }
   };
-  return <div className="relative flex-1 max-w-md z-[9999]">
+
+  const handleSelectStation = (lat: number, lon: number, stationName: string) => {
+    setShowStations(false);
+    onLocationSelect(lat, lon, stationName);
+    toast({
+      title: "Station selected",
+      description: `Loading weather data from ${stationName}`,
+    });
+  };
+
+  if (showStations) {
+    return (
+      <StationSelector
+        stations={stations}
+        isImperial={isImperial}
+        onSelectStation={handleSelectStation}
+        onCancel={() => setShowStations(false)}
+      />
+    );
+  }
+
+  return (
+    <div className="relative flex-1 max-w-md z-[9999]">
       <div className="relative">
-        <Input type="text" placeholder={t('search.placeholder')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full pl-12 pr-16 py-3 bg-input text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground rounded-xl text-ellipsis" style={{ textAlign: 'left' }} />
+        <Input 
+          type="text" 
+          placeholder={t('search.placeholder')} 
+          value={searchQuery} 
+          onChange={e => setSearchQuery(e.target.value)} 
+          className="w-full pl-12 pr-16 py-3 bg-input text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground rounded-xl text-ellipsis" 
+          style={{ textAlign: 'left' }} 
+        />
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-        <Button onClick={handleLocationDetection} disabled={isDetecting} variant="ghost" size="sm" className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-2">
-          {isDetecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+        <Button 
+          onClick={handleLocationDetection} 
+          disabled={isDetecting || loadingStations} 
+          variant="ghost" 
+          size="sm" 
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-2"
+        >
+          {isDetecting || loadingStations ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
         </Button>
       </div>
 
       {/* Search Results Dropdown */}
-      {(searchQuery.length > 2 || isLoading) && <Card className="absolute top-full left-0 right-0 mt-2 z-[9999] shadow-lg border border-border bg-popover">
+      {(searchQuery.length > 2 || isLoading) && (
+        <Card className="absolute top-full left-0 right-0 mt-2 z-[9999] shadow-lg border border-border bg-popover">
           <CardContent className="p-0">
-            {isLoading ? <div className="p-4 text-center text-muted-foreground">
+            {isLoading ? (
+              <div className="p-4 text-center text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
                 {t('search.searching')}
-              </div> : locations.length > 0 ? <div className="max-h-60 overflow-y-auto">
-                {locations.map((location, index) => <button key={index} onClick={() => {
-            onLocationSelect(location.latitude, location.longitude, `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`);
-            setSearchQuery("");
-          }} className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0">
+              </div>
+            ) : locations.length > 0 ? (
+              <div className="max-h-60 overflow-y-auto">
+                {locations.map((location, index) => (
+                  <button 
+                    key={index} 
+                    onClick={() => handleLocationClick(location)} 
+                    className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0"
+                  >
                     <div className="font-medium text-foreground">{location.name}</div>
                     <div className="text-sm text-muted-foreground">
                       {location.state ? `${location.state}, ` : ''}{location.country}
                     </div>
-                  </button>)}
-              </div> : searchQuery.length > 2 ? <div className="p-4 text-center text-muted-foreground">
+                  </button>
+                ))}
+              </div>
+            ) : searchQuery.length > 2 ? (
+              <div className="p-4 text-center text-muted-foreground">
                 {t('search.noResults')}
-              </div> : null}
+              </div>
+            ) : null}
           </CardContent>
-        </Card>}
-    </div>;
+        </Card>
+      )}
+    </div>
+  );
 }

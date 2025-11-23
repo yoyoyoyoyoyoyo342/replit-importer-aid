@@ -6,9 +6,11 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { StationSelector } from "./station-selector";
 
 interface AddressSearchProps {
   onLocationSelect: (lat: number, lon: number, address: string) => void;
+  isImperial: boolean;
 }
 
 interface NominatimResult {
@@ -26,23 +28,34 @@ interface NominatimResult {
   };
 }
 
-export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
+interface WeatherStation {
+  name: string;
+  region: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  distance: number;
+  reliability: number;
+}
+
+export function AddressSearch({ onLocationSelect, isImperial }: AddressSearchProps) {
   const [address, setAddress] = useState("");
   const [debouncedAddress, setDebouncedAddress] = useState("");
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [stations, setStations] = useState<WeatherStation[]>([]);
+  const [showStations, setShowStations] = useState(false);
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const lastFetchTime = useRef<number>(0);
 
   // Debounce address input for autocomplete
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedAddress(address);
-    }, 500); // 500ms delay to respect Nominatim rate limit
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [address]);
@@ -59,8 +72,6 @@ export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
       setLoadingSuggestions(true);
 
       try {
-        console.log("Fetching suggestions for:", debouncedAddress);
-
         const { data, error } = await supabase.functions.invoke('geocode-address', {
           body: { query: debouncedAddress }
         });
@@ -69,8 +80,6 @@ export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
           console.error("Edge function error:", error);
           throw error;
         }
-
-        console.log("Received results:", data?.results?.length || 0);
 
         const results: NominatimResult[] = data?.results || [];
         setSuggestions(results);
@@ -117,11 +126,10 @@ export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectSuggestion = (result: NominatimResult) => {
+  const handleSelectSuggestion = async (result: NominatimResult) => {
     const lat = parseFloat(result.lat);
     const lon = parseFloat(result.lon);
 
-    // Use the most specific location name available
     const locationName = 
       result.address.suburb || 
       result.address.village || 
@@ -132,11 +140,48 @@ export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
     setAddress(locationName);
     setShowSuggestions(false);
     setSuggestions([]);
-    onLocationSelect(lat, lon, locationName);
+    setLoading(true);
 
+    try {
+      // Find nearby weather stations
+      const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
+        body: { latitude: lat, longitude: lon }
+      });
+
+      if (error) throw error;
+
+      const nearbyStations: WeatherStation[] = data?.stations || [];
+      
+      if (nearbyStations.length > 0) {
+        setStations(nearbyStations);
+        setShowStations(true);
+      } else {
+        // If no stations found, use the coordinates directly
+        onLocationSelect(lat, lon, locationName);
+        toast({
+          title: "Location selected",
+          description: `Weather data loading for ${locationName}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error finding stations:", error);
+      // Fallback to direct coordinates
+      onLocationSelect(lat, lon, locationName);
+      toast({
+        title: "Location selected",
+        description: `Weather data loading for ${locationName}`,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSelectStation = (lat: number, lon: number, stationName: string) => {
+    setShowStations(false);
+    onLocationSelect(lat, lon, stationName);
     toast({
-      title: "Location selected",
-      description: `Weather data loading for ${locationName}`,
+      title: "Station selected",
+      description: `Loading weather data from ${stationName}`,
     });
   };
 
@@ -144,7 +189,19 @@ export function AddressSearch({ onLocationSelect }: AddressSearchProps) {
     setAddress("");
     setSuggestions([]);
     setShowSuggestions(false);
+    setShowStations(false);
   };
+
+  if (showStations) {
+    return (
+      <StationSelector
+        stations={stations}
+        isImperial={isImperial}
+        onSelectStation={handleSelectStation}
+        onCancel={() => setShowStations(false)}
+      />
+    );
+  }
 
   return (
     <Card className="p-4 mb-4">
