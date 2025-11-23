@@ -18,6 +18,9 @@ verify_jwt = true
 [functions.geocode-address]
 verify_jwt = false
 
+[functions.find-nearby-stations]
+verify_jwt = false
+
 [functions.send-feedback]
 verify_jwt = true
 
@@ -29,5 +32,6 @@ verify_jwt = false
 
 [functions.process-weather-corrections]
 verify_jwt = false
+
 
 

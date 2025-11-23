@@ -329,7 +329,7 @@ export default function WeatherPage() {
             {/* Second Row: Location and Controls */}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:items-center">
               <div className="flex-1 space-y-2">
-                <LocationSearch onLocationSelect={handleLocationSelect} />
+                <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
                 
                 {user ? (
                   <AddressSearch 
@@ -337,6 +337,7 @@ export default function WeatherPage() {
                       handleLocationSelect(lat, lon, address);
                       updateSavedAddress(address, lat, lon);
                     }}
+                    isImperial={isImperial}
                   />
                 ) : (
                   <LockedFeature isLocked={true}>
