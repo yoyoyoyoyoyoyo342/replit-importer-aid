@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, Loader2 } from "lucide-react";
+import { Search, MapPin, Loader2, History, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +36,15 @@ interface AddressResult {
   };
 }
 
+interface SearchHistoryItem {
+  id: string;
+  search_type: string;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  created_at: string;
+}
+
 interface LocationSearchProps {
   onLocationSelect: (lat: number, lon: number, locationName: string) => void;
   isImperial: boolean;
@@ -54,10 +63,33 @@ export function LocationSearch({
   const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [placeholder, setPlaceholder] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const {
     toast
   } = useToast();
   const { t } = useLanguage();
+
+  // Fetch recent search history
+  const { data: searchHistory = [], refetch: refetchHistory } = useQuery({
+    queryKey: ["/api/search-history"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from('search_history')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.error("Error fetching search history:", error);
+        return [];
+      }
+
+      return data as SearchHistoryItem[];
+    }
+  });
 
   // Typing animation for placeholder
   useEffect(() => {
@@ -152,9 +184,37 @@ export function LocationSearch({
     fetchAddresses();
   }, [debouncedQuery]);
 
+  const saveToHistory = async (
+    searchType: string,
+    locationName: string,
+    latitude: number,
+    longitude: number
+  ) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      await supabase.from('search_history').insert({
+        user_id: user.id,
+        search_type: searchType,
+        location_name: locationName,
+        latitude,
+        longitude
+      });
+      refetchHistory();
+    } catch (error) {
+      console.error("Error saving to search history:", error);
+    }
+  };
+
   const handleLocationClick = async (location: Location) => {
+    const locationName = `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`;
+    
     setSearchQuery("");
     setLoadingStations(true);
+
+    // Save to history
+    await saveToHistory('location', locationName, location.latitude, location.longitude);
 
     try {
       // Find nearby weather stations
@@ -174,7 +234,6 @@ export function LocationSearch({
         setShowStations(true);
       } else {
         // If no stations found, use the location directly
-        const locationName = `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`;
         onLocationSelect(location.latitude, location.longitude, locationName);
         toast({
           title: "Location selected",
@@ -184,7 +243,6 @@ export function LocationSearch({
     } catch (error) {
       console.error("Error finding stations:", error);
       // Fallback to direct coordinates
-      const locationName = `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`;
       onLocationSelect(location.latitude, location.longitude, locationName);
       toast({
         title: "Location selected",
@@ -208,6 +266,9 @@ export function LocationSearch({
 
     setSearchQuery("");
     setLoadingStations(true);
+
+    // Save to history
+    await saveToHistory('address', locationName, lat, lon);
 
     try {
       // Find nearby weather stations
@@ -238,6 +299,56 @@ export function LocationSearch({
       });
     } finally {
       setLoadingStations(false);
+    }
+  };
+
+  const handleHistoryClick = async (item: SearchHistoryItem) => {
+    setSearchQuery("");
+    setLoadingStations(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
+        body: { latitude: item.latitude, longitude: item.longitude }
+      });
+
+      if (error) throw error;
+
+      const nearbyStations: WeatherStation[] = data?.stations || [];
+      
+      if (nearbyStations.length > 0) {
+        setStations(nearbyStations);
+        setShowStations(true);
+      } else {
+        onLocationSelect(item.latitude, item.longitude, item.location_name);
+        toast({
+          title: "Location selected",
+          description: `Weather data loading for ${item.location_name}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error finding stations:", error);
+      onLocationSelect(item.latitude, item.longitude, item.location_name);
+      toast({
+        title: "Location selected",
+        description: `Weather data loading for ${item.location_name}`,
+      });
+    } finally {
+      setLoadingStations(false);
+    }
+  };
+
+  const handleDeleteHistoryItem = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      await supabase.from('search_history').delete().eq('id', id);
+      refetchHistory();
+      toast({
+        title: "Removed from history",
+        description: "Search item removed successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting history item:", error);
     }
   };
 
@@ -316,7 +427,9 @@ export function LocationSearch({
           type="text" 
           placeholder={placeholder} 
           value={searchQuery} 
-          onChange={e => setSearchQuery(e.target.value)} 
+          onChange={e => setSearchQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           className="w-full pl-12 pr-16 py-3 bg-input text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground rounded-xl text-ellipsis" 
           style={{ textAlign: 'left' }} 
         />
@@ -333,10 +446,51 @@ export function LocationSearch({
       </div>
 
       {/* Search Results Dropdown */}
-      {(searchQuery.length > 2 || isLoading || loadingAddresses) && (
+      {(searchQuery.length > 2 || isLoading || loadingAddresses || (isFocused && searchQuery.length === 0)) && (
         <Card className="absolute top-full left-0 right-0 mt-2 z-[9999] shadow-lg border border-border bg-popover">
           <CardContent className="p-0">
-            {(isLoading || loadingAddresses) ? (
+            {searchQuery.length === 0 && isFocused ? (
+              // Show recent searches when focused and no query
+              <div className="max-h-60 overflow-y-auto">
+                {searchHistory.length > 0 ? (
+                  <>
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
+                      Recent Searches
+                    </div>
+                    {searchHistory.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleHistoryClick(item)}
+                        className="w-full text-left p-4 hover:bg-muted/50 transition-colors border-b border-border last:border-b-0 flex items-start gap-2 group"
+                      >
+                        <History className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-foreground truncate">
+                            {item.location_name}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.search_type === 'location' ? 'Location' : 'Address'}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleDeleteHistoryItem(item.id, e)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 h-auto"
+                        >
+                          <X className="w-3 h-3 text-muted-foreground" />
+                        </Button>
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <div className="p-4 text-center text-muted-foreground">
+                    <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No recent searches</p>
+                  </div>
+                )}
+              </div>
+            ) : (isLoading || loadingAddresses) ? (
               <div className="p-4 text-center text-muted-foreground">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
                 {t('search.searching')}

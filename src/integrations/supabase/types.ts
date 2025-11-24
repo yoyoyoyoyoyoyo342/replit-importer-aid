@@ -289,6 +289,36 @@ export type Database = {
         }
         Relationships: []
       }
+      search_history: {
+        Row: {
+          created_at: string
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+          search_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          latitude: number
+          location_name: string
+          longitude: number
+          search_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          search_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_allergies: {
         Row: {
           allergen: string
