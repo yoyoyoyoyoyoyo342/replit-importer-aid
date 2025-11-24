@@ -45,7 +45,7 @@ serve(async (req) => {
 
     console.log(`Finding nearby weather stations for: ${latitude}, ${longitude}`);
 
-    const WEATHERAPI_KEY = Deno.env.get('WEATHERAPI_KEY');
+    const WEATHERAPI_KEY = Deno.env.get('WEATHER_API_KEY');
     if (!WEATHERAPI_KEY) {
       throw new Error('WEATHERAPI_KEY is not configured');
     }
