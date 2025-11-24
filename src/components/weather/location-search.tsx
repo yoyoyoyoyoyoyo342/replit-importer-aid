@@ -69,11 +69,28 @@ export function LocationSearch({
   } = useToast();
   const { t } = useLanguage();
 
-  // Fetch recent search history
-  const { data: searchHistory = [], refetch: refetchHistory } = useQuery({
-    queryKey: ["/api/search-history"],
-    queryFn: async () => {
+  const [user, setUser] = useState<any>(null);
+
+  // Get current user for sync across devices
+  useEffect(() => {
+    const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Fetch recent search history (synced across devices for logged-in users)
+  const { data: searchHistory = [], refetch: refetchHistory } = useQuery({
+    queryKey: ["/api/search-history", user?.id],
+    queryFn: async () => {
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -88,7 +105,8 @@ export function LocationSearch({
       }
 
       return data as SearchHistoryItem[];
-    }
+    },
+    enabled: !!user
   });
 
   // Typing animation for placeholder
@@ -190,7 +208,6 @@ export function LocationSearch({
     latitude: number,
     longitude: number
   ) => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     try {
