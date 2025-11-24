@@ -53,10 +53,53 @@ export function LocationSearch({
   const [loadingStations, setLoadingStations] = useState(false);
   const [addressResults, setAddressResults] = useState<AddressResult[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
+  const [placeholder, setPlaceholder] = useState("");
   const {
     toast
   } = useToast();
   const { t } = useLanguage();
+
+  // Typing animation for placeholder
+  useEffect(() => {
+    const phrases = ["Search for a location", "Search for an address"];
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeout: NodeJS.Timeout;
+
+    const type = () => {
+      const currentPhrase = phrases[phraseIndex];
+
+      if (!isDeleting) {
+        setPlaceholder(currentPhrase.substring(0, charIndex + 1));
+        charIndex++;
+
+        if (charIndex === currentPhrase.length) {
+          timeout = setTimeout(() => {
+            isDeleting = true;
+            type();
+          }, 2000); // Pause at end of phrase
+          return;
+        }
+        timeout = setTimeout(type, 100); // Typing speed
+      } else {
+        setPlaceholder(currentPhrase.substring(0, charIndex - 1));
+        charIndex--;
+
+        if (charIndex === 0) {
+          isDeleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          timeout = setTimeout(type, 500); // Pause before next phrase
+          return;
+        }
+        timeout = setTimeout(type, 50); // Deleting speed
+      }
+    };
+
+    type();
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Debounce search query
   useEffect(() => {
@@ -271,7 +314,7 @@ export function LocationSearch({
       <div className="relative">
         <Input 
           type="text" 
-          placeholder={t('search.placeholder')} 
+          placeholder={placeholder} 
           value={searchQuery} 
           onChange={e => setSearchQuery(e.target.value)} 
           className="w-full pl-12 pr-16 py-3 bg-input text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground rounded-xl text-ellipsis" 
