@@ -36,7 +36,7 @@ serve(async (req) => {
   try {
     const { latitude, longitude } = await req.json();
 
-    if (!latitude || !longitude) {
+    if (latitude === undefined || longitude === undefined || latitude === null || longitude === null) {
       return new Response(
         JSON.stringify({ error: "Latitude and longitude are required" }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -45,81 +45,129 @@ serve(async (req) => {
 
     console.log(`Finding nearby weather stations for: ${latitude}, ${longitude}`);
 
-    const WEATHERAPI_KEY = Deno.env.get('WEATHER_API_KEY');
-    if (!WEATHERAPI_KEY) {
+    const WEATHER_API_KEY = Deno.env.get('WEATHER_API_KEY');
+    if (!WEATHER_API_KEY) {
       throw new Error('WEATHER_API_KEY is not configured');
     }
 
-    // Create a grid of points around the location to find different weather stations
-    // This ensures we get multiple nearby locations instead of just one
-    const searchPoints: Array<{lat: number, lon: number, label: string}> = [
+    // Create a grid of points around the location to find different nearby places
+    const searchPoints: Array<{ lat: number; lon: number; label: string }> = [
       { lat: latitude, lon: longitude, label: 'Center' },
-      { lat: latitude + 0.1, lon: longitude, label: 'North' },
-      { lat: latitude - 0.1, lon: longitude, label: 'South' },
-      { lat: latitude, lon: longitude + 0.1, label: 'East' },
-      { lat: latitude, lon: longitude - 0.1, label: 'West' },
-      { lat: latitude + 0.07, lon: longitude + 0.07, label: 'NE' },
-      { lat: latitude + 0.07, lon: longitude - 0.07, label: 'NW' },
-      { lat: latitude - 0.07, lon: longitude + 0.07, label: 'SE' },
-      { lat: latitude - 0.07, lon: longitude - 0.07, label: 'SW' },
+      { lat: latitude + 0.05, lon: longitude, label: 'North' },
+      { lat: latitude - 0.05, lon: longitude, label: 'South' },
+      { lat: latitude, lon: longitude + 0.05, label: 'East' },
+      { lat: latitude, lon: longitude - 0.05, label: 'West' },
+      { lat: latitude + 0.05, lon: longitude + 0.05, label: 'NE' },
+      { lat: latitude + 0.05, lon: longitude - 0.05, label: 'NW' },
+      { lat: latitude - 0.05, lon: longitude + 0.05, label: 'SE' },
+      { lat: latitude - 0.05, lon: longitude - 0.05, label: 'SW' },
     ];
 
-    console.log(`Searching ${searchPoints.length} points around location`);
+    console.log(`Searching locations around ${searchPoints.length} nearby points`);
 
-    // Fetch weather data for each search point to discover different weather stations
-    const stationPromises = searchPoints.map(async (point) => {
+    // Collect location candidates from WeatherAPI search
+    const locationResults: any[] = [];
+
+    for (const point of searchPoints) {
       try {
-        const weatherUrl = `https://api.weatherapi.com/v1/current.json?key=${WEATHERAPI_KEY}&q=${point.lat},${point.lon}&aqi=no`;
-        const weatherResponse = await fetch(weatherUrl);
-        
-        if (!weatherResponse.ok) {
-          console.log(`Failed to fetch weather for point ${point.label}`);
-          return null;
+        const searchUrl = `https://api.weatherapi.com/v1/search.json?key=${WEATHER_API_KEY}&q=${point.lat},${point.lon}`;
+        const searchResponse = await fetch(searchUrl);
+
+        if (!searchResponse.ok) {
+          console.log(`WeatherAPI search failed for ${point.label}: ${searchResponse.status}`);
+          continue;
         }
 
-        const weatherData = await weatherResponse.json();
-        const stationLat = weatherData.location.lat;
-        const stationLon = weatherData.location.lon;
-        const distance = calculateDistance(latitude, longitude, stationLat, stationLon);
-        
-        // Calculate reliability based on distance
-        const distanceFactor = Math.max(0, 1 - (distance / 100));
-        const reliability = Math.min(0.95, 0.7 + (distanceFactor * 0.25));
-
-        return {
-          name: weatherData.location.name,
-          region: weatherData.location.region,
-          country: weatherData.location.country,
-          latitude: stationLat,
-          longitude: stationLon,
-          distance: distance,
-          reliability: reliability,
-          // Create unique key for deduplication
-          key: `${weatherData.location.name}-${weatherData.location.region}`
-        };
+        const results = await searchResponse.json();
+        if (Array.isArray(results)) {
+          for (const loc of results) {
+            locationResults.push(loc);
+          }
+        }
       } catch (error) {
-        console.error(`Error fetching station data for ${point.label}:`, error);
-        return null;
-      }
-    });
-
-    const allStations = (await Promise.all(stationPromises))
-      .filter((station): station is WeatherStation & { key: string } => station !== null);
-
-    // Deduplicate stations by location name and region, keeping the closest one
-    const uniqueStations = new Map<string, WeatherStation>();
-    for (const station of allStations) {
-      const existing = uniqueStations.get(station.key);
-      if (!existing || station.distance < existing.distance) {
-        const { key, ...stationWithoutKey } = station;
-        uniqueStations.set(station.key, stationWithoutKey);
+        console.error(`Error searching locations for ${point.label}:`, error);
       }
     }
 
-    // Sort by distance and return top 3
-    const stations = Array.from(uniqueStations.values())
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, 3);
+    // If nothing came back from the grid search, do a fallback single search
+    if (locationResults.length === 0) {
+      try {
+        const fallbackUrl = `https://api.weatherapi.com/v1/search.json?key=${WEATHER_API_KEY}&q=${latitude},${longitude}`;
+        const fallbackResponse = await fetch(fallbackUrl);
+        if (fallbackResponse.ok) {
+          const results = await fallbackResponse.json();
+          if (Array.isArray(results)) {
+            for (const loc of results) {
+              locationResults.push(loc);
+            }
+          }
+        } else {
+          console.log(`Fallback WeatherAPI search failed: ${fallbackResponse.status}`);
+        }
+      } catch (error) {
+        console.error('Error during fallback search:', error);
+      }
+    }
+
+    console.log(`Collected ${locationResults.length} raw location candidates`);
+
+    // Deduplicate locations by name/region/country
+    const uniqueLocationsMap = new Map<string, any>();
+    for (const loc of locationResults) {
+      const key = `${loc.name}-${loc.region}-${loc.country}`;
+      if (!uniqueLocationsMap.has(key)) {
+        uniqueLocationsMap.set(key, loc);
+      }
+    }
+
+    const uniqueLocations = Array.from(uniqueLocationsMap.values());
+    console.log(`Reduced to ${uniqueLocations.length} unique locations`);
+
+    // Convert unique locations to WeatherStation objects with distance & reliability
+    const candidateStations: WeatherStation[] = uniqueLocations
+      .map((loc: any) => {
+        const locLat = typeof loc.lat === 'string' ? parseFloat(loc.lat) : loc.lat;
+        const locLon = typeof loc.lon === 'string' ? parseFloat(loc.lon) : loc.lon;
+
+        const distance = calculateDistance(latitude, longitude, locLat, locLon);
+        const distanceFactor = Math.max(0, 1 - distance / 100);
+        const reliability = Math.min(0.95, 0.7 + distanceFactor * 0.25);
+
+        return {
+          name: loc.name,
+          region: loc.region || '',
+          country: loc.country || '',
+          latitude: locLat,
+          longitude: locLon,
+          distance,
+          reliability,
+        } as WeatherStation;
+      })
+      .sort((a, b) => a.distance - b.distance);
+
+    const exactLocationStation: WeatherStation = {
+      name: 'Exact location',
+      region: '',
+      country: '',
+      latitude,
+      longitude,
+      distance: 0,
+      reliability: 0.9,
+    };
+
+    const hasVeryCloseStation = candidateStations.some((s) => s.distance < 0.3);
+
+    let stations: WeatherStation[] = [];
+
+    // Always include the exact address location if no station is extremely close
+    if (!hasVeryCloseStation) {
+      stations.push(exactLocationStation);
+    }
+
+    stations.push(...candidateStations);
+
+    // Sort again by distance (exact location will naturally be first if included)
+    stations = stations.sort((a, b) => a.distance - b.distance).slice(0, 3);
 
     console.log(`Returning ${stations.length} nearby weather stations`);
 
@@ -127,13 +175,12 @@ serve(async (req) => {
       JSON.stringify({ stations }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in find-nearby-stations function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message || "Failed to find nearby weather stations",
-        stations: []
+      JSON.stringify({
+        error: error?.message || 'Failed to find nearby weather stations',
+        stations: [],
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
