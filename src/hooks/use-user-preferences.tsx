@@ -19,7 +19,7 @@ export type CardType = keyof CardVisibility;
 
 const DEFAULT_VISIBILITY: CardVisibility = {
   forecastConfidence: true,
-  weatherSources: true,
+  weatherSources: false,
   pollen: true,
   hourly: true,
   tenDay: true,

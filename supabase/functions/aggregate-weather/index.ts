@@ -122,6 +122,10 @@ serve(async (req: Request) => {
       { name: "ECMWF", model: "ecmwf_ifs04", accuracy: 0.95 },
       { name: "GFS", model: "gfs_seamless", accuracy: 0.90 },
       { name: "DWD ICON", model: "icon_seamless", accuracy: 0.92 },
+      { name: "UKMO", model: "ukmo_seamless", accuracy: 0.93 },
+      { name: "METEOFRANCE", model: "meteofrance_seamless", accuracy: 0.91 },
+      { name: "JMA", model: "jma_seamless", accuracy: 0.89 },
+      { name: "GEM", model: "gem_seamless", accuracy: 0.88 },
     ];
 
     for (const modelConfig of openMeteoModels) {
@@ -280,10 +284,68 @@ serve(async (req: Request) => {
       console.warn("WEATHERAPI key missing; skipping WeatherAPI provider");
     }
 
-    // TODO: Rebase provider - awaiting details about API and response shape
-    const rebaseKey = Deno.env.get("REBASE_API_KEY") || Deno.env.get("REBASE");
-    if (rebaseKey) {
-      console.log("Rebase key detected; provider not yet implemented. Skipping for now.");
+    // Met.no (Norwegian Meteorological Institute) - completely free, no key needed
+    try {
+      const url = new URL("https://api.met.no/weatherapi/locationforecast/2.0/compact");
+      url.searchParams.set("lat", lat.toString());
+      url.searchParams.set("lon", lon.toString());
+
+      const res = await fetch(url.toString(), {
+        headers: {
+          "User-Agent": "Rainz Weather App (contact@rainz.app)",
+        },
+      });
+      if (!res.ok) throw new Error(`Met.no HTTP ${res.status}`);
+      const data = await res.json();
+
+      const current = data?.properties?.timeseries?.[0];
+      const hourlyData = data?.properties?.timeseries || [];
+      
+      // Met.no uses symbol codes for conditions
+      const symbolToCondition = (code: string) => {
+        if (!code) return "Unknown";
+        if (code.includes("clearsky")) return "Clear";
+        if (code.includes("fair")) return "Partly Cloudy";
+        if (code.includes("cloudy")) return "Cloudy";
+        if (code.includes("rain")) return "Rain";
+        if (code.includes("snow")) return "Snow";
+        if (code.includes("thunder")) return "Thunderstorm";
+        if (code.includes("fog")) return "Foggy";
+        return "Partly Cloudy";
+      };
+
+      const source: WeatherSource = {
+        source: "Met.no",
+        location: locationName || "Selected Location",
+        latitude: lat,
+        longitude: lon,
+        accuracy: 0.94,
+        currentWeather: {
+          temperature: Math.round((current?.data?.instant?.details?.air_temperature ?? 0) * 9/5 + 32),
+          condition: symbolToCondition(current?.data?.next_1_hours?.summary?.symbol_code),
+          description: symbolToCondition(current?.data?.next_1_hours?.summary?.symbol_code),
+          humidity: Math.round(current?.data?.instant?.details?.relative_humidity ?? 0),
+          windSpeed: Math.round((current?.data?.instant?.details?.wind_speed ?? 0) * 2.237),
+          windDirection: Math.round(current?.data?.instant?.details?.wind_from_direction ?? 0),
+          visibility: 10,
+          feelsLike: Math.round((current?.data?.instant?.details?.air_temperature ?? 0) * 9/5 + 32),
+          uvIndex: 0,
+          pressure: Math.round(current?.data?.instant?.details?.air_pressure_at_sea_level ?? 1013),
+        },
+        hourlyForecast: hourlyData.slice(0, 24).map((h: any) => ({
+          time: new Date(h?.time ?? Date.now()).toLocaleTimeString([], { hour: "2-digit" }),
+          temperature: Math.round((h?.data?.instant?.details?.air_temperature ?? 0) * 9/5 + 32),
+          condition: symbolToCondition(h?.data?.next_1_hours?.summary?.symbol_code),
+          precipitation: Math.round((h?.data?.next_1_hours?.details?.precipitation_amount ?? 0) * 0.0393701),
+          icon: "",
+        })),
+        dailyForecast: [],
+      };
+
+      sources.push(source);
+      console.log("Successfully fetched Met.no data");
+    } catch (err) {
+      console.error("Met.no fetch failed:", err);
     }
 
     return new Response(JSON.stringify({ sources }), {
