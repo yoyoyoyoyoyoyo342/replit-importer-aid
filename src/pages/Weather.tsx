@@ -39,9 +39,8 @@ import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
 import { AQICard } from "@/components/weather/aqi-card";
 import { Leaderboard } from "@/components/weather/leaderboard";
 import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
-import { ForecastConfidenceCard } from "@/components/weather/forecast-confidence-card";
 import { WeatherSourcesCard } from "@/components/weather/weather-sources-card";
-import { useEnsembleForecast } from "@/hooks/use-ensemble-forecast";
+
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -68,12 +67,6 @@ export default function WeatherPage() {
 
   // Fetch hyperlocal weather data
   const { data: hyperlocalData } = useHyperlocalWeather(
-    selectedLocation?.lat,
-    selectedLocation?.lon
-  );
-
-  // Fetch ensemble forecast data
-  const { data: ensembleData } = useEnsembleForecast(
     selectedLocation?.lat,
     selectedLocation?.lon
   );
@@ -496,21 +489,6 @@ export default function WeatherPage() {
               if (!visibleCards[cardType]) return null;
               
               switch (cardType) {
-                case "forecastConfidence":
-                  return ensembleData ? (
-                    <div key="forecastConfidence" className="mb-4">
-                      <ForecastConfidenceCard 
-                        ensembleData={ensembleData}
-                        modelAgreement={weatherData.sources?.length > 1 ? (() => {
-                          const temps = weatherData.sources.map(s => s.currentWeather.temperature);
-                          const avgTemp = temps.reduce((a, b) => a + b, 0) / temps.length;
-                          const maxDeviation = Math.max(...temps.map(t => Math.abs(t - avgTemp)));
-                          return Math.max(0, Math.round(100 - (maxDeviation * 10)));
-                        })() : undefined}
-                      />
-                    </div>
-                  ) : null;
-
                 case "weatherSources":
                   return weatherData.sources?.length > 0 ? (
                     <div key="weatherSources" className="mb-4">
