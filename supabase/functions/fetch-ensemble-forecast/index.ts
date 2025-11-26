@@ -100,6 +100,19 @@ serve(async (req: Request) => {
       if (hourly[precipKey]) precipMembers.push(hourly[precipKey]);
     }
 
+    // If no ensemble members found, use the base forecast
+    if (tempMembers.length === 0 && hourly.temperature_2m) {
+      tempMembers.push(hourly.temperature_2m);
+    }
+    if (precipMembers.length === 0 && hourly.precipitation) {
+      precipMembers.push(hourly.precipitation);
+    }
+
+    // Ensure we have data to work with
+    if (tempMembers.length === 0 || precipMembers.length === 0) {
+      throw new Error("No ensemble or forecast data available");
+    }
+
     const tempStats = calculateStats(tempMembers);
     const precipStats = calculateStats(precipMembers);
 
