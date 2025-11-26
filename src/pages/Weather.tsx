@@ -443,16 +443,14 @@ export default function WeatherPage() {
               userId={user?.id}
             />
 
-            {/* Leaderboard */}
-            <div className="mb-4">
-              {user ? (
-                <Leaderboard />
-              ) : (
+            {/* Leaderboard - Only show for non-logged-in users */}
+            {!user && (
+              <div className="mb-4">
                 <LockedFeature isLocked={true}>
                   <LockedLeaderboard />
                 </LockedFeature>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Desktop Layout - Only show on large screens */}
             <div className="hidden lg:block mb-6">
