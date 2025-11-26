@@ -6,27 +6,18 @@ export function Footer() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <div className="flex flex-wrap justify-center md:justify-start gap-4">
-            <Link 
-              to="/privacy" 
-              className="hover:text-foreground transition-colors"
-            >
+            <Link to="/privacy" className="hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
-            <Link 
-              to="/terms" 
-              className="hover:text-foreground transition-colors"
-            >
+            <Link to="/terms" className="hover:text-foreground transition-colors">
               Terms of Service
             </Link>
-            <Link 
-              to="/data-settings" 
-              className="hover:text-foreground transition-colors"
-            >
+            <Link to="/data-settings" className="hover:text-foreground transition-colors">
               Data & Privacy Settings
             </Link>
           </div>
           <div className="text-center md:text-right">
-            <p>© {new Date().getFullYear()} Weather App. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Rainz. All rights reserved.</p>
           </div>
         </div>
       </div>
