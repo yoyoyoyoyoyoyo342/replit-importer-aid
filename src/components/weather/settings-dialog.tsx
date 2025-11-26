@@ -216,7 +216,6 @@ export function SettingsDialog({
     }
   }
   const cardLabels = {
-    forecastConfidence: 'Forecast Confidence',
     weatherSources: 'Weather Data Sources',
     pollen: t('pollen.pollenIndex'),
     hourly: t('pollen.hourlyForecast'),

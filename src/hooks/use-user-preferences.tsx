@@ -4,7 +4,6 @@ import { useAuth } from "./use-auth";
 import { useToast } from "./use-toast";
 
 export interface CardVisibility {
-  forecastConfidence: boolean;
   weatherSources: boolean;
   pollen: boolean;
   hourly: boolean;
@@ -18,7 +17,6 @@ export interface CardVisibility {
 export type CardType = keyof CardVisibility;
 
 const DEFAULT_VISIBILITY: CardVisibility = {
-  forecastConfidence: true,
   weatherSources: false,
   pollen: true,
   hourly: true,
@@ -29,7 +27,7 @@ const DEFAULT_VISIBILITY: CardVisibility = {
   alerts: true,
 };
 
-const DEFAULT_ORDER: CardType[] = ["forecastConfidence", "weatherSources", "pollen", "hourly", "tenDay", "detailedMetrics", "weatherTrends", "aqi", "alerts"];
+const DEFAULT_ORDER: CardType[] = ["weatherSources", "pollen", "hourly", "tenDay", "detailedMetrics", "weatherTrends", "aqi", "alerts"];
 
 export function useUserPreferences() {
   const { user } = useAuth();
@@ -94,11 +92,8 @@ export function useUserPreferences() {
           if (visibleCards.alerts === undefined) {
             visibleCards.alerts = true;
           }
-          if (visibleCards.forecastConfidence === undefined) {
-            visibleCards.forecastConfidence = true;
-          }
           if (visibleCards.weatherSources === undefined) {
-            visibleCards.weatherSources = true;
+            visibleCards.weatherSources = false;
           }
           if (!cardOrder.includes('weatherTrends')) {
             cardOrder.push('weatherTrends');
@@ -109,12 +104,13 @@ export function useUserPreferences() {
           if (!cardOrder.includes('alerts')) {
             cardOrder.push('alerts');
           }
-          if (!cardOrder.includes('forecastConfidence')) {
-            cardOrder.unshift('forecastConfidence'); // Add to beginning
-          }
           if (!cardOrder.includes('weatherSources')) {
-            cardOrder.splice(1, 0, 'weatherSources'); // Add after forecastConfidence
+            cardOrder.push('weatherSources');
           }
+          
+          // Remove forecastConfidence if it exists
+          delete visibleCards.forecastConfidence;
+          cardOrder = cardOrder.filter(card => card !== 'forecastConfidence');
           
           setVisibleCards(visibleCards);
           setCardOrder(cardOrder);
