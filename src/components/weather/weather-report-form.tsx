@@ -148,14 +148,20 @@ export function WeatherReportForm({ location, currentCondition, locationData }: 
                 <SelectValue placeholder="Select actual condition" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Sunny">Sunny</SelectItem>
+                <SelectItem value="Clear">Clear/Sunny</SelectItem>
                 <SelectItem value="Partly Cloudy">Partly Cloudy</SelectItem>
                 <SelectItem value="Cloudy">Cloudy</SelectItem>
                 <SelectItem value="Overcast">Overcast</SelectItem>
-                <SelectItem value="Rainy">Rainy</SelectItem>
-                <SelectItem value="Snowy">Snowy</SelectItem>
-                <SelectItem value="Stormy">Stormy</SelectItem>
+                <SelectItem value="Light Rain">Light Rain</SelectItem>
+                <SelectItem value="Rain">Rain</SelectItem>
+                <SelectItem value="Heavy Rain">Heavy Rain</SelectItem>
+                <SelectItem value="Light Snow">Light Snow</SelectItem>
+                <SelectItem value="Snow">Snow</SelectItem>
+                <SelectItem value="Heavy Snow">Heavy Snow</SelectItem>
+                <SelectItem value="Drizzle">Drizzle</SelectItem>
+                <SelectItem value="Thunderstorm">Thunderstorm</SelectItem>
                 <SelectItem value="Foggy">Foggy</SelectItem>
+                <SelectItem value="Windy">Windy</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -3,6 +3,9 @@ project_id = "ohwtbkudpkfbakynikyj"
 [functions.aggregate-weather]
 verify_jwt = true
 
+[functions.fetch-ensemble-forecast]
+verify_jwt = false
+
 [functions.ai-weather-insights]
 verify_jwt = true
 

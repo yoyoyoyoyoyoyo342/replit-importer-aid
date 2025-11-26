@@ -117,7 +117,89 @@ serve(async (req: Request) => {
 
     const sources: WeatherSource[] = [];
 
-    // WeatherAPI.com
+    // Fetch from multiple Open-Meteo models for ensemble averaging
+    const openMeteoModels = [
+      { name: "ECMWF", model: "ecmwf_ifs04", accuracy: 0.95 },
+      { name: "GFS", model: "gfs_seamless", accuracy: 0.90 },
+      { name: "DWD ICON", model: "icon_seamless", accuracy: 0.92 },
+    ];
+
+    for (const modelConfig of openMeteoModels) {
+      try {
+        const url = new URL("https://api.open-meteo.com/v1/forecast");
+        url.searchParams.set("latitude", lat.toString());
+        url.searchParams.set("longitude", lon.toString());
+        url.searchParams.set("current_weather", "true");
+        url.searchParams.set("hourly", "temperature_2m,precipitation_probability,weathercode,relative_humidity_2m,apparent_temperature,visibility,pressure_msl,uv_index,wind_speed_10m,wind_direction_10m");
+        url.searchParams.set("daily", "weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset");
+        url.searchParams.set("temperature_unit", "fahrenheit");
+        url.searchParams.set("timezone", "auto");
+        url.searchParams.set("forecast_days", "10");
+        url.searchParams.set("models", modelConfig.model);
+
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error(`Open-Meteo ${modelConfig.name} HTTP ${res.status}`);
+        const data = await res.json();
+
+        const current = data.current_weather;
+        const hourly = data.hourly;
+        const daily = data.daily;
+
+        const conditionMap: Record<number, string> = {
+          0: "Clear", 1: "Partly Cloudy", 2: "Partly Cloudy", 3: "Overcast",
+          45: "Foggy", 48: "Foggy", 51: "Light Drizzle", 53: "Drizzle", 55: "Heavy Drizzle",
+          61: "Light Rain", 63: "Rain", 65: "Heavy Rain", 71: "Light Snow", 73: "Snow", 75: "Heavy Snow",
+          80: "Light Showers", 81: "Showers", 82: "Heavy Showers", 95: "Thunderstorm", 96: "Thunderstorm", 99: "Heavy Thunderstorm"
+        };
+
+        const getCondition = (code: number) => conditionMap[code] || "Unknown";
+
+        const source: WeatherSource = {
+          source: modelConfig.name,
+          location: locationName || "Selected Location",
+          latitude: lat,
+          longitude: lon,
+          accuracy: modelConfig.accuracy,
+          currentWeather: {
+            temperature: Math.round(current.temperature ?? 0),
+            condition: getCondition(current.weathercode ?? 0),
+            description: getCondition(current.weathercode ?? 0),
+            humidity: Math.round(hourly.relative_humidity_2m?.[0] ?? 0),
+            windSpeed: Math.round(current.windspeed ?? 0),
+            windDirection: Math.round(current.winddirection ?? 0),
+            visibility: Math.round((hourly.visibility?.[0] ?? 10000) / 1609.34),
+            feelsLike: Math.round(hourly.apparent_temperature?.[0] ?? current.temperature ?? 0),
+            uvIndex: Math.round(hourly.uv_index?.[0] ?? 0),
+            pressure: Math.round(hourly.pressure_msl?.[0] ?? 1013),
+            sunrise: daily.sunrise?.[0],
+            sunset: daily.sunset?.[0],
+          },
+          hourlyForecast: hourly.time.slice(0, 24).map((time: string, i: number) => ({
+            time: new Date(time).toLocaleTimeString([], { hour: "2-digit" }),
+            temperature: Math.round(hourly.temperature_2m?.[i] ?? 0),
+            condition: getCondition(hourly.weathercode?.[i] ?? 0),
+            precipitation: Math.round(hourly.precipitation_probability?.[i] ?? 0),
+            icon: "",
+          })),
+          dailyForecast: daily.time.slice(0, 10).map((time: string, i: number) => ({
+            day: new Date(time).toLocaleDateString([], { weekday: "short" }),
+            condition: getCondition(daily.weathercode?.[i] ?? 0),
+            description: getCondition(daily.weathercode?.[i] ?? 0),
+            highTemp: Math.round(daily.temperature_2m_max?.[i] ?? 0),
+            lowTemp: Math.round(daily.temperature_2m_min?.[i] ?? 0),
+            precipitation: Math.round(daily.precipitation_probability_max?.[i] ?? 0),
+            icon: "",
+          })),
+        };
+
+        sources.push(source);
+        console.log(`Successfully fetched ${modelConfig.name} model data`);
+      } catch (err) {
+        console.error(`${modelConfig.name} model fetch failed:`, err);
+      }
+    }
+
+    // WeatherAPI.com (keep as additional source)
     if (weatherApiKey) {
       try {
         const url = new URL("https://api.weatherapi.com/v1/forecast.json");
@@ -147,7 +229,7 @@ serve(async (req: Request) => {
           location: locationName || data?.location?.name || "Selected Location",
           latitude: lat,
           longitude: lon,
-          accuracy: 0.9,
+          accuracy: 0.88,
           stationInfo: {
             name: data?.location?.name || "Unknown Station",
             region: data?.location?.region || "",
@@ -190,6 +272,7 @@ serve(async (req: Request) => {
         };
 
         sources.push(source);
+        console.log("Successfully fetched WeatherAPI data");
       } catch (err) {
         console.error("WeatherAPI fetch failed", err);
       }
