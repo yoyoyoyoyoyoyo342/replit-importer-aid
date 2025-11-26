@@ -584,10 +584,18 @@ export function SettingsDialog({
 
           <Separator />
 
-          {/* Legal Documents */}
+          {/* Data & Privacy Settings */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Legal & Privacy</Label>
+            <Label className="text-base font-medium">Data & Privacy Settings</Label>
             <div className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => navigate('/data-settings')}
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                Manage Data & Privacy
+              </Button>
               <Button
                 variant="outline"
                 className="w-full justify-start"
