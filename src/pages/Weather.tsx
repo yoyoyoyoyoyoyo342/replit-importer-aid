@@ -39,7 +39,7 @@ import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
 import { AQICard } from "@/components/weather/aqi-card";
 import { Leaderboard } from "@/components/weather/leaderboard";
 import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
-import { WeatherSourcesCard } from "@/components/weather/weather-sources-card";
+
 
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -487,13 +487,6 @@ export default function WeatherPage() {
               if (!visibleCards[cardType]) return null;
               
               switch (cardType) {
-                case "weatherSources":
-                  return weatherData.sources?.length > 0 ? (
-                    <div key="weatherSources" className="mb-4">
-                      <WeatherSourcesCard sources={weatherData.sources} />
-                    </div>
-                  ) : null;
-
                 case "weatherTrends":
                   return (
                     <div key="weatherTrends" className="mb-4">
