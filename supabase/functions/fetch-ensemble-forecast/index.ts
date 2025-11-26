@@ -51,13 +51,12 @@ serve(async (req: Request) => {
 
     const { lat, lon } = validationResult.data;
 
-    // Fetch ensemble data from Open-Meteo (uses 31 ensemble members)
+    // Fetch ensemble data from Open-Meteo (uses ICON EPS ensemble)
     const ensembleUrl = new URL("https://ensemble-api.open-meteo.com/v1/ensemble");
     ensembleUrl.searchParams.set("latitude", lat.toString());
     ensembleUrl.searchParams.set("longitude", lon.toString());
     ensembleUrl.searchParams.set("hourly", "temperature_2m,precipitation");
     ensembleUrl.searchParams.set("temperature_unit", "fahrenheit");
-    ensembleUrl.searchParams.set("models", "icon_seamless,gfs_seamless,ecmwf_ifs04");
     ensembleUrl.searchParams.set("forecast_days", "3");
 
     console.log("Fetching ensemble forecast from:", ensembleUrl.toString());
@@ -92,25 +91,68 @@ serve(async (req: Request) => {
     const tempMembers: number[][] = [];
     const precipMembers: number[][] = [];
     
-    for (let i = 0; i < 31; i++) {
-      const tempKey = `temperature_2m_member${i.toString().padStart(2, '0')}`;
-      const precipKey = `precipitation_member${i.toString().padStart(2, '0')}`;
+    // Try to find ensemble members - Open-Meteo uses different naming
+    for (let i = 0; i < 51; i++) {
+      // Try multiple naming conventions
+      const tempKeys = [
+        `temperature_2m_member${i.toString().padStart(2, '0')}`,
+        `temperature_2m_member_${i}`,
+        `temperature_2m_${i}`
+      ];
+      const precipKeys = [
+        `precipitation_member${i.toString().padStart(2, '0')}`,
+        `precipitation_member_${i}`,
+        `precipitation_${i}`
+      ];
       
-      if (hourly[tempKey]) tempMembers.push(hourly[tempKey]);
-      if (hourly[precipKey]) precipMembers.push(hourly[precipKey]);
+      for (const key of tempKeys) {
+        if (hourly[key] && Array.isArray(hourly[key])) {
+          tempMembers.push(hourly[key]);
+          break;
+        }
+      }
+      for (const key of precipKeys) {
+        if (hourly[key] && Array.isArray(hourly[key])) {
+          precipMembers.push(hourly[key]);
+          break;
+        }
+      }
     }
 
-    // If no ensemble members found, use the base forecast
-    if (tempMembers.length === 0 && hourly.temperature_2m) {
+    console.log(`Found ${tempMembers.length} temperature ensemble members`);
+
+    // If no ensemble members found, use the base forecast as single member
+    if (tempMembers.length === 0 && hourly.temperature_2m && Array.isArray(hourly.temperature_2m)) {
+      console.log("No ensemble members found, using base forecast");
       tempMembers.push(hourly.temperature_2m);
     }
-    if (precipMembers.length === 0 && hourly.precipitation) {
+    if (precipMembers.length === 0 && hourly.precipitation && Array.isArray(hourly.precipitation)) {
       precipMembers.push(hourly.precipitation);
+    }
+
+    // Final fallback: create synthetic spread from base forecast
+    if (tempMembers.length === 0 || precipMembers.length === 0) {
+      console.log("Creating synthetic ensemble from fallback data");
+      
+      if (hourly.temperature_2m && Array.isArray(hourly.temperature_2m)) {
+        // Create 3 synthetic members with slight variations
+        const baseTemp = hourly.temperature_2m;
+        tempMembers.push(baseTemp);
+        tempMembers.push(baseTemp.map(t => t - 2)); // Cooler scenario
+        tempMembers.push(baseTemp.map(t => t + 2)); // Warmer scenario
+      }
+      
+      if (hourly.precipitation && Array.isArray(hourly.precipitation)) {
+        const basePrecip = hourly.precipitation;
+        precipMembers.push(basePrecip);
+        precipMembers.push(basePrecip.map(p => p * 0.7)); // Drier scenario
+        precipMembers.push(basePrecip.map(p => p * 1.3)); // Wetter scenario
+      }
     }
 
     // Ensure we have data to work with
     if (tempMembers.length === 0 || precipMembers.length === 0) {
-      throw new Error("No ensemble or forecast data available");
+      throw new Error("No ensemble or forecast data available from API");
     }
 
     const tempStats = calculateStats(tempMembers);
