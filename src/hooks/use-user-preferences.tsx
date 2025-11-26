@@ -4,7 +4,6 @@ import { useAuth } from "./use-auth";
 import { useToast } from "./use-toast";
 
 export interface CardVisibility {
-  weatherSources: boolean;
   pollen: boolean;
   hourly: boolean;
   tenDay: boolean;
@@ -17,7 +16,6 @@ export interface CardVisibility {
 export type CardType = keyof CardVisibility;
 
 const DEFAULT_VISIBILITY: CardVisibility = {
-  weatherSources: false,
   pollen: true,
   hourly: true,
   tenDay: true,
@@ -27,7 +25,7 @@ const DEFAULT_VISIBILITY: CardVisibility = {
   alerts: true,
 };
 
-const DEFAULT_ORDER: CardType[] = ["weatherSources", "pollen", "hourly", "tenDay", "detailedMetrics", "weatherTrends", "aqi", "alerts"];
+const DEFAULT_ORDER: CardType[] = ["pollen", "hourly", "tenDay", "detailedMetrics", "weatherTrends", "aqi", "alerts"];
 
 export function useUserPreferences() {
   const { user } = useAuth();
@@ -92,9 +90,6 @@ export function useUserPreferences() {
           if (visibleCards.alerts === undefined) {
             visibleCards.alerts = true;
           }
-          if (visibleCards.weatherSources === undefined) {
-            visibleCards.weatherSources = false;
-          }
           if (!cardOrder.includes('weatherTrends')) {
             cardOrder.push('weatherTrends');
           }
@@ -104,13 +99,11 @@ export function useUserPreferences() {
           if (!cardOrder.includes('alerts')) {
             cardOrder.push('alerts');
           }
-          if (!cardOrder.includes('weatherSources')) {
-            cardOrder.push('weatherSources');
-          }
           
-          // Remove forecastConfidence if it exists
+          // Remove old cards if they exist
+          delete visibleCards.weatherSources;
           delete visibleCards.forecastConfidence;
-          cardOrder = cardOrder.filter(card => card !== 'forecastConfidence');
+          cardOrder = cardOrder.filter(card => card !== 'forecastConfidence' && card !== 'weatherSources');
           
           setVisibleCards(visibleCards);
           setCardOrder(cardOrder);

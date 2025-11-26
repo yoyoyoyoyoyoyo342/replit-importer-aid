@@ -216,7 +216,6 @@ export function SettingsDialog({
     }
   }
   const cardLabels = {
-    weatherSources: 'Weather Data Sources',
     pollen: t('pollen.pollenIndex'),
     hourly: t('pollen.hourlyForecast'),
     tenDay: t('pollen.tenDayForecast'),
