@@ -145,29 +145,8 @@ serve(async (req) => {
       })
       .sort((a, b) => a.distance - b.distance);
 
-    const exactLocationStation: WeatherStation = {
-      name: 'Exact location',
-      region: '',
-      country: '',
-      latitude,
-      longitude,
-      distance: 0,
-      reliability: 0.9,
-    };
-
-    const hasVeryCloseStation = candidateStations.some((s) => s.distance < 0.3);
-
-    let stations: WeatherStation[] = [];
-
-    // Always include the exact address location if no station is extremely close
-    if (!hasVeryCloseStation) {
-      stations.push(exactLocationStation);
-    }
-
-    stations.push(...candidateStations);
-
-    // Sort again by distance (exact location will naturally be first if included)
-    stations = stations.sort((a, b) => a.distance - b.distance).slice(0, 3);
+    // Return only the top 3 real weather stations
+    const stations = candidateStations.slice(0, 3);
 
     console.log(`Returning ${stations.length} nearby weather stations`);
 
