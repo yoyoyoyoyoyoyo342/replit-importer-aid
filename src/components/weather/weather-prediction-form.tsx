@@ -56,6 +56,11 @@ export const WeatherPredictionForm = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      toast.error("You must be logged in to make predictions");
+      return;
+    }
+    
     if (!predictedHigh || !predictedLow || !predictedCondition) {
       toast.error("Please fill in all fields");
       return;
@@ -78,14 +83,22 @@ export const WeatherPredictionForm = ({
     setLoading(true);
     
     try {
-      if (!user) {
-        toast.error("You must be logged in to make predictions");
-        return;
-      }
-
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const predictionDate = tomorrow.toISOString().split("T")[0];
+
+      // Check if user already made a prediction for tomorrow
+      const { data: existingPrediction } = await supabase
+        .from("weather_predictions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("prediction_date", predictionDate)
+        .maybeSingle();
+
+      if (existingPrediction) {
+        toast.error("You've already made your prediction for tomorrow! Come back tomorrow to predict the next day.");
+        return;
+      }
 
       const { error } = await supabase
         .from("weather_predictions")
@@ -108,11 +121,7 @@ export const WeatherPredictionForm = ({
       setPredictedCondition("");
       onPredictionMade();
     } catch (error: any) {
-      if (error.code === "23505") {
-        toast.error("You've already predicted tomorrow's weather for this location!");
-      } else {
-        toast.error("Failed to submit prediction");
-      }
+      toast.error("Failed to submit prediction");
       console.error("Error submitting prediction:", error);
     } finally {
       setLoading(false);
