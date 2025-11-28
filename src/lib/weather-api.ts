@@ -568,9 +568,9 @@ export const weatherApi = {
         return;
       }
 
-      // Use high accuracy for hyper-local weather data
+      // Use high accuracy with WiFi/4G/5G triangulation + GPS for best precision
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true, // GPS-level accuracy
+        enableHighAccuracy: true, // Enables GPS + WiFi/cellular triangulation
         timeout: 15000, // Extended timeout for high accuracy
         maximumAge: 0, // Always get fresh location, don't use cached
       });

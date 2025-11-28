@@ -11,6 +11,7 @@ export interface CardVisibility {
   weatherTrends: boolean;
   aqi: boolean;
   alerts: boolean;
+  barometer: boolean;
 }
 
 export type CardType = keyof CardVisibility;
@@ -23,9 +24,10 @@ const DEFAULT_VISIBILITY: CardVisibility = {
   weatherTrends: true,
   aqi: true,
   alerts: true,
+  barometer: true,
 };
 
-const DEFAULT_ORDER: CardType[] = ["pollen", "hourly", "tenDay", "detailedMetrics", "weatherTrends", "aqi", "alerts"];
+const DEFAULT_ORDER: CardType[] = ["weatherTrends", "barometer", "pollen", "hourly", "tenDay", "detailedMetrics", "aqi", "alerts"];
 
 export function useUserPreferences() {
   const { user } = useAuth();
@@ -90,6 +92,9 @@ export function useUserPreferences() {
           if (visibleCards.alerts === undefined) {
             visibleCards.alerts = true;
           }
+          if (visibleCards.barometer === undefined) {
+            visibleCards.barometer = true;
+          }
           if (!cardOrder.includes('weatherTrends')) {
             cardOrder.push('weatherTrends');
           }
@@ -98,6 +103,9 @@ export function useUserPreferences() {
           }
           if (!cardOrder.includes('alerts')) {
             cardOrder.push('alerts');
+          }
+          if (!cardOrder.includes('barometer')) {
+            cardOrder.push('barometer');
           }
           
           // Remove old cards if they exist
