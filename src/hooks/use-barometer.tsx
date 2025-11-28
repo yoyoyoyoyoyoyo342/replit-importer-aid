@@ -27,8 +27,9 @@ export function useBarometer() {
     }
 
     try {
+      // Request sensor permissions (some browsers require explicit permission)
       // @ts-ignore - Ambient Pressure Sensor API
-      const result = await navigator.permissions.query({ name: 'ambient-light-sensor' });
+      const result = await navigator.permissions.query({ name: 'accelerometer' });
       
       if (result.state === 'granted' || result.state === 'prompt') {
         setPermissionGranted(true);

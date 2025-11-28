@@ -39,6 +39,7 @@ import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
 import { AQICard } from "@/components/weather/aqi-card";
 import { Leaderboard } from "@/components/weather/leaderboard";
 import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
+import { BarometerCard } from "@/components/weather/barometer-card";
 
 
 export default function WeatherPage() {
@@ -572,6 +573,14 @@ export default function WeatherPage() {
                           </CardContent>
                         </Card>
                       ))}
+                    </div>
+                  ) : null;
+
+                case "barometer":
+                  // Only show barometer when using auto-detected "My Location"
+                  return isAutoDetected ? (
+                    <div key="barometer" className="mb-4">
+                      <BarometerCard />
                     </div>
                   ) : null;
                 

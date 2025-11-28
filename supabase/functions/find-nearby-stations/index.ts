@@ -50,22 +50,33 @@ serve(async (req) => {
       throw new Error('WEATHER_API_KEY is not configured');
     }
 
-    // Create a grid of points around the location to find different nearby places
+    // Create a wider grid of points around the location to find more nearby places
     const searchPoints: Array<{ lat: number; lon: number; label: string }> = [
       { lat: latitude, lon: longitude, label: 'Center' },
-      { lat: latitude + 0.05, lon: longitude, label: 'North' },
-      { lat: latitude - 0.05, lon: longitude, label: 'South' },
-      { lat: latitude, lon: longitude + 0.05, label: 'East' },
-      { lat: latitude, lon: longitude - 0.05, label: 'West' },
+      // Closer ring (0.02 degrees ~2km)
+      { lat: latitude + 0.02, lon: longitude, label: 'N-Close' },
+      { lat: latitude - 0.02, lon: longitude, label: 'S-Close' },
+      { lat: latitude, lon: longitude + 0.02, label: 'E-Close' },
+      { lat: latitude, lon: longitude - 0.02, label: 'W-Close' },
+      // Medium ring (0.05 degrees ~5km)
+      { lat: latitude + 0.05, lon: longitude, label: 'N' },
+      { lat: latitude - 0.05, lon: longitude, label: 'S' },
+      { lat: latitude, lon: longitude + 0.05, label: 'E' },
+      { lat: latitude, lon: longitude - 0.05, label: 'W' },
       { lat: latitude + 0.05, lon: longitude + 0.05, label: 'NE' },
       { lat: latitude + 0.05, lon: longitude - 0.05, label: 'NW' },
       { lat: latitude - 0.05, lon: longitude + 0.05, label: 'SE' },
       { lat: latitude - 0.05, lon: longitude - 0.05, label: 'SW' },
+      // Wider ring (0.1 degrees ~11km)
+      { lat: latitude + 0.1, lon: longitude, label: 'N-Far' },
+      { lat: latitude - 0.1, lon: longitude, label: 'S-Far' },
+      { lat: latitude, lon: longitude + 0.1, label: 'E-Far' },
+      { lat: latitude, lon: longitude - 0.1, label: 'W-Far' },
     ];
 
-    console.log(`Searching locations around ${searchPoints.length} nearby points`);
+    console.log(`Searching ${searchPoints.length} points around location for nearby weather stations`);
 
-    // Collect location candidates from WeatherAPI search
+    // Collect location candidates from WeatherAPI.com (most reliable for actual station data)
     const locationResults: any[] = [];
 
     for (const point of searchPoints) {
@@ -81,11 +92,11 @@ serve(async (req) => {
         const results = await searchResponse.json();
         if (Array.isArray(results)) {
           for (const loc of results) {
-            locationResults.push(loc);
+            locationResults.push({ ...loc, source: 'weatherapi' });
           }
         }
       } catch (error) {
-        console.error(`Error searching locations for ${point.label}:`, error);
+        console.error(`Error searching WeatherAPI for ${point.label}:`, error);
       }
     }
 
@@ -109,7 +120,7 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Collected ${locationResults.length} raw location candidates`);
+    console.log(`Collected ${locationResults.length} raw location candidates from all sources`);
 
     // Deduplicate locations by name/region/country
     const uniqueLocationsMap = new Map<string, any>();
@@ -130,8 +141,9 @@ serve(async (req) => {
         const locLon = typeof loc.lon === 'string' ? parseFloat(loc.lon) : loc.lon;
 
         const distance = calculateDistance(latitude, longitude, locLat, locLon);
-        const distanceFactor = Math.max(0, 1 - distance / 100);
-        const reliability = Math.min(0.95, 0.7 + distanceFactor * 0.25);
+        // Boost reliability for closer stations
+        const distanceFactor = Math.max(0, 1 - distance / 50);
+        const reliability = Math.min(0.95, 0.75 + distanceFactor * 0.20);
 
         return {
           name: loc.name,
@@ -145,8 +157,10 @@ serve(async (req) => {
       })
       .sort((a, b) => a.distance - b.distance);
 
-    // Return only the top 3 real weather stations
+    // Return the top 3 nearest real weather stations
     const stations = candidateStations.slice(0, 3);
+    
+    console.log(`Final stations:`, stations.map(s => `${s.name} (${s.distance.toFixed(2)}km)`));
 
     console.log(`Returning ${stations.length} nearby weather stations`);
 
