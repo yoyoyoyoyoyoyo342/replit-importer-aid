@@ -74,17 +74,28 @@ serve(async (req) => {
         const lowAccurate = Math.abs(prediction.predicted_low - actualLow) <= 5;
         const conditionAccurate = prediction.predicted_condition === actualCondition;
         
-        const isCorrect = highAccurate && lowAccurate && conditionAccurate;
+        // Count how many parts are correct
+        const correctParts = [highAccurate, lowAccurate, conditionAccurate].filter(Boolean).length;
         
-        // Get user's current streak to calculate daily points (25 points per day of streak)
-        const { data: streakData } = await supabase
-          .from('user_streaks')
-          .select('current_streak')
-          .eq('user_id', prediction.user_id)
-          .single();
+        // Calculate tiered accuracy points
+        let pointsEarned = 0;
+        switch (correctParts) {
+          case 3:
+            pointsEarned = 300;  // All correct
+            break;
+          case 2:
+            pointsEarned = 200;  // 2 correct
+            break;
+          case 1:
+            pointsEarned = 100;  // 1 correct
+            break;
+          case 0:
+            pointsEarned = -100; // All wrong (penalty)
+            break;
+        }
         
-        const streakBonus = (streakData?.current_streak || 1) * 25;
-        const pointsEarned = isCorrect ? streakBonus : 0;
+        // is_correct is true if at least 1 part is correct
+        const isCorrect = correctParts >= 1;
 
         // Update prediction with verification
         const { error: updateError } = await supabase
@@ -112,7 +123,8 @@ serve(async (req) => {
           .eq('user_id', prediction.user_id)
           .single();
 
-        const newTotalPoints = (profile?.total_points || 0) + pointsEarned;
+        // Ensure total points don't go below 0
+        const newTotalPoints = Math.max(0, (profile?.total_points || 0) + pointsEarned);
 
         await supabase
           .from('profiles')

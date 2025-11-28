@@ -84,6 +84,18 @@ export const useUserStreaks = () => {
               // Consecutive day - increment streak
               newCurrentStreak = existingStreak.current_streak + 1;
               showToast = true;
+              
+              // Award +25 streak bonus points
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("total_points")
+                .eq("user_id", user.id)
+                .single();
+              
+              await supabase
+                .from("profiles")
+                .update({ total_points: (profile?.total_points || 0) + 25 })
+                .eq("user_id", user.id);
             } else {
               // Streak broken - reset to 1
               newCurrentStreak = 1;
@@ -118,7 +130,7 @@ export const useUserStreaks = () => {
             });
 
             if (showToast && newCurrentStreak > 1) {
-              toast.success(`🔥 ${newCurrentStreak} day streak!`);
+              toast.success(`🔥 ${newCurrentStreak} day streak! +25 points`);
             }
           }
         }
