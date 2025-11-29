@@ -28,6 +28,29 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
+// Reverse geocode coordinates to a human-readable location name using Open-Meteo
+async function reverseGeocode(lat: number, lon: number) {
+  try {
+    const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&format=json`;
+    const geocodeResponse = await fetch(geocodeUrl);
+
+    if (!geocodeResponse.ok) return null;
+
+    const geocodeData = await geocodeResponse.json();
+    if (!geocodeData.results || geocodeData.results.length === 0) return null;
+
+    const loc = geocodeData.results[0];
+    return {
+      name: loc.name as string,
+      region: (loc.admin1 || '') as string,
+      country: (loc.country || loc.country_code || '') as string,
+    };
+  } catch (error) {
+    console.error('Reverse geocoding failed:', error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -129,15 +152,15 @@ serve(async (req) => {
               const data = await tomorrowResponse.json();
               if (data.location) {
                 // Tomorrow.io confirmed this location has weather data
-                const locName = `Station ${point.lat.toFixed(3)}, ${point.lon.toFixed(3)}`;
+                const geo = await reverseGeocode(point.lat, point.lon);
                 locationResults.push({
-                  name: locName,
-                  region: '',
-                  country: '',
+                  name: geo?.name || `Weather Station ${point.lat.toFixed(3)}, ${point.lon.toFixed(3)}`,
+                  region: geo?.region || '',
+                  country: geo?.country || '',
                   lat: point.lat,
                   lon: point.lon,
                   source: 'tomorrow.io',
-                  hasStationData: true
+                  hasStationData: true,
                 });
               }
             }
@@ -169,24 +192,17 @@ serve(async (req) => {
         if (meteoResponse.ok) {
           const data = await meteoResponse.json();
           if (data.current_weather) {
-            // Get the location name from geocoding
-            const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?latitude=${point.lat}&longitude=${point.lon}&count=1&format=json`;
-            const geocodeResponse = await fetch(geocodeUrl);
-            
-            if (geocodeResponse.ok) {
-              const geocodeData = await geocodeResponse.json();
-              if (geocodeData.results && geocodeData.results.length > 0) {
-                const loc = geocodeData.results[0];
-                locationResults.push({
-                  name: loc.name,
-                  region: loc.admin1 || '',
-                  country: loc.country || loc.country_code || '',
-                  lat: loc.latitude,
-                  lon: loc.longitude,
-                  source: 'open-meteo',
-                  hasStationData: true
-                });
-              }
+            const geo = await reverseGeocode(point.lat, point.lon);
+            if (geo) {
+              locationResults.push({
+                name: geo.name,
+                region: geo.region,
+                country: geo.country,
+                lat: point.lat,
+                lon: point.lon,
+                source: 'open-meteo',
+                hasStationData: true,
+              });
             }
           }
         }

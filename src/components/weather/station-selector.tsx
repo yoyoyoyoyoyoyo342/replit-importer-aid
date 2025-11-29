@@ -22,11 +22,16 @@ interface StationSelectorProps {
 
 export function StationSelector({ stations, isImperial, onSelectStation, onCancel }: StationSelectorProps) {
   const formatDistance = (km: number) => {
+    const safeKm = Math.max(0, km);
+    if (safeKm < 0.05) {
+      return isImperial ? "<0.1 mi" : "<0.1 km";
+    }
+
     if (isImperial) {
-      const miles = km * 0.621371;
+      const miles = safeKm * 0.621371;
       return `${miles.toFixed(1)} mi`;
     }
-    return `${km.toFixed(1)} km`;
+    return `${safeKm.toFixed(1)} km`;
   };
 
   const getReliabilityColor = (reliability: number) => {
