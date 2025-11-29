@@ -228,46 +228,16 @@ export function LocationSearch({
     const locationName = `${location.name}, ${location.state ? `${location.state}, ` : ''}${location.country}`;
     
     setSearchQuery("");
-    setLoadingStations(true);
 
     // Save to history
     await saveToHistory('location', locationName, location.latitude, location.longitude);
 
-    try {
-      // Find nearby weather stations
-      const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
-        body: { 
-          latitude: location.latitude, 
-          longitude: location.longitude 
-        }
-      });
-
-      if (error) throw error;
-
-      const nearbyStations: WeatherStation[] = data?.stations || [];
-      
-      if (nearbyStations.length > 0) {
-        setStations(nearbyStations);
-        setShowStations(true);
-      } else {
-        // If no stations found, use the location directly
-        onLocationSelect(location.latitude, location.longitude, locationName);
-        toast({
-          title: "Location selected",
-          description: `Weather data loading for ${locationName}`,
-        });
-      }
-    } catch (error) {
-      console.error("Error finding stations:", error);
-      // Fallback to direct coordinates
-      onLocationSelect(location.latitude, location.longitude, locationName);
-      toast({
-        title: "Location selected",
-        description: `Weather data loading for ${locationName}`,
-      });
-    } finally {
-      setLoadingStations(false);
-    }
+    // For city/location searches, use coordinates directly without station selector
+    onLocationSelect(location.latitude, location.longitude, locationName);
+    toast({
+      title: "Location selected",
+      description: `Weather data loading for ${locationName}`,
+    });
   };
 
   const handleAddressClick = async (address: AddressResult) => {
@@ -323,35 +293,35 @@ export function LocationSearch({
     setSearchQuery("");
     setLoadingStations(true);
 
-    try {
-      const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
-        body: { latitude: item.latitude, longitude: item.longitude }
-      });
-
-      if (error) throw error;
-
-      const nearbyStations: WeatherStation[] = data?.stations || [];
-      
-      if (nearbyStations.length > 0) {
-        setStations(nearbyStations);
-        setShowStations(true);
-      } else {
-        onLocationSelect(item.latitude, item.longitude, item.location_name);
-        toast({
-          title: "Location selected",
-          description: `Weather data loading for ${item.location_name}`,
+    // Check if this was an address search - only show station selector for addresses
+    if (item.search_type === 'address') {
+      try {
+        const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
+          body: { latitude: item.latitude, longitude: item.longitude }
         });
+
+        if (error) throw error;
+
+        const nearbyStations: WeatherStation[] = data?.stations || [];
+        
+        if (nearbyStations.length > 0) {
+          setStations(nearbyStations);
+          setShowStations(true);
+          setLoadingStations(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Error finding stations:", error);
       }
-    } catch (error) {
-      console.error("Error finding stations:", error);
-      onLocationSelect(item.latitude, item.longitude, item.location_name);
-      toast({
-        title: "Location selected",
-        description: `Weather data loading for ${item.location_name}`,
-      });
-    } finally {
-      setLoadingStations(false);
     }
+
+    // For location searches or if station finding failed, use coordinates directly
+    setLoadingStations(false);
+    onLocationSelect(item.latitude, item.longitude, item.location_name);
+    toast({
+      title: "Location selected",
+      description: `Weather data loading for ${item.location_name}`,
+    });
   };
 
   const handleDeleteHistoryItem = async (id: string, e: React.MouseEvent) => {
@@ -378,34 +348,12 @@ export function LocationSearch({
         longitude
       } = position.coords;
 
-      // Find nearby stations for current location
-      try {
-        const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
-          body: { latitude, longitude }
-        });
-
-        if (error) throw error;
-
-        const nearbyStations: WeatherStation[] = data?.stations || [];
-        
-        if (nearbyStations.length > 0) {
-          setStations(nearbyStations);
-          setShowStations(true);
-        } else {
-          onLocationSelect(latitude, longitude, "Current Location");
-          toast({
-            title: "Location detected",
-            description: "Using your current location for weather data."
-          });
-        }
-      } catch (error) {
-        console.error("Error finding stations:", error);
-        onLocationSelect(latitude, longitude, "Current Location");
-        toast({
-          title: "Location detected",
-          description: "Using your current location for weather data."
-        });
-      }
+      // For current location, use coordinates directly without station selector
+      onLocationSelect(latitude, longitude, "Current Location");
+      toast({
+        title: "Location detected",
+        description: "Using your current location for weather data."
+      });
     } catch (error) {
       toast({
         title: "Location detection failed",
