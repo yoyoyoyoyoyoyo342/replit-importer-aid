@@ -707,6 +707,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      manual_verify_predictions: { Args: never; Returns: Json }
+      trigger_verify_predictions: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
