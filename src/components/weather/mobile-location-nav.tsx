@@ -83,21 +83,25 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
 
   return (
     <>
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
-        <div className="glass-card border-t border-border/30 backdrop-blur-xl">
-          <ScrollArea className="w-full">
-            <div className="flex items-center gap-2 p-3 overflow-x-auto">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe px-2">
+        <div className="glass-card rounded-3xl border border-border/30 backdrop-blur-xl mx-2 mb-2 shadow-lg">
+          <div className="overflow-x-auto overflow-y-hidden scrollbar-hide">
+            <div className="flex items-center gap-1 p-2 min-w-max">
               {/* Add Location Button */}
               <Dialog open={isAddingLocation} onOpenChange={setIsAddingLocation}>
-                <Button
+                <button
                   onClick={() => setIsAddingLocation(true)}
-                  size="sm"
-                  variant="outline"
-                  className="shrink-0 h-12 px-4 gap-2 bg-primary/10 border-primary/30 hover:bg-primary/20"
+                  className={`shrink-0 flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all ${
+                    isAddingLocation
+                      ? "bg-primary/20 scale-95"
+                      : "hover:bg-muted/30 active:scale-95"
+                  }`}
                 >
-                  <Plus className="h-4 w-4" />
-                  <span className="text-xs font-medium">Add</span>
-                </Button>
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Plus className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-[10px] font-medium text-foreground whitespace-nowrap">Add</span>
+                </button>
                 <DialogContent className="glass-card">
                   <DialogHeader>
                     <DialogTitle>Add Location</DialogTitle>
@@ -111,36 +115,42 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
                 <button
                   key={location.id}
                   onClick={() => onLocationSelect(location.latitude, location.longitude, location.name)}
-                  className={`shrink-0 h-12 px-4 rounded-lg flex items-center gap-2 transition-all ${
+                  className={`shrink-0 flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all ${
                     isCurrent(location)
-                      ? "bg-primary text-primary-foreground shadow-lg scale-105"
-                      : "bg-muted/50 hover:bg-muted text-foreground"
+                      ? "bg-primary/20 scale-95"
+                      : "hover:bg-muted/30 active:scale-95"
                   }`}
                 >
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span className="text-xs font-medium whitespace-nowrap">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    isCurrent(location)
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                  }`}>
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <span className="text-[10px] font-medium text-foreground whitespace-nowrap max-w-[72px] truncate">
                     {location.name}
                   </span>
                   {isCurrent(location) && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                    <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
                   )}
                 </button>
               ))}
 
               {savedLocations.length === 0 && (
-                <div className="flex-1 flex items-center justify-center py-2">
+                <div className="flex-1 flex items-center justify-center py-4 px-4">
                   <p className="text-xs text-muted-foreground">
                     Add locations for quick access
                   </p>
                 </div>
               )}
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </nav>
 
       {/* Spacer to prevent content being hidden behind nav */}
-      <div className="lg:hidden h-20" />
+      <div className="lg:hidden h-24" />
     </>
   );
 }
