@@ -294,73 +294,70 @@ export default function WeatherPage() {
         sunset={weatherData?.mostAccurate?.currentWeather?.sunset}
         moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase}
       />
-      <div className="container mx-auto px-3 py-2 max-w-5xl relative z-10">
-        {/* Header - Mobile Optimized */}
-        <header className="mb-4 glass-header rounded-lg p-3 sm:p-4 relative z-[1000]">
-          <div className="flex flex-col gap-3">
-            {/* Top Row: Logo and Essential Actions */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-8 sm:h-8" />
-                <div>
-                  <h1 className="text-xl sm:text-lg font-bold text-foreground">Rainz</h1>
-                  <p className="text-xs sm:text-[10px] text-foreground hidden sm:block">{t('app.tagline')}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <LockedFeature isLocked={!user}>
-                  <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
-                </LockedFeature>
-                
-                {!user && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => window.location.href = '/auth'} 
-                    className="h-10 px-3 sm:h-8 sm:px-2 text-sm sm:text-xs"
-                  >
-                    <LogIn className="w-4 h-4 sm:w-3 sm:h-3 mr-1" />
-                    <span className="hidden sm:inline">{t('header.signIn')}</span>
-                    <span className="sm:hidden">Sign In</span>
-                  </Button>
-                )}
+      
+      <div className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl relative z-10">
+        {/* Modern Header */}
+        <header className="mb-6 glass-header rounded-2xl p-4 sm:p-6 relative z-[1000] border border-border/20">
+          {/* Logo & Auth Row */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Rainz Logo" className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-lg" />
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Rainz</h1>
+                <p className="text-sm text-muted-foreground">{t('app.tagline')}</p>
               </div>
             </div>
 
-            {/* Second Row: Location and Controls */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 sm:items-center">
-              <div className="flex-1 space-y-2">
-                <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
-                
-                {weatherData?.aggregated?.stationInfo && (
-                  <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />
-                )}
-              </div>
+            <div className="flex items-center gap-3">
+              <LockedFeature isLocked={!user}>
+                <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
+              </LockedFeature>
               
-              <div className="flex items-center gap-2 justify-between sm:justify-start">
-                <div className="flex items-center gap-1 px-3 py-2 sm:px-2 sm:py-1 text-muted-foreground bg-muted rounded text-sm sm:text-xs">
-                  <span>°F</span>
-                  <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
-                  <span>°C</span>
-                </div>
-                
-                {weatherData && (
-                  <WeatherReportForm 
-                    location={selectedLocation?.name || "Unknown"} 
-                    currentCondition={weatherData.mostAccurate.currentWeather.condition}
-                    locationData={{
-                      latitude: selectedLocation?.lat || 0,
-                      longitude: selectedLocation?.lon || 0
-                    }}
-                  />
-                )}
-              </div>
+              {!user && (
+                <Button 
+                  variant="outline" 
+                  size="default"
+                  onClick={() => window.location.href = '/auth'} 
+                  className="gap-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{t('header.signIn')}</span>
+                </Button>
+              )}
             </div>
+          </div>
 
-            {/* Third Row: User Actions (Predictions & Leaderboard) */}
-            {selectedLocation && (
-              user ? (
+          {/* Search & Controls Row */}
+          <div className="grid sm:grid-cols-[1fr_auto_auto] gap-3 items-start">
+            <div className="space-y-2">
+              <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
+              {weatherData?.aggregated?.stationInfo && (
+                <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 rounded-lg border border-border/20">
+              <span className="text-sm font-medium">°F</span>
+              <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
+              <span className="text-sm font-medium">°C</span>
+            </div>
+            
+            {weatherData && (
+              <WeatherReportForm 
+                location={selectedLocation?.name || "Unknown"} 
+                currentCondition={weatherData.mostAccurate.currentWeather.condition}
+                locationData={{
+                  latitude: selectedLocation?.lat || 0,
+                  longitude: selectedLocation?.lon || 0
+                }}
+              />
+            )}
+          </div>
+
+          {/* Prediction Row */}
+          {selectedLocation && (
+            <div className="mt-4 pt-4 border-t border-border/20">
+              {user ? (
                 <PredictionDialog
                   location={selectedLocation.name}
                   latitude={selectedLocation.lat}
@@ -372,54 +369,65 @@ export default function WeatherPage() {
                 <LockedFeature isLocked={true}>
                   <LockedPredictionButton />
                 </LockedFeature>
-              )
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </header>
 
         {/* Loading Overlay */}
         <LoadingOverlay isOpen={isLoading && !weatherData} />
 
         {/* Main Content */}
-        {!selectedLocation ? <Card className="bg-card border border-border text-center py-6">
-            <CardContent>
-              <CloudSun className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-              <h2 className="text-sm font-semibold text-foreground mb-1">{t('weather.welcome')}</h2>
-              <p className="text-muted-foreground text-xs">
-                {t('weather.searchLocation')}
-              </p>
+        {!selectedLocation ? (
+          <Card className="glass-card border border-border/20 text-center py-12 rounded-2xl">
+            <CardContent className="space-y-4">
+              <CloudSun className="w-16 h-16 text-primary mx-auto" />
+              <div>
+                <h2 className="text-xl font-semibold text-foreground mb-2">{t('weather.welcome')}</h2>
+                <p className="text-muted-foreground">
+                  {t('weather.searchLocation')}
+                </p>
+              </div>
             </CardContent>
-          </Card> : error ? <Card className="bg-destructive/10 border-destructive/20 text-center py-6">
-            <CardContent>
-              <div className="text-destructive mb-2">⚠️</div>
-              <h2 className="text-sm font-semibold text-destructive mb-1">
-                {t('weather.failed')}
-              </h2>
-              <p className="text-destructive/80 mb-3 text-xs">
-                {t('weather.checkConnection')}
-              </p>
-              <Button onClick={handleRefresh} variant="outline" size="sm">
-                {t('weather.tryAgain')}
-              </Button>
+          </Card>
+        ) : error ? (
+          <Card className="glass-card border-destructive/30 text-center py-12 rounded-2xl">
+            <CardContent className="space-y-4">
+              <div className="text-4xl">⚠️</div>
+              <div>
+                <h2 className="text-xl font-semibold text-destructive mb-2">
+                  {t('weather.failed')}
+                </h2>
+                <p className="text-destructive/80 mb-4">
+                  {t('weather.checkConnection')}
+                </p>
+                <Button onClick={handleRefresh} variant="outline" size="default">
+                  {t('weather.tryAgain')}
+                </Button>
+              </div>
             </CardContent>
-          </Card> : weatherData ? <>
+          </Card>
+        ) : weatherData ? (
+          <>
             {/* Demo Data Banner */}
-            {weatherData.demo && <div className="mb-3 p-2 bg-primary/10 border border-primary/20 rounded">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 bg-primary/20 rounded flex items-center justify-center">
-                    <span className="text-primary text-xs">⚠️</span>
+            {weatherData.demo && (
+              <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                    <span className="text-lg">⚠️</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-primary text-xs">{t('weather.demoData')}</h3>
-                    <p className="text-primary/80 text-xs">
+                    <h3 className="font-semibold text-primary">{t('weather.demoData')}</h3>
+                    <p className="text-primary/80 text-sm">
                       {weatherData.message || t('weather.demoMessage')}
                     </p>
                   </div>
                 </div>
-              </div>}
+              </div>
+            )}
 
-            {/* Streak Display */}
-            <div className="mb-4">
+            {/* Streak & Alerts Section */}
+            <div className="mb-6 space-y-4">
               {user ? (
                 <StreakDisplay />
               ) : (
@@ -427,14 +435,13 @@ export default function WeatherPage() {
                   <LockedStreakDisplay />
                 </LockedFeature>
               )}
+              
+              {weatherData.mostAccurate?.currentWeather && (
+                <WinterAlerts 
+                  alerts={checkWeatherAlerts(weatherData.mostAccurate.currentWeather)}
+                />
+              )}
             </div>
-
-            {/* Winter Weather Alerts */}
-            {weatherData.mostAccurate?.currentWeather && (
-              <WinterAlerts 
-                alerts={checkWeatherAlerts(weatherData.mostAccurate.currentWeather)}
-              />
-            )}
 
             {/* Morning Weather Review */}
             <MorningWeatherReview
@@ -608,10 +615,11 @@ export default function WeatherPage() {
                 </div>
               </div>
             </footer>
-          </> : null}
+          </>
+        ) : null}
       </div>
       
       {/* AI Chat Button - Floating */}
       {weatherData && <AIChatButton weatherData={weatherData.mostAccurate} location={selectedLocation.name} isImperial={isImperial} />}
-    </div>;
+    </div>
 }
