@@ -73,6 +73,26 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
     addLocationMutation.mutate({ name: locationName, lat, lon });
   };
 
+  const handleLocationClick = (lat: number, lon: number, locationName: string) => {
+    // Haptic feedback for mobile
+    if (navigator.vibrate) {
+      navigator.vibrate(10); // Short 10ms vibration
+    }
+    onLocationSelect(lat, lon, locationName);
+  };
+
+  const handleAddClick = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
+    }
+    setIsAddingLocation(true);
+  };
+
+  // Extract just the city name from full location string
+  const getShortLocationName = (fullName: string) => {
+    return fullName.split(',')[0].trim();
+  };
+
   const isCurrent = (location: SavedLocation) => {
     if (!currentLocation) return false;
     return (
@@ -83,14 +103,14 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
 
   return (
     <>
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe px-2">
+      <nav className="xl:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe px-2">
         <div className="glass-card rounded-3xl border border-border/30 backdrop-blur-xl mx-2 mb-2 shadow-lg">
           <div className="overflow-x-auto overflow-y-hidden scrollbar-hide">
             <div className="flex items-center gap-1 p-2 min-w-max">
               {/* Add Location Button */}
               <Dialog open={isAddingLocation} onOpenChange={setIsAddingLocation}>
                 <button
-                  onClick={() => setIsAddingLocation(true)}
+                  onClick={handleAddClick}
                   className={`shrink-0 flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all ${
                     isAddingLocation
                       ? "bg-primary/20 scale-95"
@@ -114,7 +134,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
               {savedLocations.map((location) => (
                 <button
                   key={location.id}
-                  onClick={() => onLocationSelect(location.latitude, location.longitude, location.name)}
+                  onClick={() => handleLocationClick(location.latitude, location.longitude, location.name)}
                   className={`shrink-0 flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all ${
                     isCurrent(location)
                       ? "bg-primary/20 scale-95"
@@ -129,7 +149,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
                     <MapPin className="h-5 w-5" />
                   </div>
                   <span className="text-[10px] font-medium text-foreground whitespace-nowrap max-w-[72px] truncate">
-                    {location.name}
+                    {getShortLocationName(location.name)}
                   </span>
                   {isCurrent(location) && (
                     <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
@@ -150,7 +170,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
       </nav>
 
       {/* Spacer to prevent content being hidden behind nav */}
-      <div className="lg:hidden h-24" />
+      <div className="xl:hidden h-24" />
     </>
   );
 }
