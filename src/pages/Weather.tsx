@@ -40,6 +40,7 @@ import { AQICard } from "@/components/weather/aqi-card";
 import { Leaderboard } from "@/components/weather/leaderboard";
 import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
 import { BarometerCard } from "@/components/weather/barometer-card";
+import { MobileLocationNav } from "@/components/weather/mobile-location-nav";
 
 
 export default function WeatherPage() {
@@ -621,5 +622,14 @@ export default function WeatherPage() {
       
       {/* AI Chat Button - Floating */}
       {weatherData && <AIChatButton weatherData={weatherData.mostAccurate} location={selectedLocation.name} isImperial={isImperial} />}
+      
+      {/* Mobile Location Nav - Bottom */}
+      {user && selectedLocation && (
+        <MobileLocationNav 
+          onLocationSelect={handleLocationSelect}
+          currentLocation={selectedLocation}
+          isImperial={isImperial}
+        />
+      )}
     </div>
 }
