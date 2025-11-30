@@ -258,7 +258,7 @@ export function LocationSearch({
     await saveToHistory('address', locationName, lat, lon);
 
     try {
-      // Find nearby weather stations
+      // Find nearby weather stations and auto-select the nearest one
       const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
         body: { latitude: lat, longitude: lon }
       });
@@ -268,8 +268,13 @@ export function LocationSearch({
       const nearbyStations: WeatherStation[] = data?.stations || [];
       
       if (nearbyStations.length > 0) {
-        setStations(nearbyStations);
-        setShowStations(true);
+        // Auto-select the nearest station (first in array)
+        const nearestStation = nearbyStations[0];
+        onLocationSelect(nearestStation.latitude, nearestStation.longitude, nearestStation.name);
+        toast({
+          title: "Station selected",
+          description: `Using weather data from ${nearestStation.name}`,
+        });
       } else {
         onLocationSelect(lat, lon, locationName);
         toast({
@@ -293,7 +298,7 @@ export function LocationSearch({
     setSearchQuery("");
     setLoadingStations(true);
 
-    // Check if this was an address search - only show station selector for addresses
+    // Check if this was an address search - auto-select nearest station
     if (item.search_type === 'address') {
       try {
         const { data, error } = await supabase.functions.invoke('find-nearby-stations', {
@@ -305,9 +310,14 @@ export function LocationSearch({
         const nearbyStations: WeatherStation[] = data?.stations || [];
         
         if (nearbyStations.length > 0) {
-          setStations(nearbyStations);
-          setShowStations(true);
+          // Auto-select the nearest station
+          const nearestStation = nearbyStations[0];
           setLoadingStations(false);
+          onLocationSelect(nearestStation.latitude, nearestStation.longitude, nearestStation.name);
+          toast({
+            title: "Station selected",
+            description: `Using weather data from ${nearestStation.name}`,
+          });
           return;
         }
       } catch (error) {
