@@ -35,7 +35,7 @@ export function StationSelector({ stations, isImperial, onSelectStation, onCance
   };
 
   const getReliabilityColor = (reliability: number) => {
-    if (reliability >= 0.85) return "bg-green-500";
+    if (reliability >= 0.85) return "bg-blue-500";
     if (reliability >= 0.75) return "bg-yellow-500";
     return "bg-orange-500";
   };

@@ -38,7 +38,7 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
   }
 
   const getSnowfallLevel = (valueInInches: number) => {
-    if (valueInInches === 0) return { label: 'No Snow', color: 'bg-green-500' };
+    if (valueInInches === 0) return { label: 'No Snow', color: 'bg-blue-500' };
     if (valueInInches < 0.5) return { label: 'Light', color: 'bg-blue-300' };
     if (valueInInches < 2) return { label: 'Moderate', color: 'bg-blue-500' };
     if (valueInInches < 6) return { label: 'Heavy', color: 'bg-blue-700' };
@@ -46,7 +46,7 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
   };
 
   const getIceRiskLevel = (value: number) => {
-    if (value < 20) return { label: 'Low Risk', color: 'bg-green-500' };
+    if (value < 20) return { label: 'Low Risk', color: 'bg-blue-500' };
     if (value < 50) return { label: 'Medium Risk', color: 'bg-yellow-500' };
     if (value < 80) return { label: 'High Risk', color: 'bg-orange-500' };
     return { label: 'Extreme Risk', color: 'bg-red-500' };

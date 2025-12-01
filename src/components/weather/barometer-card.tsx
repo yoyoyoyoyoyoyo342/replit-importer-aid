@@ -15,7 +15,7 @@ export function BarometerCard() {
     
     switch (pressureData.trend) {
       case "rising":
-        return <TrendingUp className="h-5 w-5 text-green-500" />;
+        return <TrendingUp className="h-5 w-5 text-blue-500" />;
       case "falling":
         return <TrendingDown className="h-5 w-5 text-orange-500" />;
       case "stable":

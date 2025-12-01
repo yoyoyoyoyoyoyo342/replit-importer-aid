@@ -7,7 +7,7 @@ interface AQICardProps {
 }
 
 const getAQILevel = (aqi: number) => {
-  if (aqi <= 50) return { label: "Good", color: "text-green-500", bg: "bg-green-500/20" };
+  if (aqi <= 50) return { label: "Good", color: "text-blue-500", bg: "bg-blue-500/20" };
   if (aqi <= 100) return { label: "Moderate", color: "text-yellow-500", bg: "bg-yellow-500/20" };
   if (aqi <= 150) return { label: "Unhealthy for Sensitive", color: "text-orange-500", bg: "bg-orange-500/20" };
   if (aqi <= 200) return { label: "Unhealthy", color: "text-red-500", bg: "bg-red-500/20" };

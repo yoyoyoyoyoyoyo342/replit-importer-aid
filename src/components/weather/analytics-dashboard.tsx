@@ -298,7 +298,7 @@ export function AnalyticsDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{activeUsers}</div>
+            <div className="text-3xl font-bold text-blue-600">{activeUsers}</div>
             <p className="text-sm text-muted-foreground mt-1">Currently online</p>
           </CardContent>
         </Card>
