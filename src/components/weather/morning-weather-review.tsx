@@ -157,7 +157,12 @@ export function MorningWeatherReview({
             </div>
             <div className="flex items-center gap-1 text-muted-foreground">
               <Wind className="w-4 h-4" />
-              <span>{weatherData?.currentWeather?.windSpeed} {isImperial ? 'mph' : 'km/h'}</span>
+              <span>
+                {isImperial 
+                  ? `${weatherData?.currentWeather?.windSpeed} mph`
+                  : `${Math.round((weatherData?.currentWeather?.windSpeed || 0) * 1.609)} km/h`
+                }
+              </span>
             </div>
           </div>
 
