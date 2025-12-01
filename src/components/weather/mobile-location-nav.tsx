@@ -98,14 +98,14 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
   const handleLocationClick = (lat: number, lon: number, locationName: string) => {
     // Haptic feedback for mobile
     if (navigator.vibrate) {
-      navigator.vibrate(10); // Short 10ms vibration
+      navigator.vibrate(50); // 50ms vibration
     }
     onLocationSelect(lat, lon, locationName);
   };
 
   const handleAddClick = () => {
     if (navigator.vibrate) {
-      navigator.vibrate(10);
+      navigator.vibrate(50);
     }
     setIsAddingLocation(true);
   };
@@ -113,7 +113,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
   const handleEditClick = (location: SavedLocation, e: React.MouseEvent) => {
     e.stopPropagation();
     if (navigator.vibrate) {
-      navigator.vibrate(10);
+      navigator.vibrate(50);
     }
     setEditingLocation(location);
     setEditName(location.name);
@@ -186,7 +186,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
                       <MapPin className="h-5 w-5" />
                     </div>
                     <span className="text-[10px] font-medium text-foreground whitespace-nowrap max-w-[72px] truncate">
-                      {getShortLocationName(location.name)}
+                      {location.name.split(',')[0].trim()}
                     </span>
                     {isCurrent(location) && (
                       <span className="w-1 h-1 rounded-full bg-primary animate-pulse" />
