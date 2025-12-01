@@ -17,7 +17,7 @@ export function WeatherSourcesCard({ sources }: WeatherSourcesCardProps) {
   const agreement = Math.max(0, 100 - (maxDeviation * 10)); // 1°F deviation = 10% reduction
 
   const getAccuracyColor = (accuracy: number) => {
-    if (accuracy >= 0.92) return "bg-green-100 text-green-700 border-green-300";
+    if (accuracy >= 0.92) return "bg-blue-100 text-blue-700 border-blue-300";
     if (accuracy >= 0.88) return "bg-yellow-100 text-yellow-700 border-yellow-300";
     return "bg-orange-100 text-orange-700 border-orange-300";
   };
@@ -30,7 +30,7 @@ export function WeatherSourcesCard({ sources }: WeatherSourcesCardProps) {
             <Database className="w-5 h-5" />
             Data Sources
           </CardTitle>
-          <Badge variant="outline" className={agreement > 80 ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}>
+          <Badge variant="outline" className={agreement > 80 ? "bg-blue-100 text-blue-700" : "bg-yellow-100 text-yellow-700"}>
             {agreement > 80 ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <AlertCircle className="w-3 h-3 mr-1" />}
             {Math.round(agreement)}% Agreement
           </Badge>

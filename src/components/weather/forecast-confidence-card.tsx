@@ -22,7 +22,7 @@ export function ForecastConfidenceCard({ ensembleData, modelAgreement }: Forecas
   if (!ensembleData) return null;
 
   const confidenceConfig = {
-    high: { color: "text-green-600", bgColor: "bg-green-100", icon: CheckCircle2, label: "High Confidence" },
+    high: { color: "text-blue-600", bgColor: "bg-blue-100", icon: CheckCircle2, label: "High Confidence" },
     medium: { color: "text-yellow-600", bgColor: "bg-yellow-100", icon: AlertCircle, label: "Medium Confidence" },
     low: { color: "text-red-600", bgColor: "bg-red-100", icon: AlertCircle, label: "Low Confidence" },
   };
@@ -62,7 +62,7 @@ export function ForecastConfidenceCard({ ensembleData, modelAgreement }: Forecas
             <div className="w-full bg-muted rounded-full h-2">
               <div
                 className={`h-2 rounded-full transition-all ${
-                  modelAgreement > 80 ? "bg-green-500" : modelAgreement > 60 ? "bg-yellow-500" : "bg-red-500"
+                  modelAgreement > 80 ? "bg-blue-500" : modelAgreement > 60 ? "bg-yellow-500" : "bg-red-500"
                 }`}
                 style={{ width: `${modelAgreement}%` }}
               />

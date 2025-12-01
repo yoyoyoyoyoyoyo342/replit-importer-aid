@@ -40,7 +40,7 @@ export function DetailedMetrics({
               </div>
               <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 rounded-full" 
+                  className="h-full bg-gradient-to-r from-blue-400 via-yellow-400 to-red-500 rounded-full"
                   style={{
                     width: `${Math.min(currentWeather.uvIndex / 11 * 100, 100)}%`
                   }}
