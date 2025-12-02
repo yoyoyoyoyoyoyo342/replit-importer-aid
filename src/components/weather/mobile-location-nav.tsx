@@ -95,26 +95,50 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
     addLocationMutation.mutate({ name: locationName, lat, lon });
   };
 
-  const handleLocationClick = (lat: number, lon: number, locationName: string) => {
-    // Haptic feedback for mobile
-    if (navigator.vibrate) {
-      navigator.vibrate(50); // 50ms vibration
+  // Haptic feedback function with iOS detection
+  const triggerHaptic = () => {
+    // Check if device supports vibration (not iOS)
+    if (navigator.vibrate && !isIOS()) {
+      navigator.vibrate(50);
+    } else if (isIOS()) {
+      // For iOS, use audio feedback as alternative since Vibration API is not supported
+      playTapSound();
     }
+  };
+
+  // Detect iOS devices
+  const isIOS = () => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  };
+
+  // Play a subtle tap sound for iOS devices
+  const playTapSound = () => {
+    try {
+      const audio = new Audio('data:audio/wav;base64,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');
+      audio.volume = 0.3;
+      audio.play().catch(() => {
+        // Silently fail if audio play is blocked
+      });
+    } catch (error) {
+      // Silently fail if audio creation fails
+      console.log('Audio feedback not available');
+    }
+  };
+
+  const handleLocationClick = (lat: number, lon: number, locationName: string) => {
+    triggerHaptic();
     onLocationSelect(lat, lon, locationName);
   };
 
   const handleAddClick = () => {
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
+    triggerHaptic();
     setIsAddingLocation(true);
   };
 
   const handleEditClick = (location: SavedLocation, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
+    triggerHaptic();
     setEditingLocation(location);
     setEditName(location.name);
   };

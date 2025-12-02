@@ -58,9 +58,23 @@ export function MorningWeatherReview({
   }, [weatherData, isDismissed]);
 
   const fetchMorningReview = async () => {
-    if (!weatherData) return;
+    if (!weatherData) {
+      console.error('No weather data available for morning review');
+      return;
+    }
+
+    if (!userId) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to use AI-powered morning reviews.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     setIsLoading(true);
+    console.log('Fetching morning review for:', location);
+    
     try {
       const { data, error } = await supabase.functions.invoke('ai-weather-insights', {
         body: {
@@ -72,16 +86,25 @@ export function MorningWeatherReview({
         }
       });
 
-      if (error) throw error;
+      console.log('Morning review response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
       if (data?.review) {
+        console.log('Morning review received successfully');
         setReviewData(data.review);
+      } else {
+        console.warn('No review data in response:', data);
+        throw new Error('No review data received');
       }
     } catch (error) {
       console.error('Error fetching morning review:', error);
       toast({
         title: "Couldn't load morning review",
-        description: "Using basic weather summary instead.",
+        description: error instanceof Error ? error.message : "Using basic weather summary instead.",
         variant: "destructive"
       });
       
