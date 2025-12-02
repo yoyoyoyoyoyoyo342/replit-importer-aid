@@ -1,3 +1,4 @@
+import { Suspense, lazy, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,18 +11,31 @@ import { TimeOfDayProvider, useTimeOfDayContext } from "@/contexts/time-of-day-c
 import { CookieConsentProvider } from "@/hooks/use-cookie-consent";
 import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
 import { Footer } from "@/components/ui/footer";
-import Index from "./pages/Index";
-import Weather from "./pages/Weather";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import AdminPanel from "./pages/AdminPanel";
-import TermsOfService from "./pages/TermsOfService";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import DataSettings from "./pages/DataSettings";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useBroadcastListener } from "@/hooks/use-broadcast-listener";
 
-const queryClient = new QueryClient();
+// Critical components - load immediately
+import Weather from "./pages/Weather";
+import Auth from "./pages/Auth";
+
+// Lazy load non-critical routes for faster initial load
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const DataSettings = lazy(() => import("./pages/DataSettings"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+      gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+      retry: 1,
+      retryDelay: 1000,
+    },
+  },
+});
 
 function AnalyticsTracker() {
   useAnalytics();
@@ -33,8 +47,39 @@ function BroadcastListener() {
   return null;
 }
 
+// Prefetch saved locations for faster loading
+function usePrefetchSavedLocations() {
+  useEffect(() => {
+    const prefetchData = async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        await queryClient.prefetchQuery({
+          queryKey: ["saved-locations"],
+          queryFn: async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return [];
+
+            const { data } = await supabase
+              .from("saved_locations")
+              .select("*")
+              .order("is_primary", { ascending: false })
+              .order("name");
+
+            return data || [];
+          },
+        });
+      } catch (error) {
+        console.log("Prefetch saved locations failed", error);
+      }
+    };
+
+    prefetchData();
+  }, []);
+}
+
 function AppContent() {
   const { isNightTime } = useTimeOfDayContext();
+  usePrefetchSavedLocations();
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="weather-app-theme" isNightTime={isNightTime}>
@@ -50,17 +95,19 @@ function AppContent() {
                   <div className="flex-1">
                     <AnalyticsTracker />
                     <BroadcastListener />
-                    <Routes>
-                      <Route path="/" element={<Weather />} />
-                      <Route path="/auth" element={<Auth />} />
-                      <Route path="/admin" element={<AdminPanel />} />
-                      <Route path="/terms" element={<TermsOfService />} />
-                      <Route path="/privacy" element={<PrivacyPolicy />} />
-                      <Route path="/data-settings" element={<DataSettings />} />
-                      <Route path="/weather" element={<Navigate to="/" replace />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                    <Suspense fallback={<LoadingOverlay isOpen={true} />}>
+                      <Routes>
+                        <Route path="/" element={<Weather />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/admin" element={<AdminPanel />} />
+                        <Route path="/terms" element={<TermsOfService />} />
+                        <Route path="/privacy" element={<PrivacyPolicy />} />
+                        <Route path="/data-settings" element={<DataSettings />} />
+                        <Route path="/weather" element={<Navigate to="/" replace />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
                   </div>
                   <Footer />
                 </div>

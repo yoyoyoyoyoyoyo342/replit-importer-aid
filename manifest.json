@@ -1,5 +1,5 @@
 {
-  "name": "Rainz",
+  "name": "Rainz Weather",
   "short_name": "Rainz",
   "id": "/",
   "start_url": "/",
@@ -7,7 +7,8 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3B82F6",
-  "description": "AI-powered weather app with hyper-local forecasts and pollen tracking",
+  "description": "Rainz - AI-powered weather predictions with hyper-local forecasts, pollen tracking, and weather station data",
+  "categories": ["weather", "utilities", "lifestyle"],
   "icons": [
     {
       "src": "/favicon-192.png",

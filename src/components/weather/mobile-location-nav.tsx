@@ -33,7 +33,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
   const [editName, setEditName] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: savedLocations = [] } = useQuery({
+  const { data: savedLocations = [], isLoading } = useQuery({
     queryKey: ["saved-locations"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -48,6 +48,8 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
       if (error) throw error;
       return data as SavedLocation[];
     },
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
   });
 
   const addLocationMutation = useMutation({
