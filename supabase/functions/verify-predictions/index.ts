@@ -24,12 +24,17 @@ serve(async (req) => {
 
     console.log(`Verifying predictions for date: ${predictionDate}`);
 
-    // Get all unverified predictions for yesterday
+    // Get all unverified predictions for yesterday that were explicitly created by users
+    // Only process predictions that have all required fields and were created before today
     const { data: predictions, error: fetchError } = await supabase
       .from('weather_predictions')
       .select('*')
       .eq('prediction_date', predictionDate)
-      .eq('is_verified', false);
+      .eq('is_verified', false)
+      .not('user_id', 'is', null)
+      .not('predicted_high', 'is', null)
+      .not('predicted_low', 'is', null)
+      .not('predicted_condition', 'is', null);
 
     if (fetchError) {
       console.error('Error fetching predictions:', fetchError);
@@ -37,14 +42,14 @@ serve(async (req) => {
     }
 
     if (!predictions || predictions.length === 0) {
-      console.log('No predictions to verify for yesterday');
+      console.log('No valid predictions to verify for yesterday');
       return new Response(
         JSON.stringify({ message: 'No predictions to verify', verified: 0 }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Found ${predictions.length} predictions to verify`);
+    console.log(`Found ${predictions.length} valid predictions to verify`);
 
     let verifiedCount = 0;
 
