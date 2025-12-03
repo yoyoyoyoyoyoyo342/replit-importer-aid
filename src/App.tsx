@@ -12,6 +12,7 @@ import { CookieConsentProvider } from "@/hooks/use-cookie-consent";
 import { CookieConsentBanner } from "@/components/ui/cookie-consent-banner";
 import { Footer } from "@/components/ui/footer";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { PWAInstallPopup } from "@/components/ui/pwa-install-popup";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useBroadcastListener } from "@/hooks/use-broadcast-listener";
 
@@ -90,6 +91,7 @@ function AppContent() {
               <Toaster />
               <Sonner />
               <CookieConsentBanner />
+              <PWAInstallPopup />
               <BrowserRouter>
                 <div className="flex flex-col min-h-screen">
                   <div className="flex-1">

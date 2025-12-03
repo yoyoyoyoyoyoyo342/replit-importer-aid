@@ -257,6 +257,9 @@ export default function Auth() {
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating account..." : "Sign Up"}
                 </Button>
+                <Button type="button" variant="ghost" className="w-full text-sm" onClick={handleForgotPassword} disabled={loading}>
+                  Already have an account but forgot password?
+                </Button>
               </form>
             </TabsContent>
           </Tabs>
