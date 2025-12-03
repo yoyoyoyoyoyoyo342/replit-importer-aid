@@ -161,14 +161,40 @@ export default function Auth() {
         }
       });
       if (error) {
+        // Handle specific database errors more gracefully
+        let errorMessage = error.message;
+        if (error.message.includes('Database error')) {
+          errorMessage = "This email may already be registered. Try signing in instead.";
+        } else if (error.message.includes('already registered')) {
+          errorMessage = "This email is already registered. Please sign in instead.";
+        }
         toast({
           variant: "destructive",
           title: "Sign Up Failed",
-          description: error.message
+          description: errorMessage
         });
         return;
       }
       if (data.user) {
+        // Try to create profile manually if trigger failed
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              user_id: data.user.id,
+              username: email.split('@')[0],
+              display_name: email.split('@')[0],
+              notification_enabled: false,
+              notification_time: '08:00'
+            }, { onConflict: 'user_id' });
+          
+          if (profileError) {
+            console.log('Profile creation note:', profileError.message);
+          }
+        } catch (profileErr) {
+          console.log('Profile upsert skipped:', profileErr);
+        }
+        
         toast({
           title: "Account Created!",
           description: "Please check your email to verify your account."
