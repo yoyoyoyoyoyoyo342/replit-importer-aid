@@ -29,6 +29,7 @@ interface CurrentWeatherProps {
   isAutoDetected?: boolean;
   currentLocation?: { lat: number; lon: number; name: string };
   onLocationSelect?: (lat: number, lon: number, locationName: string) => void;
+  displayName?: string | null; // Custom display name from saved locations
 }
 export function CurrentWeather({
   weatherData,
@@ -39,7 +40,8 @@ export function CurrentWeather({
   isImperial = true,
   isAutoDetected = false,
   currentLocation,
-  onLocationSelect
+  onLocationSelect,
+  displayName
 }: CurrentWeatherProps) {
   const [showLocationCard, setShowLocationCard] = useState(false);
   const { t } = useLanguage();
@@ -155,7 +157,7 @@ export function CurrentWeather({
                     <div className="flex items-center gap-2">
                       <MapPin className="text-primary w-3 h-3" />
                       <span className="text-sm font-semibold text-foreground">
-                        {isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0]}
+                        {displayName ? displayName.split(',')[0] : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0])}
                       </span>
                       {currentLocation && (
                         <Button
@@ -210,7 +212,7 @@ export function CurrentWeather({
           open={showLocationCard} 
           onOpenChange={setShowLocationCard}
           temperature={mostAccurate.currentWeather.temperature}
-          location={mostAccurate.location}
+          location={displayName || mostAccurate.location}
           isImperial={isImperial}
         />
       </section>
@@ -295,9 +297,9 @@ export function CurrentWeather({
         <CardContent className="p-3">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <MapPin className="text-primary w-3 h-3" />
+            <MapPin className="text-primary w-3 h-3" />
               <span className="text-sm font-semibold text-foreground">
-                {isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0]}
+                {displayName ? displayName.split(',')[0] : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0])}
               </span>
               {!isLocationSaved && currentLocation && (
                 <Button
@@ -319,7 +321,7 @@ export function CurrentWeather({
         open={showLocationCard} 
         onOpenChange={setShowLocationCard}
         temperature={mostAccurate.currentWeather.temperature}
-        location={mostAccurate.location}
+        location={displayName || mostAccurate.location}
         isImperial={isImperial}
       />
     </section>;

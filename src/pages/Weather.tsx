@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { CloudSun, LogIn, MapPin, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { weatherApi } from "@/lib/weather-api";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -73,6 +74,36 @@ export default function WeatherPage() {
     selectedLocation?.lon
   );
 
+  // Fetch saved locations to get custom display names
+  const { data: savedLocations = [] } = useQuery({
+    queryKey: ["saved-locations"],
+    queryFn: async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) return [];
+
+      const { data, error } = await supabase
+        .from("saved_locations")
+        .select("*")
+        .order("is_primary", { ascending: false })
+        .order("name");
+
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Get custom display name for current location (only for nav bar and main card)
+  const customDisplayName = useMemo(() => {
+    if (!selectedLocation || savedLocations.length === 0) return null;
+    const savedLoc = savedLocations.find(
+      (loc: any) => 
+        Math.abs(loc.latitude - selectedLocation.lat) < 0.01 &&
+        Math.abs(loc.longitude - selectedLocation.lon) < 0.01
+    );
+    return savedLoc?.name || null;
+  }, [selectedLocation, savedLocations]);
+
   // Apply high contrast mode
   useEffect(() => {
     if (isHighContrast) {
@@ -104,21 +135,16 @@ export default function WeatherPage() {
     setTimeOfDay(timeOfDay);
   }, [timeOfDay, setTimeOfDay]);
 
+  // Get actual weather station name for components that should use it
+  const actualStationName = useMemo(() => {
+    const stationInfo = weatherData?.aggregated?.stationInfo || weatherData?.sources?.[0]?.stationInfo;
+    return stationInfo?.name || selectedLocation?.name || "Unknown";
+  }, [weatherData, selectedLocation]);
+
   // After query: side effects for success/error
   useEffect(() => {
     if (weatherData) {
       setLastUpdated(new Date());
-
-      // Update location name to use actual weather station name
-      const stationInfo = weatherData.aggregated?.stationInfo || weatherData.sources?.[0]?.stationInfo;
-      if (stationInfo?.name && selectedLocation && selectedLocation.name !== stationInfo.name) {
-        const updatedLocation = {
-          ...selectedLocation,
-          name: stationInfo.name
-        };
-        setSelectedLocation(updatedLocation);
-        localStorage.setItem('userLocation', JSON.stringify(updatedLocation));
-      }
 
       // Check for weather alerts if notifications are enabled for authenticated users
       if (profile?.notification_enabled && weatherData.mostAccurate?.currentWeather) {
@@ -132,7 +158,7 @@ export default function WeatherPage() {
         });
       }
     }
-  }, [weatherData, profile, toast, selectedLocation]);
+  }, [weatherData, profile, toast]);
 
   // Apply night mode text visibility
   useEffect(() => {
@@ -447,7 +473,7 @@ export default function WeatherPage() {
             {/* Morning Weather Review */}
             <MorningWeatherReview
               weatherData={weatherData.mostAccurate}
-              location={selectedLocation.name}
+              location={actualStationName}
               isImperial={isImperial}
               userId={user?.id}
             />
@@ -473,6 +499,7 @@ export default function WeatherPage() {
                 isAutoDetected={isAutoDetected}
                 currentLocation={selectedLocation}
                 onLocationSelect={handleLocationSelect}
+                displayName={customDisplayName}
               />
             </div>
 
@@ -488,6 +515,7 @@ export default function WeatherPage() {
                 isAutoDetected={isAutoDetected}
                 currentLocation={selectedLocation}
                 onLocationSelect={handleLocationSelect}
+                displayName={customDisplayName}
               />
             </div>
 
@@ -502,7 +530,7 @@ export default function WeatherPage() {
                       <LockedFeature isLocked={!user}>
                         <WeatherTrendsCard
                           currentWeather={weatherData.mostAccurate.currentWeather}
-                          location={selectedLocation.name}
+                          location={actualStationName}
                           latitude={selectedLocation.lat}
                           longitude={selectedLocation.lon}
                           isImperial={isImperial}
