@@ -499,13 +499,15 @@ export default function WeatherPage() {
                 case "weatherTrends":
                   return (
                     <div key="weatherTrends" className="mb-4">
-                      <WeatherTrendsCard
-                        currentWeather={weatherData.mostAccurate.currentWeather}
-                        location={selectedLocation.name}
-                        latitude={selectedLocation.lat}
-                        longitude={selectedLocation.lon}
-                        isImperial={isImperial}
-                      />
+                      <LockedFeature isLocked={!user}>
+                        <WeatherTrendsCard
+                          currentWeather={weatherData.mostAccurate.currentWeather}
+                          location={selectedLocation.name}
+                          latitude={selectedLocation.lat}
+                          longitude={selectedLocation.lon}
+                          isImperial={isImperial}
+                        />
+                      </LockedFeature>
                     </div>
                   );
 

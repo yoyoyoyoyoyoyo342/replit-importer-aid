@@ -62,15 +62,6 @@ export function MorningWeatherReview({
       console.error('No weather data available for morning review');
       return;
     }
-
-    if (!userId) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to use AI-powered morning reviews.",
-        variant: "destructive"
-      });
-      return;
-    }
     
     setIsLoading(true);
     console.log('Fetching morning review for:', location);
