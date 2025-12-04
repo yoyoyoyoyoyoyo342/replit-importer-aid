@@ -14,7 +14,6 @@ import { Footer } from "@/components/ui/footer";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { PWAInstallPopup } from "@/components/ui/pwa-install-popup";
 import { useAnalytics } from "@/hooks/use-analytics";
-import { useBroadcastListener } from "@/hooks/use-broadcast-listener";
 
 // Critical components - load immediately
 import Weather from "./pages/Weather";
@@ -40,11 +39,6 @@ const queryClient = new QueryClient({
 
 function AnalyticsTracker() {
   useAnalytics();
-  return null;
-}
-
-function BroadcastListener() {
-  useBroadcastListener();
   return null;
 }
 
@@ -96,7 +90,6 @@ function AppContent() {
                 <div className="flex flex-col min-h-screen">
                   <div className="flex-1">
                     <AnalyticsTracker />
-                    <BroadcastListener />
                     <Suspense fallback={<LoadingOverlay isOpen={true} />}>
                       <Routes>
                         <Route path="/" element={<Weather />} />
