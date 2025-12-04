@@ -30,11 +30,9 @@ import { WeatherStationInfo } from "@/components/weather/weather-station-info";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
-import { StreakDisplay } from "@/components/weather/streak-display";
 import { PredictionDialog } from "@/components/weather/prediction-dialog";
 import { useTimeOfDay } from "@/hooks/use-time-of-day";
 import { useTimeOfDayContext } from "@/contexts/time-of-day-context";
-import { LockedStreakDisplay } from "@/components/weather/locked-streak-display";
 import { LockedPredictionButton } from "@/components/weather/locked-prediction-button";
 import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
 import { AQICard } from "@/components/weather/aqi-card";
@@ -42,6 +40,7 @@ import { Leaderboard } from "@/components/weather/leaderboard";
 import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
 import { BarometerCard } from "@/components/weather/barometer-card";
 import { MobileLocationNav } from "@/components/weather/mobile-location-nav";
+import { HeaderInfoBar } from "@/components/weather/header-info-bar";
 
 
 export default function WeatherPage() {
@@ -336,6 +335,8 @@ export default function WeatherPage() {
             </div>
 
             <div className="flex items-center gap-3">
+              <HeaderInfoBar user={user} />
+              
               <LockedFeature isLocked={!user}>
                 <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
               </LockedFeature>
@@ -453,22 +454,46 @@ export default function WeatherPage() {
               </div>
             )}
 
-            {/* Streak & Alerts Section */}
-            <div className="mb-6 space-y-4">
-              {user ? (
-                <StreakDisplay />
-              ) : (
-                <LockedFeature isLocked={true}>
-                  <LockedStreakDisplay />
-                </LockedFeature>
-              )}
-              
-              {weatherData.mostAccurate?.currentWeather && (
+            {/* Alerts Section */}
+            {weatherData.mostAccurate?.currentWeather && (
+              <div className="mb-4">
                 <WinterAlerts 
                   alerts={checkWeatherAlerts(weatherData.mostAccurate.currentWeather)}
                 />
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Main Location Card */}
+            <CurrentWeather 
+              weatherData={weatherData.sources} 
+              mostAccurate={weatherData.mostAccurate} 
+              onRefresh={handleRefresh} 
+              isLoading={isLoading} 
+              lastUpdated={lastUpdated} 
+              isImperial={isImperial} 
+              isAutoDetected={isAutoDetected}
+              currentLocation={selectedLocation}
+              onLocationSelect={handleLocationSelect}
+              displayName={customDisplayName}
+            />
+
+            {/* Pollen/Snow Index - Right after main card */}
+            {weatherData?.mostAccurate?.currentWeather?.pollenData && (
+              <div className="mb-4">
+                <PollenCard 
+                  pollenData={weatherData.mostAccurate.currentWeather.pollenData}
+                  userId={user?.id}
+                  temperature={weatherData.mostAccurate.currentWeather.temperature}
+                  windSpeed={weatherData.mostAccurate.currentWeather.windSpeed}
+                  feelsLike={weatherData.mostAccurate.currentWeather.feelsLike}
+                  snowfall={weatherData.mostAccurate.currentWeather.snowfall}
+                  snowDepth={weatherData.mostAccurate.currentWeather.snowDepth}
+                  condition={weatherData.mostAccurate.currentWeather.condition}
+                  isImperial={isImperial}
+                  hyperlocalSnow={hyperlocalData?.snow}
+                />
+              </div>
+            )}
 
             {/* Morning Weather Review */}
             <MorningWeatherReview
@@ -486,38 +511,6 @@ export default function WeatherPage() {
                 </LockedFeature>
               </div>
             )}
-
-            {/* Desktop Layout - Only show on large screens */}
-            <div className="hidden lg:block mb-6">
-              <CurrentWeather 
-                weatherData={weatherData.sources} 
-                mostAccurate={weatherData.mostAccurate} 
-                onRefresh={handleRefresh} 
-                isLoading={isLoading} 
-                lastUpdated={lastUpdated} 
-                isImperial={isImperial} 
-                isAutoDetected={isAutoDetected}
-                currentLocation={selectedLocation}
-                onLocationSelect={handleLocationSelect}
-                displayName={customDisplayName}
-              />
-            </div>
-
-            {/* Mobile Layout - Only show on small/medium screens */}
-            <div className="lg:hidden">
-              <CurrentWeather 
-                weatherData={weatherData.sources} 
-                mostAccurate={weatherData.mostAccurate} 
-                onRefresh={handleRefresh} 
-                isLoading={isLoading} 
-                lastUpdated={lastUpdated} 
-                isImperial={isImperial} 
-                isAutoDetected={isAutoDetected}
-                currentLocation={selectedLocation}
-                onLocationSelect={handleLocationSelect}
-                displayName={customDisplayName}
-              />
-            </div>
 
             {/* Weather Cards in User's Preferred Order */}
             {cardOrder.map((cardType) => {
@@ -540,22 +533,8 @@ export default function WeatherPage() {
                   );
 
                 case "pollen":
-                  return weatherData?.mostAccurate?.currentWeather?.pollenData ? (
-                    <div key="pollen" className="mb-4">
-                      <PollenCard 
-                        pollenData={weatherData.mostAccurate.currentWeather.pollenData}
-                        userId={user?.id}
-                        temperature={weatherData.mostAccurate.currentWeather.temperature}
-                        windSpeed={weatherData.mostAccurate.currentWeather.windSpeed}
-                        feelsLike={weatherData.mostAccurate.currentWeather.feelsLike}
-                        snowfall={weatherData.mostAccurate.currentWeather.snowfall}
-                        snowDepth={weatherData.mostAccurate.currentWeather.snowDepth}
-                        condition={weatherData.mostAccurate.currentWeather.condition}
-                        isImperial={isImperial}
-                        hyperlocalSnow={hyperlocalData?.snow}
-                      />
-                    </div>
-                  ) : null;
+                  // Pollen is now rendered directly after main location card
+                  return null;
                 
                 case "hourly":
                   return (
