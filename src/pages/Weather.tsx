@@ -641,6 +641,4 @@ export default function WeatherPage() {
           isImperial={isImperial}
         />
       )}
-    <a href="https://hot100.ai"><img src="https://hot100.ai/api/badge/142" alt="Approved by Flambo AI"></a>
-    </div>
 }
