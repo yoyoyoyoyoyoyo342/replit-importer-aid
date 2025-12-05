@@ -475,6 +475,7 @@ export default function WeatherPage() {
               currentLocation={selectedLocation}
               onLocationSelect={handleLocationSelect}
               displayName={customDisplayName}
+              actualStationName={actualStationName}
             />
 
             {/* Pollen/Snow Index - Right after main card */}

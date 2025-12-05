@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CloudRain, CloudSnow, Cloud, Sun, CloudDrizzle } from "lucide-react";
+import { CloudRain, CloudSnow, Cloud, Sun, CloudDrizzle, CloudLightning, CloudFog, Wind, Cloudy } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { z } from "zod";
 
@@ -20,10 +20,18 @@ interface WeatherPredictionFormProps {
 
 const weatherConditions = [
   { value: "sunny", label: "Sunny", icon: Sun },
+  { value: "partly-cloudy", label: "Partly Cloudy", icon: Cloud },
   { value: "cloudy", label: "Cloudy", icon: Cloud },
+  { value: "overcast", label: "Overcast", icon: Cloud },
+  { value: "drizzle", label: "Drizzle", icon: CloudDrizzle },
   { value: "rainy", label: "Rainy", icon: CloudRain },
+  { value: "heavy-rain", label: "Heavy Rain", icon: CloudRain },
+  { value: "thunderstorm", label: "Thunderstorm", icon: CloudLightning },
   { value: "snowy", label: "Snowy", icon: CloudSnow },
-  { value: "partly-cloudy", label: "Partly Cloudy", icon: CloudDrizzle },
+  { value: "heavy-snow", label: "Heavy Snow", icon: CloudSnow },
+  { value: "sleet", label: "Sleet/Mix", icon: CloudSnow },
+  { value: "foggy", label: "Foggy", icon: CloudFog },
+  { value: "windy", label: "Windy", icon: Wind },
 ];
 
 // Validation schema

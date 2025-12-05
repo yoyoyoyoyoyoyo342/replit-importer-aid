@@ -11,16 +11,24 @@ interface LocationCardProps {
   onOpenChange: (open: boolean) => void;
   temperature: number;
   location: string;
+  actualStationName?: string;
   isImperial: boolean;
 }
 
-export function LocationCard({ open, onOpenChange, temperature, location, isImperial }: LocationCardProps) {
+export function LocationCard({ open, onOpenChange, temperature, location, actualStationName, isImperial }: LocationCardProps) {
+  // Use actualStationName for image generation, location for display
+  const stationName = actualStationName || location;
   const displayTemp = Math.round(isImperial ? temperature : (temperature - 32) * 5 / 9);
   
-  // Extract actual city name - prefer the second part if it exists (actual city vs. district/airport)
-  const locationParts = location.split(',').map(p => p.trim());
+  // Extract actual city name from station name for image generation
+  const locationParts = stationName.split(',').map(p => p.trim());
   const actualCity = locationParts.length > 1 ? locationParts[1] : locationParts[0];
-  const cityName = actualCity.toUpperCase();
+  
+  // Use custom display name if provided, otherwise use actual city
+  const displayCity = location.includes(',') 
+    ? (location.split(',').map(p => p.trim())[1] || location.split(',')[0])
+    : location;
+  const cityName = displayCity.toUpperCase();
   
   const cardRef = useRef<HTMLDivElement>(null);
   const [landmarkImage, setLandmarkImage] = useState<string>('');
