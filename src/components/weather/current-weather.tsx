@@ -30,6 +30,7 @@ interface CurrentWeatherProps {
   currentLocation?: { lat: number; lon: number; name: string };
   onLocationSelect?: (lat: number, lon: number, locationName: string) => void;
   displayName?: string | null; // Custom display name from saved locations
+  actualStationName?: string; // Real weather station name for image generation
 }
 export function CurrentWeather({
   weatherData,
@@ -41,7 +42,8 @@ export function CurrentWeather({
   isAutoDetected = false,
   currentLocation,
   onLocationSelect,
-  displayName
+  displayName,
+  actualStationName
 }: CurrentWeatherProps) {
   const [showLocationCard, setShowLocationCard] = useState(false);
   const { t } = useLanguage();
@@ -213,6 +215,7 @@ export function CurrentWeather({
           onOpenChange={setShowLocationCard}
           temperature={mostAccurate.currentWeather.temperature}
           location={displayName || mostAccurate.location}
+          actualStationName={actualStationName || mostAccurate.location}
           isImperial={isImperial}
         />
       </section>
@@ -337,6 +340,7 @@ export function CurrentWeather({
         onOpenChange={setShowLocationCard}
         temperature={mostAccurate.currentWeather.temperature}
         location={displayName || mostAccurate.location}
+        actualStationName={actualStationName || mostAccurate.location}
         isImperial={isImperial}
       />
     </section>;
