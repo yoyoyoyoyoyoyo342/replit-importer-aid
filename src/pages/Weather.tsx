@@ -641,4 +641,5 @@ export default function WeatherPage() {
           isImperial={isImperial}
         />
       )}
+    </div>
 }
