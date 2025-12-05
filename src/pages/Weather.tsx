@@ -41,8 +41,6 @@ import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
 import { BarometerCard } from "@/components/weather/barometer-card";
 import { MobileLocationNav } from "@/components/weather/mobile-location-nav";
 import { HeaderInfoBar } from "@/components/weather/header-info-bar";
-
-
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -52,54 +50,64 @@ export default function WeatherPage() {
   const [isAutoDetected, setIsAutoDetected] = useState(false);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const { toast } = useToast();
-  const { user, profile, loading: authLoading } = useAuth();
-  const { 
-    visibleCards, 
-    cardOrder, 
-    is24Hour, 
-    isHighContrast, 
+  const {
+    toast
+  } = useToast();
+  const {
+    user,
+    profile,
+    loading: authLoading
+  } = useAuth();
+  const {
+    visibleCards,
+    cardOrder,
+    is24Hour,
+    isHighContrast,
     savedAddress,
     savedCoordinates,
     updateSavedAddress,
-    loading: preferencesLoading 
+    loading: preferencesLoading
   } = useUserPreferences();
-  const { t } = useLanguage();
-  const { setTimeOfDay } = useTimeOfDayContext();
+  const {
+    t
+  } = useLanguage();
+  const {
+    setTimeOfDay
+  } = useTimeOfDayContext();
 
   // Fetch hyperlocal weather data
-  const { data: hyperlocalData } = useHyperlocalWeather(
-    selectedLocation?.lat,
-    selectedLocation?.lon
-  );
+  const {
+    data: hyperlocalData
+  } = useHyperlocalWeather(selectedLocation?.lat, selectedLocation?.lon);
 
   // Fetch saved locations to get custom display names
-  const { data: savedLocations = [] } = useQuery({
+  const {
+    data: savedLocations = []
+  } = useQuery({
     queryKey: ["saved-locations"],
     queryFn: async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const {
+        data: {
+          user: authUser
+        }
+      } = await supabase.auth.getUser();
       if (!authUser) return [];
-
-      const { data, error } = await supabase
-        .from("saved_locations")
-        .select("*")
-        .order("is_primary", { ascending: false })
-        .order("name");
-
+      const {
+        data,
+        error
+      } = await supabase.from("saved_locations").select("*").order("is_primary", {
+        ascending: false
+      }).order("name");
       if (error) throw error;
       return data;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5
   });
 
   // Get custom display name for current location (only for nav bar and main card)
   const customDisplayName = useMemo(() => {
     if (!selectedLocation || savedLocations.length === 0) return null;
-    const savedLoc = savedLocations.find(
-      (loc: any) => 
-        Math.abs(loc.latitude - selectedLocation.lat) < 0.01 &&
-        Math.abs(loc.longitude - selectedLocation.lon) < 0.01
-    );
+    const savedLoc = savedLocations.find((loc: any) => Math.abs(loc.latitude - selectedLocation.lat) < 0.01 && Math.abs(loc.longitude - selectedLocation.lon) < 0.01);
     return savedLoc?.name || null;
   }, [selectedLocation, savedLocations]);
 
@@ -129,7 +137,6 @@ export default function WeatherPage() {
   const sunrise = weatherData?.mostAccurate?.currentWeather?.sunrise;
   const sunset = weatherData?.mostAccurate?.currentWeather?.sunset;
   const timeOfDay = useTimeOfDay(sunrise, sunset);
-
   useEffect(() => {
     setTimeOfDay(timeOfDay);
   }, [timeOfDay, setTimeOfDay]);
@@ -162,24 +169,22 @@ export default function WeatherPage() {
   // Apply night mode text visibility
   useEffect(() => {
     if (!weatherData?.mostAccurate?.currentWeather) return;
-    
-    const { sunrise, sunset } = weatherData.mostAccurate.currentWeather;
+    const {
+      sunrise,
+      sunset
+    } = weatherData.mostAccurate.currentWeather;
     if (!sunrise || !sunset) return;
-
     const now = new Date();
     const currentTime = now.getHours() * 60 + now.getMinutes();
-    
     const parseSunTime = (timeStr: string) => {
       const [hours, minutes] = timeStr.split(':').map(Number);
       return hours * 60 + minutes;
     };
-    
     const sunriseTime = parseSunTime(sunrise);
     const sunsetTime = parseSunTime(sunset);
-    
+
     // Check if it's night time
     const isNightTime = currentTime < sunriseTime || currentTime > sunsetTime;
-    
     if (isNightTime) {
       document.documentElement.classList.add('night-mode');
     } else {
@@ -219,12 +224,10 @@ export default function WeatherPage() {
           latitude,
           longitude
         } = position.coords;
-        
+
         // Reverse geocode to get best matching nearby place name
         try {
-          const geocodeResponse = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-          );
+          const geocodeResponse = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
           const geocodeData = await geocodeResponse.json();
 
           // Choose the closest named place from localityInfo when available,
@@ -232,12 +235,7 @@ export default function WeatherPage() {
           const getBestLocationName = (data: any): string => {
             try {
               const localityInfo = data.localityInfo;
-              const candidateGroups = [
-                localityInfo?.locality,
-                localityInfo?.administrative,
-                localityInfo?.informative,
-              ].filter(Boolean) as Array<any[]>;
-
+              const candidateGroups = [localityInfo?.locality, localityInfo?.administrative, localityInfo?.informative].filter(Boolean) as Array<any[]>;
               for (const group of candidateGroups) {
                 if (Array.isArray(group) && group.length > 0) {
                   const sorted = [...group].sort((a, b) => {
@@ -245,7 +243,6 @@ export default function WeatherPage() {
                     const db = typeof b.distance === "number" ? b.distance : Number.POSITIVE_INFINITY;
                     return da - db;
                   });
-
                   const nearest = sorted[0];
                   if (nearest?.name) {
                     return nearest.name as string;
@@ -255,27 +252,17 @@ export default function WeatherPage() {
             } catch (e) {
               console.log("Failed to derive precise locality from reverse geocode", e);
             }
-
-            return (
-              data.locality ||
-              data.city ||
-              data.principalSubdivision ||
-              data.localityInfo?.administrative?.[0]?.name ||
-              "Current Location"
-            );
+            return data.locality || data.city || data.principalSubdivision || data.localityInfo?.administrative?.[0]?.name || "Current Location";
           };
-
           const cityName = getBestLocationName(geocodeData);
-          
           const newLocation = {
             lat: latitude,
             lon: longitude,
             name: cityName
           };
-          
           setSelectedLocation(newLocation);
           setIsAutoDetected(true);
-          
+
           // Save location to localStorage
           localStorage.setItem('userLocation', JSON.stringify(newLocation));
         } catch (geocodeError) {
@@ -285,10 +272,9 @@ export default function WeatherPage() {
             lon: longitude,
             name: "Current Location"
           };
-          
           setSelectedLocation(newLocation);
           setIsAutoDetected(true);
-          
+
           // Save location to localStorage
           localStorage.setItem('userLocation', JSON.stringify(newLocation));
         }
@@ -306,7 +292,7 @@ export default function WeatherPage() {
     };
     setSelectedLocation(newLocation);
     setIsAutoDetected(false);
-    
+
     // Save the manually selected location
     localStorage.setItem('userLocation', JSON.stringify(newLocation));
   };
@@ -314,12 +300,7 @@ export default function WeatherPage() {
     window.location.reload();
   };
   return <div className="min-h-screen overflow-x-hidden relative">
-      <AnimatedWeatherBackground 
-        condition={weatherData?.mostAccurate?.currentWeather?.condition}
-        sunrise={weatherData?.mostAccurate?.currentWeather?.sunrise}
-        sunset={weatherData?.mostAccurate?.currentWeather?.sunset}
-        moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase}
-      />
+      <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} sunrise={weatherData?.mostAccurate?.currentWeather?.sunrise} sunset={weatherData?.mostAccurate?.currentWeather?.sunset} moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase} />
       
       <div className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl relative z-10">
         {/* Modern Header */}
@@ -329,7 +310,7 @@ export default function WeatherPage() {
             <div className="flex items-center gap-3">
               <img src="/logo.png" alt="Rainz Logo" className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-lg" />
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Rainz</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Rainz Weather</h1>
                 <p className="text-sm text-muted-foreground">{t('app.tagline')}</p>
               </div>
             </div>
@@ -341,17 +322,10 @@ export default function WeatherPage() {
                 <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
               </LockedFeature>
               
-              {!user && (
-                <Button 
-                  variant="outline" 
-                  size="default"
-                  onClick={() => window.location.href = '/auth'} 
-                  className="gap-2"
-                >
+              {!user && <Button variant="outline" size="default" onClick={() => window.location.href = '/auth'} className="gap-2">
                   <LogIn className="w-4 h-4" />
                   <span>{t('header.signIn')}</span>
-                </Button>
-              )}
+                </Button>}
             </div>
           </div>
 
@@ -359,9 +333,7 @@ export default function WeatherPage() {
           <div className="grid sm:grid-cols-[1fr_auto_auto] gap-3 items-start">
             <div className="space-y-2">
               <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
-              {weatherData?.aggregated?.stationInfo && (
-                <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />
-              )}
+              {weatherData?.aggregated?.stationInfo && <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />}
             </div>
             
             <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 rounded-lg border border-border/20">
@@ -370,44 +342,25 @@ export default function WeatherPage() {
               <span className="text-sm font-medium">°C</span>
             </div>
             
-            {weatherData && (
-              <WeatherReportForm 
-                location={selectedLocation?.name || "Unknown"} 
-                currentCondition={weatherData.mostAccurate.currentWeather.condition}
-                locationData={{
-                  latitude: selectedLocation?.lat || 0,
-                  longitude: selectedLocation?.lon || 0
-                }}
-              />
-            )}
+            {weatherData && <WeatherReportForm location={selectedLocation?.name || "Unknown"} currentCondition={weatherData.mostAccurate.currentWeather.condition} locationData={{
+            latitude: selectedLocation?.lat || 0,
+            longitude: selectedLocation?.lon || 0
+          }} />}
           </div>
 
           {/* Prediction Row */}
-          {selectedLocation && (
-            <div className="mt-4 pt-4 border-t border-border/20">
-              {user ? (
-                <PredictionDialog
-                  location={selectedLocation.name}
-                  latitude={selectedLocation.lat}
-                  longitude={selectedLocation.lon}
-                  isImperial={isImperial}
-                  onPredictionMade={() => refetch()}
-                />
-              ) : (
-                <LockedFeature isLocked={true}>
+          {selectedLocation && <div className="mt-4 pt-4 border-t border-border/20">
+              {user ? <PredictionDialog location={selectedLocation.name} latitude={selectedLocation.lat} longitude={selectedLocation.lon} isImperial={isImperial} onPredictionMade={() => refetch()} /> : <LockedFeature isLocked={true}>
                   <LockedPredictionButton />
-                </LockedFeature>
-              )}
-            </div>
-          )}
+                </LockedFeature>}
+            </div>}
         </header>
 
         {/* Loading Overlay */}
         <LoadingOverlay isOpen={isLoading && !weatherData} />
 
         {/* Main Content */}
-        {!selectedLocation ? (
-          <Card className="glass-card border border-border/20 text-center py-12 rounded-2xl">
+        {!selectedLocation ? <Card className="glass-card border border-border/20 text-center py-12 rounded-2xl">
             <CardContent className="space-y-4">
               <CloudSun className="w-16 h-16 text-primary mx-auto" />
               <div>
@@ -417,9 +370,7 @@ export default function WeatherPage() {
                 </p>
               </div>
             </CardContent>
-          </Card>
-        ) : error ? (
-          <Card className="glass-card border-destructive/30 text-center py-12 rounded-2xl">
+          </Card> : error ? <Card className="glass-card border-destructive/30 text-center py-12 rounded-2xl">
             <CardContent className="space-y-4">
               <div className="text-4xl">⚠️</div>
               <div>
@@ -434,12 +385,9 @@ export default function WeatherPage() {
                 </Button>
               </div>
             </CardContent>
-          </Card>
-        ) : weatherData ? (
-          <>
+          </Card> : weatherData ? <>
             {/* Demo Data Banner */}
-            {weatherData.demo && (
-              <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-xl">
+            {weatherData.demo && <div className="mb-6 p-4 bg-primary/10 border border-primary/20 rounded-xl">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
                     <span className="text-lg">⚠️</span>
@@ -451,135 +399,57 @@ export default function WeatherPage() {
                     </p>
                   </div>
                 </div>
-              </div>
-            )}
+              </div>}
 
             {/* Alerts Section */}
-            {weatherData.mostAccurate?.currentWeather && (
-              <div className="mb-4">
-                <WinterAlerts 
-                  alerts={checkWeatherAlerts(weatherData.mostAccurate.currentWeather)}
-                />
-              </div>
-            )}
+            {weatherData.mostAccurate?.currentWeather && <div className="mb-4">
+                <WinterAlerts alerts={checkWeatherAlerts(weatherData.mostAccurate.currentWeather)} />
+              </div>}
 
             {/* Main Location Card */}
-            <CurrentWeather 
-              weatherData={weatherData.sources} 
-              mostAccurate={weatherData.mostAccurate} 
-              onRefresh={handleRefresh} 
-              isLoading={isLoading} 
-              lastUpdated={lastUpdated} 
-              isImperial={isImperial} 
-              isAutoDetected={isAutoDetected}
-              currentLocation={selectedLocation}
-              onLocationSelect={handleLocationSelect}
-              displayName={customDisplayName}
-              actualStationName={actualStationName}
-            />
+            <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} currentLocation={selectedLocation} onLocationSelect={handleLocationSelect} displayName={customDisplayName} actualStationName={actualStationName} />
 
             {/* Pollen/Snow Index - Right after main card */}
-            {weatherData?.mostAccurate?.currentWeather?.pollenData && (
-              <div className="mb-4">
-                <PollenCard 
-                  pollenData={weatherData.mostAccurate.currentWeather.pollenData}
-                  userId={user?.id}
-                  temperature={weatherData.mostAccurate.currentWeather.temperature}
-                  windSpeed={weatherData.mostAccurate.currentWeather.windSpeed}
-                  feelsLike={weatherData.mostAccurate.currentWeather.feelsLike}
-                  snowfall={weatherData.mostAccurate.currentWeather.snowfall}
-                  snowDepth={weatherData.mostAccurate.currentWeather.snowDepth}
-                  condition={weatherData.mostAccurate.currentWeather.condition}
-                  isImperial={isImperial}
-                  hyperlocalSnow={hyperlocalData?.snow}
-                />
-              </div>
-            )}
+            {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
+                <PollenCard pollenData={weatherData.mostAccurate.currentWeather.pollenData} userId={user?.id} temperature={weatherData.mostAccurate.currentWeather.temperature} windSpeed={weatherData.mostAccurate.currentWeather.windSpeed} feelsLike={weatherData.mostAccurate.currentWeather.feelsLike} snowfall={weatherData.mostAccurate.currentWeather.snowfall} snowDepth={weatherData.mostAccurate.currentWeather.snowDepth} condition={weatherData.mostAccurate.currentWeather.condition} isImperial={isImperial} hyperlocalSnow={hyperlocalData?.snow} />
+              </div>}
 
             {/* Morning Weather Review */}
-            <MorningWeatherReview
-              weatherData={weatherData.mostAccurate}
-              location={actualStationName}
-              isImperial={isImperial}
-              userId={user?.id}
-            />
+            <MorningWeatherReview weatherData={weatherData.mostAccurate} location={actualStationName} isImperial={isImperial} userId={user?.id} />
 
             {/* Leaderboard - Only show for non-logged-in users */}
-            {!user && (
-              <div className="mb-4">
+            {!user && <div className="mb-4">
                 <LockedFeature isLocked={true}>
                   <LockedLeaderboard />
                 </LockedFeature>
-              </div>
-            )}
+              </div>}
 
             {/* Weather Cards in User's Preferred Order */}
-            {cardOrder.map((cardType) => {
-              if (!visibleCards[cardType]) return null;
-              
-              switch (cardType) {
-                case "weatherTrends":
-                  return (
-                    <div key="weatherTrends" className="mb-4">
+            {cardOrder.map(cardType => {
+          if (!visibleCards[cardType]) return null;
+          switch (cardType) {
+            case "weatherTrends":
+              return <div key="weatherTrends" className="mb-4">
                       <LockedFeature isLocked={!user}>
-                        <WeatherTrendsCard
-                          currentWeather={weatherData.mostAccurate.currentWeather}
-                          location={actualStationName}
-                          latitude={selectedLocation.lat}
-                          longitude={selectedLocation.lon}
-                          isImperial={isImperial}
-                        />
+                        <WeatherTrendsCard currentWeather={weatherData.mostAccurate.currentWeather} location={actualStationName} latitude={selectedLocation.lat} longitude={selectedLocation.lon} isImperial={isImperial} />
                       </LockedFeature>
-                    </div>
-                  );
-
-                case "pollen":
-                  // Pollen is now rendered directly after main location card
-                  return null;
-                
-                case "hourly":
-                  return (
-                    <HourlyForecast 
-                      key="hourly"
-                      hourlyData={weatherData.mostAccurate.hourlyForecast} 
-                      isImperial={isImperial}
-                      is24Hour={is24Hour}
-                    />
-                  );
-                
-                case "tenDay":
-                  return (
-                    <TenDayForecast 
-                      key="tenDay"
-                      dailyForecast={weatherData.mostAccurate.dailyForecast} 
-                      weatherSources={weatherData.sources} 
-                      hourlyForecast={weatherData.mostAccurate.hourlyForecast} 
-                      isImperial={isImperial}
-                      is24Hour={is24Hour}
-                    />
-                  );
-                
-                case "detailedMetrics":
-                  return (
-                    <DetailedMetrics 
-                      key="detailedMetrics"
-                      currentWeather={weatherData.mostAccurate.currentWeather}
-                      is24Hour={is24Hour}
-                    />
-                  );
-
-                case "aqi":
-                  return hyperlocalData?.aqi ? (
-                    <div key="aqi" className="mb-4">
+                    </div>;
+            case "pollen":
+              // Pollen is now rendered directly after main location card
+              return null;
+            case "hourly":
+              return <HourlyForecast key="hourly" hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} is24Hour={is24Hour} />;
+            case "tenDay":
+              return <TenDayForecast key="tenDay" dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} hourlyForecast={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} is24Hour={is24Hour} />;
+            case "detailedMetrics":
+              return <DetailedMetrics key="detailedMetrics" currentWeather={weatherData.mostAccurate.currentWeather} is24Hour={is24Hour} />;
+            case "aqi":
+              return hyperlocalData?.aqi ? <div key="aqi" className="mb-4">
                       <AQICard data={hyperlocalData.aqi} />
-                    </div>
-                  ) : null;
-
-                case "alerts":
-                  return hyperlocalData?.alerts?.length > 0 ? (
-                    <div key="alerts" className="mb-4">
-                      {hyperlocalData.alerts.map((alert, index) => (
-                        <Card key={index} className="glass-card rounded-2xl shadow-lg border border-destructive/50 mb-2">
+                    </div> : null;
+            case "alerts":
+              return hyperlocalData?.alerts?.length > 0 ? <div key="alerts" className="mb-4">
+                      {hyperlocalData.alerts.map((alert, index) => <Card key={index} className="glass-card rounded-2xl shadow-lg border border-destructive/50 mb-2">
                           <CardContent className="p-4">
                             <div className="flex items-start gap-2">
                               <span className="text-xl">⚠️</span>
@@ -589,23 +459,17 @@ export default function WeatherPage() {
                               </div>
                             </div>
                           </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : null;
-
-                case "barometer":
-                  // Only show barometer when using auto-detected "My Location"
-                  return isAutoDetected ? (
-                    <div key="barometer" className="mb-4">
+                        </Card>)}
+                    </div> : null;
+            case "barometer":
+              // Only show barometer when using auto-detected "My Location"
+              return isAutoDetected ? <div key="barometer" className="mb-4">
                       <BarometerCard />
-                    </div>
-                  ) : null;
-                
-                default:
-                  return null;
-              }
-            })}
+                    </div> : null;
+            default:
+              return null;
+          }
+        })}
 
             {/* Footer - Ultra Compact */}
             <footer className="text-center py-2 mt-4 glass-header rounded-lg p-4">
@@ -626,20 +490,13 @@ export default function WeatherPage() {
                 </div>
               </div>
             </footer>
-          </>
-        ) : null}
+          </> : null}
       </div>
       
       {/* AI Chat Button - Floating */}
       {weatherData && <AIChatButton weatherData={weatherData.mostAccurate} location={selectedLocation.name} isImperial={isImperial} />}
       
       {/* Mobile Location Nav - Bottom */}
-      {user && selectedLocation && (
-        <MobileLocationNav 
-          onLocationSelect={handleLocationSelect}
-          currentLocation={selectedLocation}
-          isImperial={isImperial}
-        />
-      )}
-    </div>
+      {user && selectedLocation && <MobileLocationNav onLocationSelect={handleLocationSelect} currentLocation={selectedLocation} isImperial={isImperial} />}
+    </div>;
 }
