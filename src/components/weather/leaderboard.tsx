@@ -58,7 +58,7 @@ export const Leaderboard = () => {
       const { data, error } = await supabase
         .from("leaderboard")
         .select("*")
-        .limit(10);
+        .limit(5);
 
       if (error) throw error;
 
@@ -130,7 +130,7 @@ export const Leaderboard = () => {
         </div>
       ) : (
         <div className="space-y-2">
-          {leaderboard.slice(0, 10).map((entry, index) => {
+          {leaderboard.slice(0, 5).map((entry, index) => {
             const accuracy = entry.total_predictions > 0
               ? Math.round((entry.correct_predictions / entry.total_predictions) * 100)
               : 0;
