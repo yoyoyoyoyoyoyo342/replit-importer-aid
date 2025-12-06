@@ -6,6 +6,9 @@ export function Footer() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <div className="flex flex-wrap justify-center md:justify-start gap-4">
+            <Link to="/about" className="hover:text-foreground transition-colors">
+              About
+            </Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">
               Privacy Policy
             </Link>
