@@ -201,23 +201,10 @@ export default function WeatherPage() {
     }
   }, [error, toast]);
 
-  // Auto-detect location on component mount
+  // Auto-detect location on component mount - always use current location
   useEffect(() => {
     const detectLocation = async () => {
-      // Check if we have a saved location
-      const savedLocation = localStorage.getItem('userLocation');
-      if (savedLocation) {
-        try {
-          const location = JSON.parse(savedLocation);
-          setSelectedLocation(location);
-          setIsAutoDetected(true);
-          return;
-        } catch (error) {
-          console.log("Failed to parse saved location");
-        }
-      }
-
-      // Only try to detect location if we don't have a saved one
+      // Always try to detect current location on app open
       try {
         const position = await weatherApi.getCurrentLocation();
         const {
