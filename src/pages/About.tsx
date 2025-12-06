@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowLeft, Cloud, Users, Target, Zap, Shield, Globe } from "lucide-react";
 
+
 export default function About() {
   const navigate = useNavigate();
 
