@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin, Plus, Edit2 } from "lucide-react";
+import { MapPin, Plus, Edit2, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +31,10 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [editingLocation, setEditingLocation] = useState<SavedLocation | null>(null);
   const [editName, setEditName] = useState("");
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
   const { data: savedLocations = [], isLoading } = useQuery({
@@ -147,12 +151,64 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
     );
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setStartY(e.touches[0].clientY);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const deltaY = e.touches[0].clientY - startY;
+    
+    // Swipe down to collapse (deltaY > 50)
+    if (deltaY > 50 && !isCollapsed) {
+      setIsCollapsed(true);
+      setIsDragging(false);
+      triggerHaptic();
+    }
+    // Swipe up to expand (deltaY < -50)
+    else if (deltaY < -50 && isCollapsed) {
+      setIsCollapsed(false);
+      setIsDragging(false);
+      triggerHaptic();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
+  const toggleCollapse = () => {
+    triggerHaptic();
+    setIsCollapsed(!isCollapsed);
+  };
+
   return (
     <>
-      <nav className="xl:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe px-2">
+      <nav 
+        ref={navRef}
+        className="xl:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe px-2 transition-transform duration-300 ease-out"
+        style={{ transform: isCollapsed ? 'translateY(calc(100% - 36px))' : 'translateY(0)' }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <div className="glass-card rounded-3xl border border-border/30 backdrop-blur-xl mx-2 mb-2 shadow-lg">
+          {/* Collapse/Expand Handle */}
+          <button 
+            onClick={toggleCollapse}
+            className="w-full flex items-center justify-center py-2 touch-manipulation"
+          >
+            <div className="w-12 h-1 rounded-full bg-muted-foreground/40" />
+            {isCollapsed ? (
+              <ChevronUp className="absolute h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="absolute h-4 w-4 text-muted-foreground opacity-0" />
+            )}
+          </button>
+          
           <div className="overflow-x-auto overflow-y-hidden scrollbar-hide">
-            <div className="flex items-center gap-1 p-2 min-w-max">
+            <div className="flex items-center gap-1 p-2 pt-0 min-w-max">
               {/* Add Location Button */}
               <Dialog open={isAddingLocation} onOpenChange={setIsAddingLocation}>
                 <button
@@ -223,7 +279,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
       </nav>
 
       {/* Spacer to prevent content being hidden behind nav */}
-      <div className="xl:hidden h-24" />
+      <div className={`xl:hidden transition-all duration-300 ${isCollapsed ? 'h-12' : 'h-28'}`} />
 
       {/* Rename Location Dialog */}
       <Dialog open={!!editingLocation} onOpenChange={(open) => !open && setEditingLocation(null)}>
