@@ -689,6 +689,18 @@ export type Database = {
       }
     }
     Functions: {
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          correct_predictions: number
+          current_streak: number
+          display_name: string
+          longest_streak: number
+          rank: number
+          total_points: number
+          total_predictions: number
+        }[]
+      }
       get_public_profile: {
         Args: { profile_user_id: string }
         Returns: {
