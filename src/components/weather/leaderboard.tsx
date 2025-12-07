@@ -55,14 +55,11 @@ export const Leaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .select("*")
-        .limit(5);
+      const { data, error } = await supabase.rpc("get_leaderboard");
 
       if (error) throw error;
 
-      setLeaderboard(data || []);
+      setLeaderboard((data || []).slice(0, 5) as LeaderboardEntry[]);
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
     } finally {
