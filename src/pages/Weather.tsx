@@ -292,28 +292,27 @@ export default function WeatherPage() {
       <div className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl relative z-10">
         {/* Modern Header */}
         <header className="mb-6 glass-header rounded-2xl p-4 sm:p-6 relative z-[1000] border border-border/20">
-          {/* Logo & Auth Row */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-14 sm:h-14 drop-shadow-lg" />
-              <div className="flex flex-col">
-                <h1 className="text-lg sm:text-3xl font-bold text-foreground tracking-tight leading-tight">Rainz Weather </h1>
-                <p className="text-[10px] sm:text-sm text-muted-foreground">Be prepared.</p>
-              </div>
+          {/* Logo & Title Row - Full Width on Mobile */}
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-0">
+            <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-14 sm:h-14 drop-shadow-lg" />
+            <div className="flex flex-col">
+              <h1 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight">Rainz Weather</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Be prepared.</p>
             </div>
+          </div>
 
-            <div className="flex items-center gap-3">
-              <HeaderInfoBar user={user} />
-              
-              <LockedFeature isLocked={!user}>
-                <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
-              </LockedFeature>
-              
-              {!user && <Button variant="outline" size="default" onClick={() => window.location.href = '/auth'} className="gap-2">
-                  <LogIn className="w-4 h-4" />
-                  <span>{t('header.signIn')}</span>
-                </Button>}
-            </div>
+          {/* Auth & Controls Row */}
+          <div className="flex items-center justify-end gap-2 sm:gap-3 mb-4">
+            <HeaderInfoBar user={user} />
+            
+            <LockedFeature isLocked={!user}>
+              <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
+            </LockedFeature>
+            
+            {!user && <Button variant="outline" size="default" onClick={() => window.location.href = '/auth'} className="gap-2">
+                <LogIn className="w-4 h-4" />
+                <span>{t('header.signIn')}</span>
+              </Button>}
           </div>
 
           {/* Search & Controls Row */}
