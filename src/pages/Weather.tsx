@@ -297,7 +297,7 @@ export default function WeatherPage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-14 sm:h-14 drop-shadow-lg" />
               <div className="flex flex-col">
-                <h1 className="text-lg sm:text-3xl font-bold text-foreground tracking-tight leading-tight">Rainz</h1>
+                <h1 className="text-lg sm:text-3xl font-bold text-foreground tracking-tight leading-tight">Rainz Weather </h1>
                 <p className="text-[10px] sm:text-sm text-muted-foreground">Be prepared.</p>
               </div>
             </div>
