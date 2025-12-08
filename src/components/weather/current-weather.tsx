@@ -1,14 +1,15 @@
-import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, ChevronLeft, ChevronRight, Snowflake } from "lucide-react";
+import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, Snowflake, Volume2, VolumeX } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LocationCard } from "./location-card";
 import { useLanguage } from "@/contexts/language-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { useWeatherSounds } from "@/hooks/use-weather-sounds";
+
 interface SavedLocation {
   id: string;
   name: string;
@@ -29,9 +30,10 @@ interface CurrentWeatherProps {
   isAutoDetected?: boolean;
   currentLocation?: { lat: number; lon: number; name: string };
   onLocationSelect?: (lat: number, lon: number, locationName: string) => void;
-  displayName?: string | null; // Custom display name from saved locations
-  actualStationName?: string; // Real weather station name for image generation
+  displayName?: string | null;
+  actualStationName?: string;
 }
+
 export function CurrentWeather({
   weatherData,
   mostAccurate,
@@ -48,6 +50,14 @@ export function CurrentWeather({
   const [showLocationCard, setShowLocationCard] = useState(false);
   const { t } = useLanguage();
   const queryClient = useQueryClient();
+
+  // Weather sounds
+  const { 
+    isPlaying, 
+    toggleSound, 
+    hasWeatherSound, 
+    weatherType 
+  } = useWeatherSounds(mostAccurate.currentWeather.condition);
 
   const { data: savedLocations = [] } = useQuery({
     queryKey: ["saved-locations"],
@@ -121,217 +131,162 @@ export function CurrentWeather({
            Math.abs(loc.longitude - currentLocation.lon) < 0.01
   );
   const isLocationSaved = !!savedLocationData;
-  const getConditionIcon = (condition: string) => {
+
+  const getConditionIcon = (condition: string, size: string = "w-8 h-8") => {
     const c = condition.toLowerCase();
-    if (c.includes("thunder")) return <CloudLightning className="w-5 h-5 text-primary" />;
-    if (c.includes("snow")) return <Snowflake className="w-5 h-5 text-primary" />;
-    if (c.includes("drizzle")) return <CloudDrizzle className="w-5 h-5 text-primary" />;
-    if (c.includes("shower") || c.includes("rain")) return <CloudRain className="w-5 h-5 text-primary" />;
-    if (c.includes("fog")) return <CloudFog className="w-5 h-5 text-primary" />;
-    if (c.includes("partly") || c.includes("sun")) return <CloudSun className="w-5 h-5 text-primary" />;
-    if (c.includes("cloud")) return <Cloud className="w-5 h-5 text-primary" />;
-    return <Sun className="w-5 h-5 text-primary" />;
+    const iconClass = `${size} text-white drop-shadow-lg`;
+    if (c.includes("thunder")) return <CloudLightning className={iconClass} />;
+    if (c.includes("snow")) return <Snowflake className={iconClass} />;
+    if (c.includes("drizzle")) return <CloudDrizzle className={iconClass} />;
+    if (c.includes("shower") || c.includes("rain")) return <CloudRain className={iconClass} />;
+    if (c.includes("fog")) return <CloudFog className={iconClass} />;
+    if (c.includes("partly") || c.includes("sun")) return <CloudSun className={iconClass} />;
+    if (c.includes("cloud")) return <Cloud className={iconClass} />;
+    return <Sun className={iconClass} />;
   };
+
+  const getWeatherGradient = (condition: string) => {
+    const c = condition.toLowerCase();
+    if (c.includes("thunder") || c.includes("storm")) return "from-slate-800 via-purple-900 to-slate-900";
+    if (c.includes("rain") || c.includes("shower") || c.includes("drizzle")) return "from-slate-600 via-blue-700 to-slate-700";
+    if (c.includes("snow") || c.includes("sleet")) return "from-slate-300 via-blue-200 to-white";
+    if (c.includes("fog") || c.includes("mist")) return "from-gray-400 via-gray-500 to-gray-600";
+    if (c.includes("cloud") && !c.includes("partly")) return "from-gray-500 via-slate-600 to-gray-700";
+    if (c.includes("partly") || c.includes("overcast")) return "from-blue-400 via-gray-400 to-blue-500";
+    // Clear/sunny
+    return "from-sky-400 via-blue-500 to-indigo-600";
+  };
+
   const formatWindSpeed = (speed: number) => {
     if (isImperial) {
-      return `${speed} mph`;
+      return `${speed}`;
     } else {
-      return `${Math.round(speed * 1.609)} km/h`;
+      return `${Math.round(speed * 1.609)}`;
     }
   };
-  const formatVisibility = (visibility: number) => {
-    if (isImperial) {
-      return `${visibility} mi`;
-    } else {
-      return `${Math.round(visibility * 1.609)} km`;
-    }
-  };
-  if (savedLocations.length > 0 && onLocationSelect) {
-    return (
-      <section className="mb-4">
-        <Carousel className="w-full">
-          <CarouselContent>
-            {/* Current Location */}
-            <CarouselItem>
-              <Card className="border border-border shadow-sm">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="text-primary w-3 h-3" />
-                      <span className="text-sm font-semibold text-foreground">
-                        {displayName ? displayName.split(',')[0] : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0])}
-                      </span>
-                      {currentLocation && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-5 w-5 p-0"
-                          onClick={() => isLocationSaved ? removeLocationMutation.mutate() : addLocationMutation.mutate()}
-                        >
-                          {isLocationSaved ? <Minus className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
-                        </Button>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground">Current</span>
-                  </div>
-                  {renderWeatherContent()}
-                </CardContent>
-              </Card>
-            </CarouselItem>
 
-            {/* Saved Locations */}
-            {savedLocations.map((location) => (
-              <CarouselItem key={location.id}>
-                <Card className="border border-border shadow-sm">
-                  <CardContent className="p-3">
-                    <button
-                      onClick={() => onLocationSelect(location.latitude, location.longitude, location.name)}
-                      className="w-full"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="text-primary w-3 h-3" />
-                          <span className="text-sm font-semibold text-foreground">
-                            {location.name}
-                          </span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">Saved</span>
-                      </div>
-                      <div className="text-center py-8">
-                        <p className="text-sm text-muted-foreground">Tap to view weather</p>
-                      </div>
-                    </button>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-2" />
-          <CarouselNext className="right-2" />
-        </Carousel>
+  const feelsLikeTemp = isImperial 
+    ? mostAccurate.currentWeather.feelsLike 
+    : Math.round((mostAccurate.currentWeather.feelsLike - 32) * 5 / 9);
+  const actualTemp = isImperial 
+    ? mostAccurate.currentWeather.temperature 
+    : Math.round((mostAccurate.currentWeather.temperature - 32) * 5 / 9);
+  const highTemp = isImperial 
+    ? mostAccurate.dailyForecast[0]?.highTemp 
+    : Math.round((mostAccurate.dailyForecast[0]?.highTemp - 32) * 5 / 9);
+  const lowTemp = isImperial 
+    ? mostAccurate.dailyForecast[0]?.lowTemp 
+    : Math.round((mostAccurate.dailyForecast[0]?.lowTemp - 32) * 5 / 9);
 
-        <LocationCard 
-          open={showLocationCard} 
-          onOpenChange={setShowLocationCard}
-          temperature={mostAccurate.currentWeather.temperature}
-          location={displayName || mostAccurate.location}
-          actualStationName={actualStationName || mostAccurate.location}
-          isImperial={isImperial}
-        />
-      </section>
-    );
-  }
+  const locationDisplay = displayName 
+    ? displayName.split(',')[0] 
+    : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0]);
 
-  function renderWeatherContent() {
-    const feelsLikeTemp = isImperial 
-      ? mostAccurate.currentWeather.feelsLike 
-      : Math.round((mostAccurate.currentWeather.feelsLike - 32) * 5 / 9);
-    const actualTemp = isImperial 
-      ? mostAccurate.currentWeather.temperature 
-      : Math.round((mostAccurate.currentWeather.temperature - 32) * 5 / 9);
-    const tempDiff = feelsLikeTemp - actualTemp;
-    
-    return (
-      <div className="space-y-4">
-        {/* Main Temperature Row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
-              {getConditionIcon(mostAccurate.currentWeather.condition)}
-            </div>
-            <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-foreground tracking-tight">
-                  {actualTemp}°
-                </span>
-                <span className="text-lg text-muted-foreground">{isImperial ? 'F' : 'C'}</span>
-              </div>
-              <div className="text-sm text-foreground/80 font-medium">
-                {mostAccurate.currentWeather.condition}
-              </div>
-            </div>
+  return (
+    <section className="mb-4">
+      <Card className="overflow-hidden border-0 shadow-xl">
+        {/* Main Weather Display with Dynamic Gradient */}
+        <div className={`relative bg-gradient-to-br ${getWeatherGradient(mostAccurate.currentWeather.condition)} p-4`}>
+          {/* Ambient glow effects */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
           </div>
-          
-          {/* Feels Like - Prominent */}
-          <div className="text-right bg-gradient-to-br from-accent/20 to-accent/5 rounded-xl px-4 py-3 border border-accent/20">
-            <div className="text-xs text-muted-foreground mb-0.5">{t('weather.feelsLike')}</div>
-            <div className="text-2xl font-bold text-foreground">{feelsLikeTemp}°</div>
-            <div className={`text-xs font-medium ${tempDiff > 0 ? 'text-orange-500' : tempDiff < 0 ? 'text-blue-500' : 'text-muted-foreground'}`}>
-              {tempDiff > 0 ? `+${tempDiff}° warmer` : tempDiff < 0 ? `${tempDiff}° colder` : 'Same'}
-            </div>
-          </div>
-        </div>
 
-        {/* High/Low + Metrics Row */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex gap-3 text-sm">
-            <span className="text-foreground font-medium">
-              H: {isImperial ? mostAccurate.dailyForecast[0]?.highTemp : Math.round((mostAccurate.dailyForecast[0]?.highTemp - 32) * 5 / 9)}°
-            </span>
-            <span className="text-foreground font-medium">
-              L: {isImperial ? mostAccurate.dailyForecast[0]?.lowTemp : Math.round((mostAccurate.dailyForecast[0]?.lowTemp - 32) * 5 / 9)}°
-            </span>
-          </div>
-          
-          <div className="flex gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted/50 rounded-lg border border-border/50">
-              <Wind className="text-primary w-3 h-3" />
-              <span className="text-xs font-medium text-foreground">
-                {formatWindSpeed(mostAccurate.currentWeather.windSpeed)}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted/50 rounded-lg border border-border/50">
-              <Eye className="text-primary w-3 h-3" />
-              <span className="text-xs font-medium text-foreground">
-                {formatVisibility(mostAccurate.currentWeather.visibility)}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-muted/50 rounded-lg border border-border/50">
-              <Droplets className="text-primary w-3 h-3" />
-              <span className="text-xs font-medium text-foreground">
-                {mostAccurate.currentWeather.humidity}%
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button onClick={onRefresh} disabled={isLoading} variant="outline" size="sm" className="flex-1 h-8 text-xs">
-            {isLoading ? <RefreshCw className="w-3 h-3 mr-1.5 animate-spin" /> : <RefreshCw className="w-3 h-3 mr-1.5" />}
-            {t('weather.refresh')}
-          </Button>
-          <Button onClick={() => setShowLocationCard(true)} variant="outline" size="sm" className="flex-1 h-8 text-xs">
-            <Camera className="w-3 h-3 mr-1.5" />
-            {t('weather.locationCard')}
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return <section className="mb-4">
-      <Card className="border border-border shadow-sm">
-        <CardContent className="p-3">
-          <div className="flex items-center justify-between mb-3">
+          {/* Top Row: Location + Actions */}
+          <div className="relative flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-            <MapPin className="text-primary w-3 h-3" />
-              <span className="text-sm font-semibold text-foreground">
-                {displayName ? displayName.split(',')[0] : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0])}
-              </span>
-              {!isLocationSaved && currentLocation && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-5 w-5 p-0"
-                  onClick={() => addLocationMutation.mutate()}
+              <MapPin className="w-4 h-4 text-white/80" />
+              <span className="text-white font-semibold text-lg">{locationDisplay}</span>
+              {currentLocation && (
+                <button
+                  onClick={() => isLocationSaved ? removeLocationMutation.mutate() : addLocationMutation.mutate()}
+                  className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
                 >
-                  <Plus className="h-3 w-3" />
-                </Button>
+                  {isLocationSaved ? <Minus className="w-3 h-3 text-white" /> : <Plus className="w-3 h-3 text-white" />}
+                </button>
               )}
             </div>
+            <div className="flex items-center gap-1">
+              {hasWeatherSound && (
+                <button
+                  onClick={toggleSound}
+                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                  title={isPlaying ? "Mute weather sounds" : `Play ${weatherType} sounds`}
+                >
+                  {isPlaying ? (
+                    <Volume2 className="w-4 h-4 text-white" />
+                  ) : (
+                    <VolumeX className="w-4 h-4 text-white/60" />
+                  )}
+                </button>
+              )}
+              <button
+                onClick={onRefresh}
+                disabled={isLoading}
+                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 text-white ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
-          {renderWeatherContent()}
+
+          {/* Center: Temperature + Condition */}
+          <div className="relative flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                {getConditionIcon(mostAccurate.currentWeather.condition)}
+              </div>
+              <div>
+                <div className="flex items-baseline">
+                  <span className="text-6xl font-bold text-white tracking-tight">{actualTemp}</span>
+                  <span className="text-2xl text-white/70 ml-1">°{isImperial ? 'F' : 'C'}</span>
+                </div>
+                <p className="text-white/80 font-medium text-sm">{mostAccurate.currentWeather.condition}</p>
+              </div>
+            </div>
+
+            {/* Feels Like */}
+            <div className="text-right">
+              <p className="text-white/60 text-xs uppercase tracking-wide">{t('weather.feelsLike')}</p>
+              <p className="text-3xl font-bold text-white">{feelsLikeTemp}°</p>
+              <p className="text-white/70 text-xs">H:{highTemp}° L:{lowTemp}°</p>
+            </div>
+          </div>
+
+          {/* Bottom: Quick Stats */}
+          <div className="relative grid grid-cols-3 gap-2">
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2.5 text-center">
+              <Wind className="w-4 h-4 text-white/80 mx-auto mb-1" />
+              <p className="text-white font-semibold text-sm">{formatWindSpeed(mostAccurate.currentWeather.windSpeed)}</p>
+              <p className="text-white/60 text-xs">{isImperial ? 'mph' : 'km/h'}</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2.5 text-center">
+              <Droplets className="w-4 h-4 text-white/80 mx-auto mb-1" />
+              <p className="text-white font-semibold text-sm">{mostAccurate.currentWeather.humidity}%</p>
+              <p className="text-white/60 text-xs">Humidity</p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2.5 text-center">
+              <Eye className="w-4 h-4 text-white/80 mx-auto mb-1" />
+              <p className="text-white font-semibold text-sm">{mostAccurate.currentWeather.visibility}</p>
+              <p className="text-white/60 text-xs">{isImperial ? 'mi' : 'km'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Actions Bar */}
+        <CardContent className="p-2 bg-background/80 backdrop-blur-sm border-t border-border/50">
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowLocationCard(true)} 
+              variant="ghost" 
+              size="sm" 
+              className="flex-1 h-8 text-xs"
+            >
+              <Camera className="w-3 h-3 mr-1.5" />
+              Share Card
+            </Button>
+          </div>
         </CardContent>
       </Card>
       
@@ -343,6 +298,6 @@ export function CurrentWeather({
         actualStationName={actualStationName || mostAccurate.location}
         isImperial={isImperial}
       />
-    </section>;
-
+    </section>
+  );
 }
