@@ -152,12 +152,30 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setStartY(e.touches[0].clientY);
-    setIsDragging(true);
+    // Only track touches on the handle area (first 40px)
+    const touch = e.touches[0];
+    const navElement = navRef.current;
+    if (!navElement) return;
+    
+    const navRect = navElement.getBoundingClientRect();
+    const touchYRelativeToNav = touch.clientY - navRect.top;
+    
+    // Only allow dragging from the handle area (top 48px of the nav)
+    if (touchYRelativeToNav <= 48) {
+      setStartY(touch.clientY);
+      setIsDragging(true);
+      // Prevent default to stop browser behaviors like pull-to-refresh
+      e.preventDefault();
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
+    
+    // Prevent default to stop browser's native gestures
+    e.preventDefault();
+    e.stopPropagation();
+    
     const deltaY = e.touches[0].clientY - startY;
     
     // Swipe down to collapse (deltaY > 50)
@@ -174,7 +192,10 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+    }
     setIsDragging(false);
   };
 
@@ -194,10 +215,11 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
         onTouchEnd={handleTouchEnd}
       >
         <div className="glass-card rounded-3xl border border-border/30 backdrop-blur-xl mx-2 mb-2 shadow-lg">
-          {/* Collapse/Expand Handle */}
+          {/* Collapse/Expand Handle - touch-action: none prevents browser gestures */}
           <button 
             onClick={toggleCollapse}
-            className="w-full flex items-center justify-center py-2 touch-manipulation"
+            className="w-full flex items-center justify-center py-3 touch-manipulation"
+            style={{ touchAction: 'none' }}
           >
             <div className="w-12 h-1 rounded-full bg-muted-foreground/40" />
             {isCollapsed ? (
