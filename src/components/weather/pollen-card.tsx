@@ -30,24 +30,20 @@ interface PollenCardProps {
 export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLike, snowfall, snowDepth, condition, isImperial = false, hyperlocalSnow }: PollenCardProps) {
   if (!pollenData) return null;
 
-  // Determine if we're in winter season (November 20th to February)
   const now = new Date();
-  const currentMonth = now.getMonth(); // 0-11
+  const currentMonth = now.getMonth();
   const currentDate = now.getDate();
   const isWinterSeason = 
-    (currentMonth === 10 && currentDate >= 20) || // November 20th onwards
-    currentMonth === 11 || // December
-    currentMonth === 0 || // January
-    currentMonth === 1; // February
+    (currentMonth === 10 && currentDate >= 20) ||
+    currentMonth === 11 ||
+    currentMonth === 0 ||
+    currentMonth === 1;
 
-  // If it's winter and we have temperature data, show snow index instead
   if (isWinterSeason && temperature !== undefined) {
-    // Use Tomorrow.io hyperlocal data if available, otherwise fall back to Open-Meteo
     let effectiveSnowfall = snowfall || 0;
     let effectiveSnowDepth = snowDepth || 0;
     let effectiveIceRisk = temperature <= 32 ? Math.min(100, (32 - temperature) * 8) : 0;
 
-    // Prioritize Tomorrow.io data
     if (hyperlocalSnow?.snowIntensity !== undefined && hyperlocalSnow.snowIntensity > 0) {
       effectiveSnowfall = hyperlocalSnow.snowIntensity;
     }
@@ -60,7 +56,6 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
       effectiveIceRisk = Math.min(100, hyperlocalSnow.iceAccumulation * 100);
     }
 
-    // If API snowfall is zero but condition says snow, assume light snow
     if (effectiveSnowfall === 0 && condition?.toLowerCase().includes("snow")) {
       effectiveSnowfall = isImperial ? 0.1 : 0.25;
     }
@@ -76,16 +71,17 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
       iceAccumulation: hyperlocalSnow?.iceAccumulation,
     };
 
-    return (
-      <div className="glass-card rounded-2xl shadow-lg border border-border p-4">
-        <SnowIndex snowData={snowData} isImperial={isImperial} />
-      </div>
-    );
+    return <SnowIndex snowData={snowData} isImperial={isImperial} />;
   }
 
   return (
-    <div className="glass-card rounded-2xl shadow-lg border border-border p-4">
-      <PollenWheel pollenData={pollenData} userId={userId} />
+    <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+      <div className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 p-4">
+        <h3 className="font-semibold text-white">Pollen Index</h3>
+      </div>
+      <div className="bg-background/80 backdrop-blur-sm p-4">
+        <PollenWheel pollenData={pollenData} userId={userId} />
+      </div>
     </div>
   );
 }

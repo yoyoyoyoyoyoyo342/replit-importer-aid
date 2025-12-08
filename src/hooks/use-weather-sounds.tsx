@@ -5,7 +5,7 @@ const WEATHER_SOUNDS: Record<string, string> = {
   rain: 'https://assets.mixkit.co/active_storage/sfx/2515/2515-preview.mp3',
   thunder: 'https://assets.mixkit.co/active_storage/sfx/1282/1282-preview.mp3',
   wind: 'https://assets.mixkit.co/active_storage/sfx/2520/2520-preview.mp3',
-  snow: 'https://assets.mixkit.co/active_storage/sfx/2518/2518-preview.mp3', // Soft wind for snow
+  snow: 'https://assets.mixkit.co/active_storage/sfx/2518/2518-preview.mp3',
 };
 
 type WeatherType = 'rain' | 'thunder' | 'wind' | 'snow' | 'clear' | null;
@@ -15,6 +15,7 @@ export function useWeatherSounds(condition: string, enabled: boolean = true) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSound, setCurrentSound] = useState<WeatherType>(null);
   const [volume, setVolume] = useState(0.3);
+  const hasAutoPlayed = useRef(false);
 
   const getWeatherType = useCallback((cond: string): WeatherType => {
     const c = cond.toLowerCase();
@@ -81,7 +82,7 @@ export function useWeatherSounds(condition: string, enabled: boolean = true) {
     }
   }, []);
 
-  // Update sound when condition changes
+  // Auto-play weather sounds when condition has active weather
   useEffect(() => {
     if (!enabled) {
       stopSound();
@@ -90,18 +91,20 @@ export function useWeatherSounds(condition: string, enabled: boolean = true) {
 
     const type = getWeatherType(condition);
     
-    // Only auto-play if there's active weather
+    // Auto-play if there's active weather and we haven't auto-played yet
     if (type !== 'clear' && type !== currentSound) {
-      // Don't auto-play, wait for user interaction
-      setCurrentSound(null);
+      // Small delay to let the page load
+      const timer = setTimeout(() => {
+        playSound(type);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, [condition, enabled, getWeatherType]);
+    
+    // If weather cleared, stop the sound
+    if (type === 'clear' && isPlaying) {
+      stopSound();
+    }
+  }, [condition, enabled, getWeatherType, currentSound, playSound, stopSound, isPlaying]);
 
   // Cleanup on unmount
   useEffect(() => {

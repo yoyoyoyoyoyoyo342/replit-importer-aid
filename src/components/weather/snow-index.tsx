@@ -1,17 +1,16 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Snowflake } from "lucide-react";
 
 interface SnowIndexProps {
   snowData?: {
-    snowfall: number; // inches
-    snowDepth: number; // inches
-    temperature: number; // fahrenheit
-    windChill: number; // fahrenheit
-    iceRisk: number; // percentage
-    snowIntensity?: number; // inches/hour from Tomorrow.io
-    snowAccumulation?: number; // inches from Tomorrow.io
-    iceAccumulation?: number; // inches from Tomorrow.io
+    snowfall: number;
+    snowDepth: number;
+    temperature: number;
+    windChill: number;
+    iceRisk: number;
+    snowIntensity?: number;
+    snowAccumulation?: number;
+    iceAccumulation?: number;
   };
   isImperial?: boolean;
 }
@@ -19,40 +18,35 @@ interface SnowIndexProps {
 export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
   if (!snowData) {
     return (
-      <Card className="h-full">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Snowflake className="w-5 h-5" />
-            Snow Index
-          </CardTitle>
-          <CardDescription>Live winter conditions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center text-muted-foreground py-8">
-            <div>No snow data available</div>
-            <div className="text-xs mt-1">Location required</div>
+      <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+        <div className="bg-gradient-to-r from-blue-400 via-cyan-500 to-sky-500 p-4">
+          <div className="flex items-center gap-2">
+            <Snowflake className="w-5 h-5 text-white" />
+            <h3 className="font-semibold text-white">Snow Index</h3>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="bg-background/80 backdrop-blur-sm p-6 text-center">
+          <p className="text-muted-foreground">No snow data available</p>
+        </div>
+      </div>
     );
   }
 
   const getSnowfallLevel = (valueInInches: number) => {
-    if (valueInInches === 0) return { label: 'No Snow', color: 'bg-blue-500' };
-    if (valueInInches < 0.5) return { label: 'Light', color: 'bg-blue-300' };
+    if (valueInInches === 0) return { label: 'No Snow', color: 'bg-slate-500' };
+    if (valueInInches < 0.5) return { label: 'Light', color: 'bg-blue-400' };
     if (valueInInches < 2) return { label: 'Moderate', color: 'bg-blue-500' };
     if (valueInInches < 6) return { label: 'Heavy', color: 'bg-blue-700' };
     return { label: 'Extreme', color: 'bg-purple-700' };
   };
 
   const getIceRiskLevel = (value: number) => {
-    if (value < 20) return { label: 'Low Risk', color: 'bg-blue-500' };
-    if (value < 50) return { label: 'Medium Risk', color: 'bg-yellow-500' };
-    if (value < 80) return { label: 'High Risk', color: 'bg-orange-500' };
-    return { label: 'Extreme Risk', color: 'bg-red-500' };
+    if (value < 20) return { label: 'Low', color: 'bg-green-500' };
+    if (value < 50) return { label: 'Medium', color: 'bg-yellow-500' };
+    if (value < 80) return { label: 'High', color: 'bg-orange-500' };
+    return { label: 'Extreme', color: 'bg-red-500' };
   };
 
-  // Use Tomorrow.io data if available, otherwise fall back to Open-Meteo
   const actualSnowfall = snowData.snowIntensity !== undefined && snowData.snowIntensity > 0 
     ? snowData.snowIntensity 
     : snowData.snowfall;
@@ -61,9 +55,8 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
     ? snowData.snowAccumulation
     : snowData.snowDepth;
 
-  // Calculate ice risk from Tomorrow.io data or use provided value
   const calculatedIceRisk = snowData.iceAccumulation !== undefined && snowData.iceAccumulation > 0
-    ? Math.min(100, snowData.iceAccumulation * 100) // Convert accumulation to percentage
+    ? Math.min(100, snowData.iceAccumulation * 100)
     : snowData.iceRisk;
 
   const snowfallLevel = getSnowfallLevel(actualSnowfall);
@@ -72,22 +65,10 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
   const unit = isImperial ? '"' : 'cm';
   const tempUnit = isImperial ? '°F' : '°C';
 
-  const snowfallDisplay = isImperial
-    ? actualSnowfall
-    : actualSnowfall * 2.54; // inches -> cm
-
-  const snowDepthDisplay = isImperial
-    ? actualSnowDepth
-    : actualSnowDepth * 2.54; // inches -> cm
-  
-  // Convert temperature and wind chill from Fahrenheit to Celsius if needed
-  const temperatureDisplay = isImperial
-    ? snowData.temperature
-    : (snowData.temperature - 32) * 5 / 9;
-  
-  const windChillDisplay = isImperial
-    ? snowData.windChill
-    : (snowData.windChill - 32) * 5 / 9;
+  const snowfallDisplay = isImperial ? actualSnowfall : actualSnowfall * 2.54;
+  const snowDepthDisplay = isImperial ? actualSnowDepth : actualSnowDepth * 2.54;
+  const temperatureDisplay = isImperial ? snowData.temperature : (snowData.temperature - 32) * 5 / 9;
+  const windChillDisplay = isImperial ? snowData.windChill : (snowData.windChill - 32) * 5 / 9;
   
   const snowMetrics = [
     {
@@ -120,27 +101,29 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
   ];
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Snowflake className="w-5 h-5 animate-spin-slow" />
-          Snow Index
-        </CardTitle>
-        <CardDescription>Live winter conditions</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Snow metrics grid */}
-        <div className="grid grid-cols-2 gap-3">
+    <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+      {/* Header with gradient */}
+      <div className="bg-gradient-to-r from-blue-400 via-cyan-500 to-sky-500 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Snowflake className="w-5 h-5 text-white animate-pulse" />
+            <h3 className="font-semibold text-white">Snow Index</h3>
+          </div>
+          <span className="text-xs text-white/80">Live conditions</span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="bg-background/80 backdrop-blur-sm p-4">
+        <div className="grid grid-cols-2 gap-3 mb-4">
           {snowMetrics.map((metric, idx) => (
             <div 
               key={idx} 
-              className="glass-card p-3 rounded-xl border border-border/50 hover:border-border transition-all hover:scale-105"
+              className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">{metric.icon}</span>
-                <Badge 
-                  className={`${metric.level.color} text-white text-[10px] px-1.5 py-0.5`}
-                >
+                <span className="text-xl">{metric.icon}</span>
+                <Badge className={`${metric.level.color} text-white text-[10px] px-1.5`}>
                   {metric.level.label}
                 </Badge>
               </div>
@@ -150,10 +133,10 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
           ))}
         </div>
 
-        {/* Overall winter advisory */}
-        <div className="glass-card p-3 rounded-xl border border-border/50">
-          <div className="flex items-center gap-2 mb-2">
-            <Snowflake className="w-4 h-4" />
+        {/* Advisory */}
+        <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+          <div className="flex items-center gap-2 mb-1">
+            <Snowflake className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-medium">Winter Advisory</span>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -166,7 +149,7 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
               : '✅ Winter conditions manageable.'}
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
