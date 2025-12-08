@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { CalendarDays, Droplets, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, Snowflake, CloudLightning, CloudFog, ChevronDown, ChevronUp, Clock } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { CalendarDays, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, Snowflake, CloudLightning, CloudFog, ChevronDown, ChevronUp, Clock } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DailyForecast, WeatherSource, HourlyForecast } from "@/types/weather";
 import { formatTime } from "@/lib/time-format";
@@ -16,66 +15,39 @@ interface TenDayForecastProps {
 export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, isImperial = true, is24Hour = true }: TenDayForecastProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const [showAllDays, setShowAllDays] = useState(false);
-  const getConditionIcon = (condition: string) => {
+
+  const getConditionIcon = (condition: string, size: string = "w-6 h-6") => {
     const c = condition.toLowerCase();
-    if (c.includes("thunder")) return <CloudLightning className="w-7 h-7 text-primary" />;
-    if (c.includes("drizzle")) return <CloudDrizzle className="w-7 h-7 text-primary" />;
-    if (c.includes("shower") || c.includes("rain")) return <CloudRain className="w-7 h-7 text-primary" />;
-    if (c.includes("snow")) return <Snowflake className="w-7 h-7 text-primary" />;
-    if (c.includes("fog")) return <CloudFog className="w-7 h-7 text-primary" />;
-    if (c.includes("partly") || c.includes("sun")) return <CloudSun className="w-7 h-7 text-primary" />;
-    if (c.includes("cloud")) return <Cloud className="w-7 h-7 text-primary" />;
-    return <Sun className="w-7 h-7 text-primary" />;
-  };
-  const sourceColors = {
-    openweathermap: "bg-secondary",
-    accuweather: "bg-accent", 
-    weatherapi: "bg-primary"
+    const iconClass = `${size} text-white drop-shadow`;
+    if (c.includes("thunder")) return <CloudLightning className={iconClass} />;
+    if (c.includes("drizzle")) return <CloudDrizzle className={iconClass} />;
+    if (c.includes("shower") || c.includes("rain")) return <CloudRain className={iconClass} />;
+    if (c.includes("snow")) return <Snowflake className={iconClass} />;
+    if (c.includes("fog")) return <CloudFog className={iconClass} />;
+    if (c.includes("partly") || c.includes("sun")) return <CloudSun className={iconClass} />;
+    if (c.includes("cloud")) return <Cloud className={iconClass} />;
+    return <Sun className={iconClass} />;
   };
 
-  const getSourceAbbreviation = (source: string) => {
-    const abbrev = {
-      openweathermap: "OWM",
-      accuweather: "ACC",
-      weatherapi: "API"
-    };
-    return abbrev[source as keyof typeof abbrev] || source.toUpperCase();
-  };
-
-  // Get the most accurate source for each day (simplified - just use most accurate overall)
-  const mostAccurateSource = weatherSources.reduce((prev, current) => 
-    (current.accuracy > prev.accuracy) ? current : prev
-  );
-
-  // Get hourly data for a specific day (midnight to midnight, 00:00-23:00)
   const getHourlyForDay = (dayIndex: number) => {
     if (!hourlyForecast.length) return [];
     
-    // dayIndex is now 0-9 representing days 1-10 (tomorrow through day 10)
-    const actualDayIndex = dayIndex + 1; // Adjust because we're skipping today
-    
-    // Create a date for the target day at midnight
+    const actualDayIndex = dayIndex + 1;
     const now = new Date();
     const targetDate = new Date(now);
     targetDate.setDate(now.getDate() + actualDayIndex);
     targetDate.setHours(0, 0, 0, 0);
     
-    const targetDateStr = targetDate.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    // Collect hours that belong to this specific calendar day
     const dayHours: HourlyForecast[] = [];
     
-    // Start from midnight of target day and collect 24 hours (00:00 to 23:00)
     for (let hour = 0; hour < 24; hour++) {
       const checkDate = new Date(targetDate);
       checkDate.setHours(hour);
       
-      // Calculate hours from now to this specific hour
       const hoursFromNow = Math.round((checkDate.getTime() - now.getTime()) / (1000 * 60 * 60));
       
       if (hoursFromNow >= 0 && hoursFromNow < hourlyForecast.length) {
         const hourData = hourlyForecast[hoursFromNow];
-        // Override the time to show the exact hour (00:00 to 23:00 format)
         dayHours.push({
           ...hourData,
           time: `${String(hour).padStart(2, '0')}:00`
@@ -92,13 +64,17 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
 
   return (
     <section className="mb-4 md:mb-8">
-      <Card className="rounded-2xl shadow-lg border border-border">
-        <CardContent className="p-3 md:p-4 lg:p-6">
-          <h2 className="text-lg md:text-xl font-semibold text-card-foreground mb-3 md:mb-6 flex items-center gap-2">
-            <CalendarDays className="text-primary w-4 h-4 md:w-5 md:h-5" />
+      <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+        {/* Header with gradient */}
+        <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 p-4">
+          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+            <CalendarDays className="w-5 h-5" />
             10-Day Forecast
           </h2>
+        </div>
 
+        {/* Content */}
+        <div className="bg-background/80 backdrop-blur-sm p-3">
           <div className="space-y-2">
             {dailyForecast.slice(1, showAllDays ? 11 : 4).map((day, index) => (
               <Collapsible
@@ -107,67 +83,54 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
                 onOpenChange={() => toggleDay(index)}
               >
                 <CollapsibleTrigger className="w-full">
-                  <div className="flex items-center justify-between p-2 md:p-3 rounded-xl hover:bg-muted/50 transition-colors border border-border cursor-pointer">
-                    <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
-                      <div className="text-xs md:text-sm text-muted-foreground font-medium w-12 md:w-16 shrink-0">
-                        {day.day}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50 cursor-pointer hover:from-primary/15 hover:to-primary/10 transition-all">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-muted-foreground w-12">{day.day}</span>
+                      <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center">
+                        {getConditionIcon(day.condition, "w-5 h-5")}
                       </div>
-                      <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                        {getConditionIcon(day.condition)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-card-foreground text-xs md:text-sm truncate">
-                          {day.condition}
-                        </div>
-                      </div>
+                      <span className="text-sm font-medium text-foreground truncate max-w-[100px]">{day.condition}</span>
                     </div>
 
-                    <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                      <div className="text-xs text-muted-foreground">
-                        {day.precipitation}%
-                      </div>
-                      <div className="text-right min-w-[50px] md:min-w-[60px]">
-                        <div className="text-sm md:text-lg font-semibold text-card-foreground">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">{day.precipitation}%</span>
+                      <div className="text-right">
+                        <span className="text-lg font-bold text-foreground">
                           {isImperial ? day.highTemp : Math.round((day.highTemp - 32) * 5/9)}°
-                        </div>
-                        <div className="text-xs md:text-sm text-muted-foreground">
+                        </span>
+                        <span className="text-sm text-muted-foreground ml-1">
                           {isImperial ? day.lowTemp : Math.round((day.lowTemp - 32) * 5/9)}°
-                        </div>
+                        </span>
                       </div>
-                      <div className="ml-2">
-                        {expandedDay === index ? (
-                          <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </div>
+                      {expandedDay === index ? (
+                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      )}
                     </div>
                   </div>
                 </CollapsibleTrigger>
                 
                 <CollapsibleContent className="mt-2">
-                  <div className="border border-border rounded-lg p-3 bg-muted/20">
+                  <div className="rounded-xl p-3 bg-gradient-to-br from-primary/5 to-accent/5 border border-border/50">
                     <div className="flex items-center gap-2 mb-3">
                       <Clock className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-card-foreground">24-Hour Forecast</span>
+                      <span className="text-sm font-medium">Hourly Breakdown</span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                       {getHourlyForDay(index).map((hour, hourIndex) => (
                         <div
                           key={hourIndex}
-                          className="text-center p-2 rounded-lg glass-card border border-border/50"
+                          className="text-center p-2 rounded-lg bg-background/60 border border-border/30"
                         >
                           <div className="text-xs text-muted-foreground mb-1">
                             {formatTime(hour.time, is24Hour)}
                           </div>
                           <div className="w-6 h-6 mx-auto mb-1 rounded-full bg-primary/20 flex items-center justify-center">
-                            {getConditionIcon(hour.condition)}
+                            {getConditionIcon(hour.condition, "w-4 h-4")}
                           </div>
-                          <div className="text-xs font-medium text-card-foreground">
+                          <div className="text-xs font-medium">
                             {isImperial ? Math.round(hour.temperature) : Math.round((hour.temperature - 32) * 5/9)}°
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {hour.precipitation}%
                           </div>
                         </div>
                       ))}
@@ -181,7 +144,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
           {dailyForecast.length > 4 && (
             <button
               onClick={() => setShowAllDays(!showAllDays)}
-              className="w-full mt-4 py-2 px-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 text-sm font-medium text-card-foreground transition-colors flex items-center justify-center gap-2"
+              className="w-full mt-3 py-2 px-4 rounded-xl bg-gradient-to-r from-primary/20 to-accent/20 hover:from-primary/30 hover:to-accent/30 text-sm font-medium text-foreground transition-all flex items-center justify-center gap-2"
             >
               {showAllDays ? (
                 <>
@@ -196,8 +159,8 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
               )}
             </button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </section>
   );
 }
