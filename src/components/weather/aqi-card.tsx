@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wind } from "lucide-react";
 import { AQIData } from "@/types/hyperlocal-weather";
 
@@ -21,16 +20,19 @@ export function AQICard({ data }: AQICardProps) {
   const level = getAQILevel(data.value);
 
   return (
-    <Card className="glass-card rounded-2xl shadow-lg border border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Wind className="h-4 w-4" />
-          Air Quality Index
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+      {/* Header with softer gradient */}
+      <div className="bg-gradient-to-r from-teal-300/70 via-cyan-400/60 to-blue-400/70 backdrop-blur-sm p-4">
+        <div className="flex items-center gap-2">
+          <Wind className="w-5 h-5 text-white" />
+          <h3 className="font-semibold text-white">Air Quality Index</h3>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="bg-background/50 backdrop-blur-md p-4">
         <div className="flex items-center gap-4 mb-4">
-          <div className={`${level.bg} p-4 rounded-lg`}>
+          <div className={`${level.bg} p-4 rounded-xl`}>
             <div className={`text-3xl font-bold ${level.color}`}>
               {data.value}
             </div>
@@ -42,24 +44,24 @@ export function AQICard({ data }: AQICardProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="p-2 bg-muted/50 rounded">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50">
             <div className="text-muted-foreground">PM2.5</div>
             <div className="font-semibold">{data.pm25.toFixed(1)} μg/m³</div>
           </div>
-          <div className="p-2 bg-muted/50 rounded">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50">
             <div className="text-muted-foreground">PM10</div>
             <div className="font-semibold">{data.pm10.toFixed(1)} μg/m³</div>
           </div>
-          <div className="p-2 bg-muted/50 rounded">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50">
             <div className="text-muted-foreground">O₃</div>
             <div className="font-semibold">{data.o3.toFixed(1)} μg/m³</div>
           </div>
-          <div className="p-2 bg-muted/50 rounded">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50">
             <div className="text-muted-foreground">NO₂</div>
             <div className="font-semibold">{data.no2.toFixed(1)} μg/m³</div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

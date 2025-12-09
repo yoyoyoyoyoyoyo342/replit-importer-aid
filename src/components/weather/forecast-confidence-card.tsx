@@ -1,7 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 
 interface ForecastConfidenceCardProps {
   ensembleData?: {
@@ -39,20 +38,23 @@ export function ForecastConfidenceCard({ ensembleData, modelAgreement }: Forecas
   }));
 
   return (
-    <Card>
-      <CardHeader>
+    <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+      {/* Header with softer gradient */}
+      <div className="bg-gradient-to-r from-emerald-300/70 via-teal-400/60 to-cyan-400/70 backdrop-blur-sm p-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Forecast Confidence
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-white" />
+            <h3 className="font-semibold text-white">Forecast Confidence</h3>
+          </div>
           <Badge variant="outline" className={`${config.bgColor} ${config.color}`}>
             <Icon className="w-3 h-3 mr-1" />
             {config.label}
           </Badge>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+
+      {/* Content */}
+      <div className="bg-background/50 backdrop-blur-md p-4 space-y-4">
         {modelAgreement !== undefined && (
           <div>
             <div className="flex justify-between text-sm mb-2">
@@ -124,16 +126,16 @@ export function ForecastConfidenceCard({ ensembleData, modelAgreement }: Forecas
         </div>
 
         <div className="grid grid-cols-2 gap-4 pt-2">
-          <div className="text-center">
+          <div className="text-center p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50">
             <p className="text-2xl font-bold">±{Math.round((chartData[0].p90 - chartData[0].p10) / 2)}°F</p>
             <p className="text-xs text-muted-foreground">Uncertainty Range</p>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50">
             <p className="text-2xl font-bold">{ensembleData.hourly.temperature.median.length}</p>
             <p className="text-xs text-muted-foreground">Ensemble Members</p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
