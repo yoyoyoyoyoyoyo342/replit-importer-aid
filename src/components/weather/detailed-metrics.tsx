@@ -16,13 +16,13 @@ export function DetailedMetrics({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* UV Index Card */}
         <div className="overflow-hidden rounded-2xl shadow-xl border-0">
-          <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 p-4">
+          <div className="bg-gradient-to-r from-yellow-300/70 via-orange-400/60 to-red-400/70 backdrop-blur-sm p-4">
             <div className="flex items-center gap-2">
               <Sun className="w-5 h-5 text-white" />
               <h3 className="font-semibold text-white">UV Index</h3>
             </div>
           </div>
-          <div className="bg-background/80 backdrop-blur-sm p-4">
+          <div className="bg-background/50 backdrop-blur-md p-4">
             <div className="text-4xl font-bold text-foreground mb-2">
               {currentWeather.uvIndex}
             </div>
@@ -46,13 +46,13 @@ export function DetailedMetrics({
 
         {/* Sun & Moon Card */}
         <div className="overflow-hidden rounded-2xl shadow-xl border-0">
-          <div className="bg-gradient-to-r from-amber-400 via-orange-400 to-purple-500 p-4">
+          <div className="bg-gradient-to-r from-amber-300/70 via-orange-300/60 to-purple-400/70 backdrop-blur-sm p-4">
             <div className="flex items-center gap-2">
               <Sunrise className="w-5 h-5 text-white" />
               <h3 className="font-semibold text-white">Sun & Moon</h3>
             </div>
           </div>
-          <div className="bg-background/80 backdrop-blur-sm p-4">
+          <div className="bg-background/50 backdrop-blur-md p-4">
             <div className="grid grid-cols-2 gap-4">
               {/* Sun */}
               <div className="space-y-3">

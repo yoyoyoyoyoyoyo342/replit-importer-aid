@@ -50,8 +50,8 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
   return (
     <section className="mb-4 md:mb-8">
       <div className="overflow-hidden rounded-2xl shadow-xl border-0">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-4">
+        {/* Header with softer gradient */}
+        <div className="bg-gradient-to-r from-indigo-400/70 via-purple-400/60 to-pink-400/70 backdrop-blur-sm p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white flex items-center gap-2">
               <Clock className="w-5 h-5" />
@@ -82,7 +82,7 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
         </div>
 
         {/* Content */}
-        <div className="bg-background/80 backdrop-blur-sm p-3">
+        <div className="bg-background/50 backdrop-blur-md p-3">
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
             <div className="space-y-2">
               {defaultVisibleData.map((hour, index) => (
