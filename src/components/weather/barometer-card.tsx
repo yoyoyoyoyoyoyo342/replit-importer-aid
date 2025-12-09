@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Gauge, TrendingUp, TrendingDown, Minus, Smartphone } from "lucide-react";
 import { useBarometer } from "@/hooks/use-barometer";
@@ -41,14 +40,17 @@ export function BarometerCard() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Gauge className="h-5 w-5" />
-          Barometer (Device)
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+      {/* Header with softer gradient */}
+      <div className="bg-gradient-to-r from-slate-300/70 via-gray-400/60 to-slate-400/70 backdrop-blur-sm p-4">
+        <div className="flex items-center gap-2">
+          <Gauge className="w-5 h-5 text-white" />
+          <h3 className="font-semibold text-white">Barometer (Device)</h3>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="bg-background/50 backdrop-blur-md p-4">
         {!permissionGranted ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -77,7 +79,7 @@ export function BarometerCard() {
               </div>
             </div>
             
-            <div className="p-3 bg-secondary/20 rounded-lg">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-accent/5 border border-border/50">
               <p className="text-sm">{getTrendMessage()}</p>
             </div>
 
@@ -87,7 +89,7 @@ export function BarometerCard() {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

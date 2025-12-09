@@ -422,8 +422,8 @@ export function LocationSearch({
 
       {/* Search Results Dropdown */}
       {(searchQuery.length > 2 || isLoading || loadingAddresses || (isFocused && searchQuery.length === 0)) && (
-        <Card className="absolute top-full left-0 right-0 mt-2 z-[9999] shadow-lg border border-border bg-popover">
-          <CardContent className="p-0">
+        <Card className="absolute top-full left-0 right-0 mt-2 z-[9999] shadow-xl border-0 overflow-hidden rounded-2xl">
+          <CardContent className="p-0 bg-background/50 backdrop-blur-md">
             {searchQuery.length === 0 && isFocused ? (
               // Show recent searches when focused and no query
               <div className="max-h-60 overflow-y-auto">

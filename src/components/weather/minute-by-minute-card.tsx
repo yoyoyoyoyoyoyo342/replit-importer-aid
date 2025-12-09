@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplets, Clock } from "lucide-react";
 import { MinuteByMinute } from "@/types/hyperlocal-weather";
 
@@ -19,16 +18,19 @@ export function MinuteByMinuteCard({ data }: MinuteByMinuteCardProps) {
     : null;
 
   return (
-    <Card className="glass-card rounded-2xl shadow-lg border border-border">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Clock className="h-4 w-4" />
-          Minute-by-Minute Forecast
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="overflow-hidden rounded-2xl shadow-xl border-0">
+      {/* Header with softer gradient */}
+      <div className="bg-gradient-to-r from-violet-300/70 via-purple-400/60 to-fuchsia-400/70 backdrop-blur-sm p-4">
+        <div className="flex items-center gap-2">
+          <Clock className="w-5 h-5 text-white" />
+          <h3 className="font-semibold text-white">Minute-by-Minute Forecast</h3>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="bg-background/50 backdrop-blur-md p-4">
         {rainSoon && minutesUntilRain && (
-          <div className="mb-3 p-2 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2">
+          <div className="mb-3 p-2 rounded-xl bg-gradient-to-r from-primary/20 to-accent/10 border border-primary/20 flex items-center gap-2">
             <Droplets className="h-4 w-4 text-primary" />
             <span className="text-sm text-primary font-medium">
               Rain expected in {minutesUntilRain} {minutesUntilRain === 1 ? 'minute' : 'minutes'}
@@ -65,7 +67,7 @@ export function MinuteByMinuteCard({ data }: MinuteByMinuteCardProps) {
             );
           })}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
