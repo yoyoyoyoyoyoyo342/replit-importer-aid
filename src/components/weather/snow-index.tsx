@@ -19,13 +19,13 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
   if (!snowData) {
     return (
       <div className="overflow-hidden rounded-2xl shadow-xl border-0">
-        <div className="bg-gradient-to-r from-blue-400 via-cyan-500 to-sky-500 p-4">
+        <div className="bg-gradient-to-r from-blue-300/70 via-cyan-400/60 to-sky-400/70 backdrop-blur-sm p-4">
           <div className="flex items-center gap-2">
             <Snowflake className="w-5 h-5 text-white" />
             <h3 className="font-semibold text-white">Snow Index</h3>
           </div>
         </div>
-        <div className="bg-background/80 backdrop-blur-sm p-6 text-center">
+        <div className="bg-background/50 backdrop-blur-md p-6 text-center">
           <p className="text-muted-foreground">No snow data available</p>
         </div>
       </div>
@@ -102,8 +102,8 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
 
   return (
     <div className="overflow-hidden rounded-2xl shadow-xl border-0">
-      {/* Header with gradient */}
-      <div className="bg-gradient-to-r from-blue-400 via-cyan-500 to-sky-500 p-4">
+      {/* Header with softer gradient */}
+      <div className="bg-gradient-to-r from-blue-300/70 via-cyan-400/60 to-sky-400/70 backdrop-blur-sm p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Snowflake className="w-5 h-5 text-white animate-pulse" />
@@ -114,7 +114,7 @@ export function SnowIndex({ snowData, isImperial = false }: SnowIndexProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-background/80 backdrop-blur-sm p-4">
+      <div className="bg-background/50 backdrop-blur-md p-4">
         <div className="grid grid-cols-2 gap-3 mb-4">
           {snowMetrics.map((metric, idx) => (
             <div 

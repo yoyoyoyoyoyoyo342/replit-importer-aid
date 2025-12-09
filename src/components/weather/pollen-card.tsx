@@ -76,10 +76,10 @@ export function PollenCard({ pollenData, userId, temperature, windSpeed, feelsLi
 
   return (
     <div className="overflow-hidden rounded-2xl shadow-xl border-0">
-      <div className="bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 p-4">
+      <div className="bg-gradient-to-r from-green-300/70 via-emerald-400/60 to-teal-400/70 backdrop-blur-sm p-4">
         <h3 className="font-semibold text-white">Pollen Index</h3>
       </div>
-      <div className="bg-background/80 backdrop-blur-sm p-4">
+      <div className="bg-background/50 backdrop-blur-md p-4">
         <PollenWheel pollenData={pollenData} userId={userId} />
       </div>
     </div>

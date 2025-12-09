@@ -147,14 +147,14 @@ export function CurrentWeather({
 
   const getWeatherGradient = (condition: string) => {
     const c = condition.toLowerCase();
-    if (c.includes("thunder") || c.includes("storm")) return "from-slate-800 via-purple-900 to-slate-900";
-    if (c.includes("rain") || c.includes("shower") || c.includes("drizzle")) return "from-slate-600 via-blue-700 to-slate-700";
-    if (c.includes("snow") || c.includes("sleet")) return "from-slate-300 via-blue-200 to-white";
-    if (c.includes("fog") || c.includes("mist")) return "from-gray-400 via-gray-500 to-gray-600";
-    if (c.includes("cloud") && !c.includes("partly")) return "from-gray-500 via-slate-600 to-gray-700";
-    if (c.includes("partly") || c.includes("overcast")) return "from-blue-400 via-gray-400 to-blue-500";
+    if (c.includes("thunder") || c.includes("storm")) return "from-slate-700/80 via-purple-800/70 to-slate-800/80";
+    if (c.includes("rain") || c.includes("shower") || c.includes("drizzle")) return "from-slate-500/80 via-blue-600/70 to-slate-600/80";
+    if (c.includes("snow") || c.includes("sleet")) return "from-slate-200/80 via-blue-100/70 to-white/80";
+    if (c.includes("fog") || c.includes("mist")) return "from-gray-300/80 via-gray-400/70 to-gray-500/80";
+    if (c.includes("cloud") && !c.includes("partly")) return "from-gray-400/80 via-slate-500/70 to-gray-600/80";
+    if (c.includes("partly") || c.includes("overcast")) return "from-blue-300/80 via-gray-300/70 to-blue-400/80";
     // Clear/sunny
-    return "from-sky-400 via-blue-500 to-indigo-600";
+    return "from-sky-300/80 via-blue-400/70 to-indigo-500/80";
   };
 
   const formatWindSpeed = (speed: number) => {
@@ -275,7 +275,7 @@ export function CurrentWeather({
         </div>
 
         {/* Bottom Actions Bar */}
-        <CardContent className="p-2 bg-background/80 backdrop-blur-sm border-t border-border/50">
+        <CardContent className="p-2 bg-background/60 backdrop-blur-md border-t border-border/30">
           <div className="flex gap-2">
             <Button 
               onClick={() => setShowLocationCard(true)} 

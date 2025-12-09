@@ -65,8 +65,8 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
   return (
     <section className="mb-4 md:mb-8">
       <div className="overflow-hidden rounded-2xl shadow-xl border-0">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 p-4">
+        {/* Header with softer gradient */}
+        <div className="bg-gradient-to-r from-cyan-400/70 via-blue-400/60 to-indigo-400/70 backdrop-blur-sm p-4">
           <h2 className="text-lg font-semibold text-white flex items-center gap-2">
             <CalendarDays className="w-5 h-5" />
             10-Day Forecast
@@ -74,7 +74,7 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
         </div>
 
         {/* Content */}
-        <div className="bg-background/80 backdrop-blur-sm p-3">
+        <div className="bg-background/50 backdrop-blur-md p-3">
           <div className="space-y-2">
             {dailyForecast.slice(1, showAllDays ? 11 : 4).map((day, index) => (
               <Collapsible
