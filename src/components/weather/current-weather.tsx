@@ -1,4 +1,4 @@
-import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, Snowflake, Volume2, VolumeX } from "lucide-react";
+import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, Snowflake } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
@@ -8,7 +8,6 @@ import { useLanguage } from "@/contexts/language-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useWeatherSounds } from "@/hooks/use-weather-sounds";
 
 interface SavedLocation {
   id: string;
@@ -50,14 +49,6 @@ export function CurrentWeather({
   const [showLocationCard, setShowLocationCard] = useState(false);
   const { t } = useLanguage();
   const queryClient = useQueryClient();
-
-  // Weather sounds
-  const { 
-    isPlaying, 
-    toggleSound, 
-    hasWeatherSound, 
-    weatherType 
-  } = useWeatherSounds(mostAccurate.currentWeather.condition);
 
   const { data: savedLocations = [] } = useQuery({
     queryKey: ["saved-locations"],
@@ -208,19 +199,6 @@ export function CurrentWeather({
               )}
             </div>
             <div className="flex items-center gap-1">
-              {hasWeatherSound && (
-                <button
-                  onClick={toggleSound}
-                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
-                  title={isPlaying ? "Mute weather sounds" : `Play ${weatherType} sounds`}
-                >
-                  {isPlaying ? (
-                    <Volume2 className="w-4 h-4 text-white" />
-                  ) : (
-                    <VolumeX className="w-4 h-4 text-white/60" />
-                  )}
-                </button>
-              )}
               <button
                 onClick={onRefresh}
                 disabled={isLoading}

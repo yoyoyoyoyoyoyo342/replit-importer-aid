@@ -120,20 +120,20 @@ export function LocationCard({ open, onOpenChange, temperature, location, actual
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden border-0">
+      <DialogContent className="max-w-md p-0 overflow-hidden border-0 rounded-2xl">
         <VisuallyHidden>
           <DialogTitle>{cityName} Weather Card</DialogTitle>
           <DialogDescription>
             Download a weather card for {cityName} showing current temperature and location
           </DialogDescription>
         </VisuallyHidden>
-        <div ref={cardRef} className="relative w-full aspect-[3/4] overflow-hidden">
+        <div ref={cardRef} className="relative w-full aspect-[3/4] overflow-hidden rounded-2xl">
           {/* Beautiful Gradient Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500">
+          <div className="absolute inset-0 bg-gradient-to-br from-sky-500/80 via-blue-600/70 to-indigo-700/80">
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20"></div>
             <div className="absolute inset-0 opacity-30">
               <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
-              <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 animate-pulse" style={{ animationDelay: '1s' }}></div>
+              <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 animate-pulse" style={{ animationDelay: '1s' }}></div>
               <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-blue-300 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{ animationDelay: '2s' }}></div>
             </div>
           </div>

@@ -3,7 +3,7 @@ import { LiquidButton } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AIWeatherCompanion } from "./ai-weather-companion";
 import { WeatherSource } from "@/types/weather";
-import paiLogo from "@/assets/pai-logo.png";
+import rainzLogo from "@/assets/rainz-logo.png";
 
 interface AIChatButtonProps {
   weatherData: WeatherSource;
@@ -22,7 +22,7 @@ export function AIChatButton({ weatherData, location, isImperial }: AIChatButton
         className="fixed bottom-20 right-6 xl:bottom-6 z-[60] h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 p-2 hover-scale"
         size="icon"
       >
-        <img src={paiLogo} alt="AI weather assistant PAI" className="w-full h-full object-contain" />
+        <img src={rainzLogo} alt="AI weather assistant" className="w-full h-full object-contain rounded-lg" />
       </LiquidButton>
 
       {/* Chat Dialog */}
