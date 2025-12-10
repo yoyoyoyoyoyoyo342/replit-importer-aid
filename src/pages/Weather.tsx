@@ -294,7 +294,7 @@ export default function WeatherPage() {
         <header className="mb-6 glass-header rounded-2xl p-4 sm:p-6 relative z-[1000] border border-border/20">
           {/* Logo & Title Row - Full Width on Mobile */}
           <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-0">
-            <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-14 sm:h-14 drop-shadow-lg" />
+            <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-14 sm:h-14 drop-shadow-lg rounded-xl" />
             <div className="flex flex-col">
               <h1 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight">Rainz Weather</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">Be prepared.</p>

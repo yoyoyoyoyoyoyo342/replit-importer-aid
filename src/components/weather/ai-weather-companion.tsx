@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { WeatherSource } from "@/types/weather";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/contexts/language-context";
-import paiLogo from "@/assets/pai-logo.png";
+import rainzLogo from "@/assets/rainz-logo.png";
 
 interface Message {
   id: string;
@@ -169,15 +169,15 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0 bg-card">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center p-1.5">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center p-1.5 overflow-hidden">
           <img 
-            src={paiLogo} 
-            alt="PAI" 
-            className={`w-full h-full object-contain ${isLoading ? 'animate-spin' : ''}`}
+            src={rainzLogo} 
+            alt="Rainz AI" 
+            className={`w-full h-full object-contain rounded-lg ${isLoading ? 'animate-pulse' : ''}`}
           />
         </div>
         <div className="flex-1">
-          <h3 className="text-base font-semibold">PAI</h3>
+          <h3 className="text-base font-semibold">Rainz AI</h3>
           <p className="text-xs text-muted-foreground">{isLoading ? "Thinking..." : "Online"}</p>
         </div>
         <Badge variant="secondary" className="text-xs">
@@ -193,8 +193,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
             <div className={`flex gap-2 max-w-[75%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               {/* Avatar - only show for assistant */}
               {message.role === 'assistant' && (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0 self-end p-1">
-                  <img src={paiLogo} alt="PAI" className="w-full h-full object-contain" />
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0 self-end p-1 overflow-hidden">
+                  <img src={rainzLogo} alt="Rainz AI" className="w-full h-full object-contain rounded" />
                 </div>
               )}
               
@@ -226,8 +226,8 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
         {isLoading && (
           <div className="flex justify-start">
             <div className="flex gap-2 max-w-[75%]">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0 self-end p-1">
-                <img src={paiLogo} alt="PAI thinking" className="w-full h-full object-contain animate-spin" />
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0 self-end p-1 overflow-hidden">
+                <img src={rainzLogo} alt="Rainz AI thinking" className="w-full h-full object-contain rounded animate-pulse" />
               </div>
               <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
                 <div className="flex space-x-1.5">
