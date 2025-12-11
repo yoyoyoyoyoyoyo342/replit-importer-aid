@@ -208,7 +208,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
     <>
       <nav 
         ref={navRef}
-        className="xl:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe px-2 transition-transform duration-300 ease-out"
+        className="fixed bottom-0 left-0 right-0 z-50 pb-safe px-2 transition-transform duration-300 ease-out"
         style={{ transform: isCollapsed ? 'translateY(calc(100% - 36px))' : 'translateY(0)' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -301,7 +301,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
       </nav>
 
       {/* Spacer to prevent content being hidden behind nav */}
-      <div className={`xl:hidden transition-all duration-300 ${isCollapsed ? 'h-12' : 'h-28'}`} />
+      <div className={`transition-all duration-300 ${isCollapsed ? 'h-12' : 'h-28'}`} />
 
       {/* Rename Location Dialog */}
       <Dialog open={!!editingLocation} onOpenChange={(open) => !open && setEditingLocation(null)}>

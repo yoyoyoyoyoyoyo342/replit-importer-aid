@@ -407,16 +407,16 @@ export function LocationSearch({
             onChange={e => setSearchQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-            className="w-full pl-12 pr-16 py-3 bg-white/20 backdrop-blur-md text-white border-white/30 focus:border-white focus:ring-2 focus:ring-white/30 outline-none transition-all placeholder:text-white/70 rounded-xl text-ellipsis" 
+            className="w-full pl-12 pr-16 py-3 bg-background/60 backdrop-blur-md text-foreground border-white/20 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground rounded-xl text-ellipsis" 
             style={{ textAlign: 'left' }} 
           />
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/80 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
           <Button 
             onClick={handleLocationDetection} 
             disabled={isDetecting || loadingStations} 
             variant="ghost" 
             size="sm" 
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/80 hover:text-white hover:bg-white/20 transition-colors p-2"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors p-2"
           >
             {isDetecting || loadingStations ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
           </Button>
@@ -425,7 +425,7 @@ export function LocationSearch({
 
       {/* Search Results Dropdown */}
       {(searchQuery.length > 2 || isLoading || loadingAddresses || (isFocused && searchQuery.length === 0)) && (
-        <CardContent className="p-0 bg-background border-t border-white/10">
+        <CardContent className="p-0 bg-background/50 backdrop-blur-md border-t border-white/10">
             {searchQuery.length === 0 && isFocused ? (
               // Show recent searches when focused and no query
               <div className="max-h-60 overflow-y-auto">
