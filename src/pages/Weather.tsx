@@ -290,57 +290,66 @@ export default function WeatherPage() {
       <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} sunrise={weatherData?.mostAccurate?.currentWeather?.sunrise} sunset={weatherData?.mostAccurate?.currentWeather?.sunset} moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase} />
       
       <div className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl relative z-10">
-        {/* Modern Header */}
-        <header className="mb-6 glass-header rounded-2xl p-4 sm:p-6 relative z-[1000] border border-border/20">
-          {/* Logo & Title Row - Full Width on Mobile */}
-          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-0">
-            <img src="/logo.png" alt="Rainz Logo" className="w-10 h-10 sm:w-14 sm:h-14 drop-shadow-lg rounded-xl" />
-            <div className="flex flex-col">
-              <h1 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight leading-tight">Rainz Weather</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">Be prepared.</p>
+        {/* Modern Header Card */}
+        <Card className="mb-6 relative z-[1000] overflow-hidden rounded-2xl border-white/20 shadow-xl">
+          {/* Gradient Header */}
+          <div className="bg-gradient-to-r from-sky-500/70 via-blue-600/60 to-indigo-700/70 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {/* Logo & Title */}
+              <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="Rainz Logo" className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-lg rounded-xl" />
+                <div className="flex flex-col">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">Rainz Weather</h1>
+                  <p className="text-sm text-white/80">Be prepared.</p>
+                </div>
+              </div>
+
+              {/* Auth & Controls */}
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <HeaderInfoBar user={user} />
+                
+                <LockedFeature isLocked={!user}>
+                  <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
+                </LockedFeature>
+                
+                {!user && <Button variant="outline" size="default" onClick={() => window.location.href = '/auth'} className="gap-2 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white">
+                    <LogIn className="w-4 h-4" />
+                    <span>{t('header.signIn')}</span>
+                  </Button>}
+
+                {/* Temperature Toggle */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                  <span className="text-sm font-medium text-white">°F</span>
+                  <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
+                  <span className="text-sm font-medium text-white">°C</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Auth & Controls Row */}
-          <div className="flex items-center justify-end gap-2 sm:gap-3 mb-4">
-            <HeaderInfoBar user={user} />
-            
-            <LockedFeature isLocked={!user}>
-              <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
-            </LockedFeature>
-            
-            {!user && <Button variant="outline" size="default" onClick={() => window.location.href = '/auth'} className="gap-2">
-                <LogIn className="w-4 h-4" />
-                <span>{t('header.signIn')}</span>
-              </Button>}
-          </div>
-
-          {/* Search & Controls Row */}
-          <div className="grid sm:grid-cols-[1fr_auto_auto] gap-3 items-start">
-            <div className="space-y-2">
-              <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
-              {weatherData?.aggregated?.stationInfo && <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />}
+          {/* Content Area */}
+          <CardContent className="p-4 sm:p-6 bg-background/50 backdrop-blur-md space-y-4">
+            {/* Search Row */}
+            <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-start">
+              <div className="space-y-2">
+                <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
+                {weatherData?.aggregated?.stationInfo && <WeatherStationInfo stationInfo={weatherData.aggregated.stationInfo} />}
+              </div>
+              
+              {weatherData && <WeatherReportForm location={selectedLocation?.name || "Unknown"} currentCondition={weatherData.mostAccurate.currentWeather.condition} locationData={{
+                latitude: selectedLocation?.lat || 0,
+                longitude: selectedLocation?.lon || 0
+              }} />}
             </div>
-            
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted/50 rounded-lg border border-border/20">
-              <span className="text-sm font-medium">°F</span>
-              <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
-              <span className="text-sm font-medium">°C</span>
-            </div>
-            
-            {weatherData && <WeatherReportForm location={selectedLocation?.name || "Unknown"} currentCondition={weatherData.mostAccurate.currentWeather.condition} locationData={{
-            latitude: selectedLocation?.lat || 0,
-            longitude: selectedLocation?.lon || 0
-          }} />}
-          </div>
 
-          {/* Prediction Row */}
-          {selectedLocation && <div className="mt-4 pt-4 border-t border-border/20">
-              {user ? <PredictionDialog location={selectedLocation.name} latitude={selectedLocation.lat} longitude={selectedLocation.lon} isImperial={isImperial} onPredictionMade={() => refetch()} /> : <LockedFeature isLocked={true}>
-                  <LockedPredictionButton />
-                </LockedFeature>}
-            </div>}
-        </header>
+            {/* Prediction Row */}
+            {selectedLocation && <div className="pt-3 border-t border-border/20">
+                {user ? <PredictionDialog location={selectedLocation.name} latitude={selectedLocation.lat} longitude={selectedLocation.lon} isImperial={isImperial} onPredictionMade={() => refetch()} /> : <LockedFeature isLocked={true}>
+                    <LockedPredictionButton />
+                  </LockedFeature>}
+              </div>}
+          </CardContent>
+        </Card>
 
         {/* Loading Overlay */}
         <LoadingOverlay isOpen={isLoading && !weatherData} />
