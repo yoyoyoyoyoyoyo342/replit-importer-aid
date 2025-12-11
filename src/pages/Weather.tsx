@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { CloudSun, LogIn, MapPin, Search } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { CloudSun, LogIn, MapPin, Search, ChevronDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -50,6 +50,8 @@ export default function WeatherPage() {
   const [isAutoDetected, setIsAutoDetected] = useState(false);
   const [isImperial, setIsImperial] = useState(false); // false for Celsius (default), true for Fahrenheit
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isHeaderCompact, setIsHeaderCompact] = useState(false);
+  const lastScrollY = useRef(0);
   const {
     toast
   } = useToast();
@@ -286,49 +288,88 @@ export default function WeatherPage() {
   const handleRefresh = () => {
     window.location.reload();
   };
+
+  // Scroll detection for compact header
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollThreshold = 100;
+      
+      if (currentScrollY > scrollThreshold && currentScrollY > lastScrollY.current) {
+        // Scrolling down past threshold
+        setIsHeaderCompact(true);
+      } else if (currentScrollY < lastScrollY.current) {
+        // Scrolling up
+        setIsHeaderCompact(false);
+      }
+      
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return <div className="min-h-screen overflow-x-hidden relative">
       <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} sunrise={weatherData?.mostAccurate?.currentWeather?.sunrise} sunset={weatherData?.mostAccurate?.currentWeather?.sunset} moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase} />
       
       <div className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl relative z-10">
         {/* Modern Header Card */}
-        <Card className="mb-6 relative z-[1000] overflow-hidden rounded-2xl border-white/20 shadow-xl">
+        <Card className={`mb-6 relative z-[1000] overflow-hidden rounded-2xl border-white/20 shadow-xl transition-all duration-300 ${isHeaderCompact ? 'sticky top-2' : ''}`}>
           {/* Gradient Header */}
           <div className="bg-gradient-to-r from-sky-500/70 via-blue-600/60 to-indigo-700/70 p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              {/* Logo & Title */}
-              <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Rainz Logo" className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-lg rounded-xl" />
-                <div className="flex flex-col">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">Rainz Weather</h1>
-                  <p className="text-sm text-white/80">Be prepared.</p>
+            {/* Full Header Content - Hidden when compact */}
+            <div className={`transition-all duration-300 overflow-hidden ${isHeaderCompact ? 'max-h-0 opacity-0 mb-0' : 'max-h-96 opacity-100 mb-4'}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                {/* Logo & Title */}
+                <div className="flex items-center gap-3">
+                  <img src="/logo.png" alt="Rainz Logo" className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-lg rounded-xl" />
+                  <div className="flex flex-col">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">Rainz Weather</h1>
+                    <p className="text-sm text-white/80">Be prepared.</p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Auth & Controls */}
-              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <HeaderInfoBar user={user} />
-                
-                <LockedFeature isLocked={!user}>
-                  <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
-                </LockedFeature>
-                
-                {!user && <Button variant="outline" size="default" onClick={() => window.location.href = '/auth'} className="gap-2 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white">
-                    <LogIn className="w-4 h-4" />
-                    <span>{t('header.signIn')}</span>
-                  </Button>}
+                {/* Auth & Controls */}
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <HeaderInfoBar user={user} />
+                  
+                  <LockedFeature isLocked={!user}>
+                    <SettingsDialog isImperial={isImperial} onUnitsChange={setIsImperial} mostAccurate={weatherData?.mostAccurate} />
+                  </LockedFeature>
+                  
+                  {!user && <Button variant="outline" size="default" onClick={() => window.location.href = '/auth'} className="gap-2 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white">
+                      <LogIn className="w-4 h-4" />
+                      <span>{t('header.signIn')}</span>
+                    </Button>}
 
-                {/* Temperature Toggle */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
-                  <span className="text-sm font-medium text-white">°F</span>
-                  <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
-                  <span className="text-sm font-medium text-white">°C</span>
+                  {/* Temperature Toggle */}
+                  <div className="flex items-center gap-2 px-3 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
+                    <span className="text-sm font-medium text-white">°F</span>
+                    <Switch checked={!isImperial} onCheckedChange={checked => setIsImperial(!checked)} />
+                    <span className="text-sm font-medium text-white">°C</span>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Compact Header - Search bar in gradient */}
+            <div className={`flex items-center gap-3 transition-all duration-300 ${isHeaderCompact ? '' : 'hidden'}`}>
+              <img src="/logo.png" alt="Rainz Logo" className="w-8 h-8 drop-shadow-lg rounded-lg flex-shrink-0" />
+              <div className="flex-1">
+                <LocationSearch onLocationSelect={handleLocationSelect} isImperial={isImperial} />
+              </div>
+              <button 
+                onClick={() => setIsHeaderCompact(false)}
+                className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors flex-shrink-0"
+              >
+                <ChevronDown className="w-5 h-5 text-white" />
+              </button>
+            </div>
           </div>
 
-          {/* Content Area */}
-          <CardContent className="p-4 sm:p-6 bg-background/50 backdrop-blur-md space-y-4">
+          {/* Content Area - Hidden when compact */}
+          <CardContent className={`bg-background/50 backdrop-blur-md space-y-4 transition-all duration-300 overflow-hidden ${isHeaderCompact ? 'max-h-0 p-0 opacity-0' : 'max-h-[500px] p-4 sm:p-6 opacity-100'}`}>
             {/* Search Row */}
             <div className="grid sm:grid-cols-[1fr_auto] gap-3 items-start">
               <div className="space-y-2">
