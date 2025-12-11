@@ -11,19 +11,19 @@
   "categories": ["weather", "utilities", "lifestyle"],
   "icons": [
     {
-      "src": "/favicon-192.png",
+      "src": "/src/assets/rainz-logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon-512.png",
+      "src": "/src/assets/rainz-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/logo-icon.png",
+      "src": "/src/assets/rainz-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
