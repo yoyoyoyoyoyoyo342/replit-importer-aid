@@ -1,3 +1,10 @@
+export interface LLMAnalysis {
+  summary: string;
+  modelAgreement: number;
+  confidence: number;
+  insights: string[];
+}
+
 export interface WeatherSource {
   source: string;
   location: string;
@@ -13,6 +20,7 @@ export interface WeatherSource {
   currentWeather: CurrentWeather;
   hourlyForecast: HourlyForecast[];
   dailyForecast: DailyForecast[];
+  llmAnalysis?: LLMAnalysis;
 }
 
 export interface CurrentWeather {

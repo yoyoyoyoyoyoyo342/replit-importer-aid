@@ -1,12 +1,119 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+const groqApiKey = Deno.env.get('GROQ_API_KEY');
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Helper function to call Groq API
+async function callGroq(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string | null> {
+  if (!groqApiKey) {
+    console.log('GROQ_API_KEY not configured, skipping Groq');
+    return null;
+  }
+
+  try {
+    console.log('Calling Groq API...');
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${groqApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: maxTokens,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Groq API error:', response.status, errorText);
+      if (response.status === 429) {
+        console.log('Groq rate limited, will try fallback');
+        return null;
+      }
+      throw new Error(`Groq API error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    const content = result.choices?.[0]?.message?.content;
+    console.log('Groq response received successfully');
+    return content || null;
+  } catch (error) {
+    console.error('Groq call failed:', error);
+    return null;
+  }
+}
+
+// Helper function to call OpenAI as fallback
+async function callOpenAI(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string | null> {
+  if (!openAIApiKey) {
+    console.log('OPENAI_API_KEY not configured, skipping OpenAI fallback');
+    return null;
+  }
+
+  try {
+    console.log('Calling OpenAI API as fallback...');
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        max_tokens: maxTokens,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OpenAI API error:', response.status, errorText);
+      return null;
+    }
+
+    const result = await response.json();
+    const content = result.choices?.[0]?.message?.content;
+    console.log('OpenAI response received successfully');
+    return content || null;
+  } catch (error) {
+    console.error('OpenAI call failed:', error);
+    return null;
+  }
+}
+
+// Main LLM call with Groq primary, OpenAI fallback
+async function callLLM(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string> {
+  // Try Groq first
+  let response = await callGroq(systemPrompt, userPrompt, maxTokens);
+  
+  // If Groq fails, try OpenAI as fallback
+  if (!response) {
+    console.log('Groq failed, trying OpenAI fallback...');
+    response = await callOpenAI(systemPrompt, userPrompt, maxTokens);
+  }
+  
+  if (!response) {
+    throw new Error('Both Groq and OpenAI failed');
+  }
+  
+  return response;
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -21,11 +128,11 @@ serve(async (req) => {
     type = requestData.type;
     const { message, weatherData, location, isImperial, conversationHistory, userRoutines, language } = requestData;
 
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    if (!groqApiKey && !openAIApiKey) {
+      throw new Error('No LLM API keys configured (GROQ_API_KEY or OPENAI_API_KEY)');
     }
 
-    console.log('AI Weather Insights request:', { type, location, hasWeatherData: !!weatherData, language });
+    console.log('AI Weather Insights request:', { type, location, hasWeatherData: !!weatherData, language, usingGroq: !!groqApiKey });
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -146,7 +253,7 @@ Consider the weather conditions carefully: ${temp}° temperature, ${condition} c
       const chatWindSpeed = isImperial ? weatherData.currentWeather.windSpeed : Math.round(weatherData.currentWeather.windSpeed * 1.60934);
       const chatVisibility = isImperial ? weatherData.currentWeather.visibility : Math.round(weatherData.currentWeather.visibility * 1.60934);
       
-      systemPrompt = `You are an AI Weather Companion - friendly, knowledgeable, and helpful. You specialize in weather-related conversations and provide personalized advice based on current conditions.
+      systemPrompt = `You are PAI (Personal AI), an AI Weather Companion - friendly, knowledgeable, and helpful. You specialize in weather-related conversations and provide personalized advice based on current conditions.
 
 Current Weather Context for ${location}:
 - Temperature: ${chatTemp}°${isImperial ? 'F' : 'C'} (feels like ${chatFeelsLike}°${isImperial ? 'F' : 'C'})
@@ -169,93 +276,16 @@ Guidelines:
 - If asked about non-weather topics, gently redirect to weather
 - Consider user's location and current conditions in all responses
 
-Recent conversation context: ${conversationHistory?.map(msg => `${msg.role}: ${msg.content}`).join('\n') || 'None'}`;
+Recent conversation context: ${conversationHistory?.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n') || 'None'}`;
 
       userPrompt = message;
     }
 
-    // Use OpenAI API with retry logic for rate limits
-    console.log('Calling OpenAI API...');
+    // Call LLM (Groq primary, OpenAI fallback)
+    console.log('Calling LLM for type:', type);
+    const aiResponse = await callLLM(systemPrompt, userPrompt, type === 'proactive_insights' ? 300 : 800);
     
-    let aiResponse = '';
-    let retries = 3;
-    let delay = 1000; // Start with 1 second delay
-    
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openAIApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
-            ],
-            max_tokens: type === 'proactive_insights' ? 300 : 800,
-            temperature: 0.7,
-          }),
-        });
-
-        if (openAIResponse.status === 429) {
-          // Rate limited - wait and retry
-          if (attempt < retries - 1) {
-            console.log(`Rate limited, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-            delay *= 2; // Exponential backoff
-            continue;
-          } else {
-            // Last attempt failed, return friendly error
-            return new Response(JSON.stringify({ 
-              error: 'The AI service is temporarily busy. Please try again in a moment.',
-              fallback: type === 'proactive_insights' ? 
-                ["Check current conditions before heading out", "Dress appropriately for the weather"] :
-                type === 'morning_review' ? {
-                  summary: "Good morning! Check the weather details for your day ahead.",
-                  outfit: "Dress in layers appropriate for the current temperature",
-                  pollenAlerts: [],
-                  activityRecommendation: "Review the forecast and plan your activities accordingly",
-                  keyInsight: "Stay weather-aware throughout the day"
-                } :
-                "I'm temporarily busy. Please try asking again in a moment."
-            }), {
-              status: 200,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-          }
-        }
-
-        if (!openAIResponse.ok) {
-          const errorText = await openAIResponse.text();
-          console.error('OpenAI API error:', openAIResponse.status, errorText);
-          throw new Error(`OpenAI API error: ${openAIResponse.status}`);
-        }
-
-        const openAIResult = await openAIResponse.json();
-        console.log('OpenAI response received');
-        
-        aiResponse = openAIResult.choices[0]?.message?.content || '';
-        
-        if (!aiResponse) {
-          throw new Error('OpenAI returned empty response');
-        }
-        
-        console.log('AI response:', aiResponse.substring(0, 150) + '...');
-        break; // Success, exit retry loop
-        
-      } catch (fetchError) {
-        if (attempt < retries - 1) {
-          console.log(`Request failed, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-          delay *= 2;
-        } else {
-          throw fetchError;
-        }
-      }
-    }
+    console.log('LLM response:', aiResponse.substring(0, 150) + '...');
 
     if (type === 'morning_review') {
       try {
