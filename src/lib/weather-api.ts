@@ -558,6 +558,43 @@ export const weatherApi = {
       console.warn("Additional sources unavailable:", (e as Error).message);
     }
 
+    // Call LLM weather forecast to analyze all sources and provide enhanced predictions
+    if (response.sources.length > 1) {
+      try {
+        console.log(`Calling LLM forecast with ${response.sources.length} weather sources...`);
+        const { data: llmData, error: llmError } = await supabase.functions.invoke("llm-weather-forecast", {
+          body: { sources: response.sources, location: locationName }
+        });
+        
+        if (!llmError && llmData && llmData.current) {
+          console.log(`LLM forecast received with ${llmData.modelAgreement}% model agreement`);
+          
+          // Merge LLM insights into the mostAccurate source
+          const enhancedSource: WeatherSource = {
+            ...response.mostAccurate,
+            currentWeather: {
+              ...response.mostAccurate.currentWeather,
+              // Use LLM's analyzed values where available
+              condition: llmData.current.condition || response.mostAccurate.currentWeather.condition,
+              description: llmData.current.description || response.mostAccurate.currentWeather.description,
+            },
+            // Store LLM insights for display
+            llmAnalysis: {
+              summary: llmData.summary,
+              modelAgreement: llmData.modelAgreement,
+              confidence: llmData.current.confidence,
+              insights: llmData.insights || [],
+            }
+          };
+          
+          response.mostAccurate = enhancedSource;
+          response.aggregated = enhancedSource;
+        }
+      } catch (e) {
+        console.warn("LLM forecast unavailable:", (e as Error).message);
+      }
+    }
+
     return response;
   },
 
