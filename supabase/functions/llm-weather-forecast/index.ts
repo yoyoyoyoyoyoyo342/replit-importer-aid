@@ -137,14 +137,13 @@ Provide your unified weather analysis as JSON.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama-3.1-70b-versatile",
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
         temperature: 0.3,
         max_tokens: 4000,
-        response_format: { type: "json_object" },
       }),
     });
 
