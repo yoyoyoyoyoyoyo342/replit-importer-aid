@@ -151,14 +151,45 @@ Provide your unified weather analysis as JSON.`;
       const errorText = await response.text();
       console.error(`Groq API error: ${response.status} - ${errorText}`);
       
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 429 }
-        );
-      }
-      
-      throw new Error(`Groq API error: ${response.status}`);
+      // Return the first source's data directly on any error
+      const firstSource = sources[0] as WeatherSource;
+      console.log("Returning raw API data due to LLM error");
+      return new Response(
+        JSON.stringify({
+          current: {
+            temperature: firstSource.currentWeather?.temperature || 0,
+            feelsLike: firstSource.currentWeather?.feelsLike || 0,
+            condition: firstSource.currentWeather?.condition || "Unknown",
+            description: firstSource.currentWeather?.condition || "Weather data from API",
+            humidity: firstSource.currentWeather?.humidity || 0,
+            windSpeed: firstSource.currentWeather?.windSpeed || 0,
+            pressure: firstSource.currentWeather?.pressure || 1013,
+            confidence: 100
+          },
+          hourly: firstSource.hourlyForecast?.slice(0, 24).map(h => ({
+            time: h.time,
+            temperature: h.temperature,
+            condition: h.condition,
+            precipitation: h.precipitation || 0,
+            confidence: 100
+          })) || [],
+          daily: firstSource.dailyForecast?.slice(0, 7).map(d => ({
+            day: d.day,
+            condition: d.condition,
+            description: d.condition,
+            highTemp: d.highTemp,
+            lowTemp: d.lowTemp,
+            precipitation: d.precipitation || 0,
+            confidence: 100
+          })) || [],
+          summary: `Current: ${firstSource.currentWeather?.condition || 'Unknown'}, ${firstSource.currentWeather?.temperature || 0}°F`,
+          modelAgreement: 100,
+          insights: [],
+          rawApiData: true,
+          source: firstSource.source
+        }),
+        { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 200 }
+      );
     }
 
     const data = await response.json();
@@ -240,6 +271,53 @@ Provide your unified weather analysis as JSON.`;
 
   } catch (e) {
     console.error("llm-weather-forecast error:", e);
+    
+    // Try to return raw source data on any error
+    try {
+      const body = await req.clone().json().catch(() => ({}));
+      const sources = body.sources;
+      if (sources && Array.isArray(sources) && sources.length > 0) {
+        const firstSource = sources[0] as WeatherSource;
+        console.log("Returning raw API data due to error");
+        return new Response(
+          JSON.stringify({
+            current: {
+              temperature: firstSource.currentWeather?.temperature || 0,
+              feelsLike: firstSource.currentWeather?.feelsLike || 0,
+              condition: firstSource.currentWeather?.condition || "Unknown",
+              description: firstSource.currentWeather?.condition || "Weather data from API",
+              humidity: firstSource.currentWeather?.humidity || 0,
+              windSpeed: firstSource.currentWeather?.windSpeed || 0,
+              pressure: firstSource.currentWeather?.pressure || 1013,
+              confidence: 100
+            },
+            hourly: firstSource.hourlyForecast?.slice(0, 24).map((h: any) => ({
+              time: h.time,
+              temperature: h.temperature,
+              condition: h.condition,
+              precipitation: h.precipitation || 0,
+              confidence: 100
+            })) || [],
+            daily: firstSource.dailyForecast?.slice(0, 7).map((d: any) => ({
+              day: d.day,
+              condition: d.condition,
+              description: d.condition,
+              highTemp: d.highTemp,
+              lowTemp: d.lowTemp,
+              precipitation: d.precipitation || 0,
+              confidence: 100
+            })) || [],
+            summary: `Current: ${firstSource.currentWeather?.condition || 'Unknown'}`,
+            modelAgreement: 100,
+            insights: [],
+            rawApiData: true,
+            source: firstSource.source
+          }),
+          { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 200 }
+        );
+      }
+    } catch {}
+    
     return new Response(
       JSON.stringify({ 
         error: "Weather analysis temporarily unavailable",
