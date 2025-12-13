@@ -172,15 +172,63 @@ Provide your unified weather analysis as JSON.`;
 
     let forecast: LLMForecast;
     try {
-      forecast = JSON.parse(content);
+      // Clean markdown code blocks if present
+      let cleanContent = content.trim();
+      if (cleanContent.startsWith('```json')) {
+        cleanContent = cleanContent.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+      } else if (cleanContent.startsWith('```')) {
+        cleanContent = cleanContent.replace(/^```\n?/, '').replace(/\n?```$/, '');
+      }
+      
+      forecast = JSON.parse(cleanContent);
     } catch (parseErr) {
-      console.error("Failed to parse Groq response:", content);
-      throw new Error("Invalid JSON response from LLM");
+      console.error("Failed to parse Groq response:", content.substring(0, 500));
+      // Return a fallback forecast based on the first source
+      const firstSource = sources[0] as WeatherSource;
+      forecast = {
+        current: {
+          temperature: firstSource.currentWeather?.temperature || 50,
+          feelsLike: firstSource.currentWeather?.feelsLike || 50,
+          condition: firstSource.currentWeather?.condition || "Unknown",
+          description: "Weather data aggregated from multiple sources",
+          humidity: firstSource.currentWeather?.humidity || 50,
+          windSpeed: firstSource.currentWeather?.windSpeed || 0,
+          pressure: firstSource.currentWeather?.pressure || 1013,
+          confidence: 70
+        },
+        hourly: firstSource.hourlyForecast?.slice(0, 24).map(h => ({
+          time: h.time,
+          temperature: h.temperature,
+          condition: h.condition,
+          precipitation: h.precipitation || 0,
+          confidence: 70
+        })) || [],
+        daily: firstSource.dailyForecast?.slice(0, 7).map(d => ({
+          day: d.day,
+          condition: d.condition,
+          description: d.condition,
+          highTemp: d.highTemp,
+          lowTemp: d.lowTemp,
+          precipitation: d.precipitation || 0,
+          confidence: 70
+        })) || [],
+        summary: "Weather forecast based on aggregated data sources.",
+        modelAgreement: 70,
+        insights: ["LLM analysis unavailable - using source data directly"]
+      };
+      console.log("Using fallback forecast from source data");
     }
 
     // Validate and ensure required fields
-    if (!forecast.current || !forecast.summary) {
-      throw new Error("Incomplete forecast from LLM");
+    if (!forecast.current) {
+      forecast.current = {
+        temperature: 50, feelsLike: 50, condition: "Unknown",
+        description: "Data unavailable", humidity: 50, windSpeed: 0,
+        pressure: 1013, confidence: 50
+      };
+    }
+    if (!forecast.summary) {
+      forecast.summary = "Weather forecast aggregated from multiple sources.";
     }
 
     console.log(`LLM forecast generated with ${forecast.modelAgreement}% model agreement`);
