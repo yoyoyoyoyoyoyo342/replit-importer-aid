@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle2, XCircle, Clock, BarChart3, MessageSquare } from 'lucide-react';
+import { CheckCircle2, XCircle, Clock, BarChart3, MessageSquare, Database } from 'lucide-react';
 import { format } from 'date-fns';
 import { AnalyticsDashboard } from './analytics-dashboard';
 import { BroadcastMessage } from './broadcast-message';
+import { ApiDataComparison } from './api-data-comparison';
 
 interface WeatherReport {
   id: string;
@@ -115,6 +116,10 @@ export function AdminPanel() {
           <BarChart3 className="w-4 h-4 mr-2" />
           Analytics
         </TabsTrigger>
+        <TabsTrigger value="api-data">
+          <Database className="w-4 h-4 mr-2" />
+          API Data
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="reports">
@@ -187,6 +192,10 @@ export function AdminPanel() {
 
       <TabsContent value="analytics">
         <AnalyticsDashboard />
+      </TabsContent>
+
+      <TabsContent value="api-data">
+        <ApiDataComparison />
       </TabsContent>
     </Tabs>
   );
