@@ -134,25 +134,40 @@ export function AIWeatherCompanion({ weatherData, location, isImperial }: AIWeat
       });
 
       if (response.error) {
-        throw new Error(response.error.message);
+        console.error('Supabase function error:', response.error);
+        throw new Error(response.error.message || 'AI function error');
+      }
+
+      // Handle fallback response (when AI fails)
+      if (response.data?.fallback && !response.data?.response) {
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: response.data.fallback,
+          role: 'assistant',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+        return;
       }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: response.data.response,
+        content: response.data?.response || "I'm having trouble responding right now. Please try again.",
         role: 'assistant',
         timestamp: new Date(),
-        insights: response.data.recommendations
+        insights: response.data?.recommendations
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({
-        title: "AI Companion Unavailable",
-        description: "Please try again in a moment.",
-        variant: "destructive"
-      });
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm having trouble connecting right now. Please try again in a moment.",
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
