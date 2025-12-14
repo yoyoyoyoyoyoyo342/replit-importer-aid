@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie, FileText } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie, FileText, FlaskConical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -20,6 +20,8 @@ import { useNavigate } from "react-router-dom";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { IOSInstallGuide } from "@/components/ui/ios-install-guide";
 import { useCookieConsent } from "@/hooks/use-cookie-consent";
+import { useExperimentalData } from "@/hooks/use-experimental-data";
+
 interface SettingsDialogProps {
   isImperial: boolean;
   onUnitsChange: (isImperial: boolean) => void;
@@ -91,6 +93,7 @@ export function SettingsDialog({
   const navigate = useNavigate();
   const { isIOS, isPWAInstalled, needsPWAInstall, requestPermission: requestNotificationPermission, sendTestNotification } = usePushNotifications();
   const { preferences: cookiePreferences, savePreferences: saveCookiePreferences } = useCookieConsent();
+  const { useExperimental, setUseExperimental } = useExperimentalData();
   const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
@@ -422,6 +425,33 @@ export function SettingsDialog({
               </div>
               <p className="text-xs text-muted-foreground">
                 {isHighContrast ? 'Text is displayed with enhanced contrast' : 'Text is displayed with normal contrast'}
+              </p>
+            </div>
+
+            {/* Experimental Data */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FlaskConical className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">Use experimental data</span>
+                </div>
+                <Switch 
+                  checked={useExperimental} 
+                  onCheckedChange={(checked) => {
+                    setUseExperimental(checked);
+                    toast({
+                      title: "Data source updated",
+                      description: checked 
+                        ? "Now using AI-processed weather data" 
+                        : "Now using raw API weather data"
+                    });
+                  }} 
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {useExperimental 
+                  ? 'Weather data is processed by AI for enhanced accuracy' 
+                  : 'Weather data comes directly from APIs without AI processing'}
               </p>
             </div>
           </div>
