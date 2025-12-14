@@ -56,15 +56,15 @@ async function callGroq(systemPrompt: string, userPrompt: string, maxTokens: num
   }
 }
 
-// Helper function to call Hugging Face Inference API (free backup)
-async function callHuggingFace(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string | null> {
+// Helper function to call Hugging Face Inference API - Mixtral (free backup #1)
+async function callHuggingFaceMixtral(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string | null> {
   if (!huggingFaceToken) {
     console.log('HUGGING_FACE_ACCESS_TOKEN not configured, skipping HuggingFace');
     return null;
   }
 
   try {
-    console.log('Calling Hugging Face API as backup...');
+    console.log('Calling Hugging Face Mixtral API...');
     const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1', {
       method: 'POST',
       headers: {
@@ -83,16 +83,56 @@ async function callHuggingFace(systemPrompt: string, userPrompt: string, maxToke
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Hugging Face API error:', response.status, errorText);
+      console.error('Hugging Face Mixtral error:', response.status, errorText);
       return null;
     }
 
     const result = await response.json();
     const content = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
-    console.log('Hugging Face response received successfully');
+    console.log('Hugging Face Mixtral response received');
     return content || null;
   } catch (error) {
-    console.error('Hugging Face call failed:', error);
+    console.error('Hugging Face Mixtral call failed:', error);
+    return null;
+  }
+}
+
+// Helper function to call Hugging Face - Llama 3.1 (free backup #2)
+async function callHuggingFaceLlama(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string | null> {
+  if (!huggingFaceToken) {
+    return null;
+  }
+
+  try {
+    console.log('Calling Hugging Face Llama API...');
+    const response = await fetch('https://api-inference.huggingface.co/models/meta-llama/Llama-3.1-8B-Instruct', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${huggingFaceToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n${systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n${userPrompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>`,
+        parameters: {
+          max_new_tokens: maxTokens,
+          temperature: 0.7,
+          return_full_text: false,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Hugging Face Llama error:', response.status, errorText);
+      return null;
+    }
+
+    const result = await response.json();
+    const content = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
+    console.log('Hugging Face Llama response received');
+    return content || null;
+  } catch (error) {
+    console.error('Hugging Face Llama call failed:', error);
     return null;
   }
 }
@@ -139,25 +179,31 @@ async function callOpenAI(systemPrompt: string, userPrompt: string, maxTokens: n
   }
 }
 
-// Main LLM call with Groq primary, HuggingFace backup, OpenAI last resort
+// Main LLM call: Groq -> HuggingFace Mixtral -> HuggingFace Llama -> OpenAI
 async function callLLM(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string> {
   // Try Groq first
   let response = await callGroq(systemPrompt, userPrompt, maxTokens);
   
-  // If Groq fails, try Hugging Face as free backup
+  // If Groq fails, try Hugging Face Mixtral
   if (!response) {
-    console.log('Groq failed, trying Hugging Face backup...');
-    response = await callHuggingFace(systemPrompt, userPrompt, maxTokens);
+    console.log('Groq failed, trying HuggingFace Mixtral...');
+    response = await callHuggingFaceMixtral(systemPrompt, userPrompt, maxTokens);
   }
   
-  // If HuggingFace also fails, try OpenAI as last resort
+  // If Mixtral fails, try Hugging Face Llama
   if (!response) {
-    console.log('Hugging Face failed, trying OpenAI as last resort...');
+    console.log('Mixtral failed, trying HuggingFace Llama...');
+    response = await callHuggingFaceLlama(systemPrompt, userPrompt, maxTokens);
+  }
+  
+  // If all HuggingFace models fail, try OpenAI as last resort
+  if (!response) {
+    console.log('HuggingFace failed, trying OpenAI as last resort...');
     response = await callOpenAI(systemPrompt, userPrompt, maxTokens);
   }
   
   if (!response) {
-    throw new Error('All LLM providers failed (Groq, HuggingFace, OpenAI)');
+    throw new Error('All LLM providers failed (Groq, HuggingFace Mixtral, HuggingFace Llama, OpenAI)');
   }
   
   return response;
