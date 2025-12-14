@@ -3,6 +3,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const groqApiKey = Deno.env.get('GROQ_API_KEY');
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const huggingFaceToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,7 +56,48 @@ async function callGroq(systemPrompt: string, userPrompt: string, maxTokens: num
   }
 }
 
-// Helper function to call OpenAI as fallback
+// Helper function to call Hugging Face Inference API (free backup)
+async function callHuggingFace(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string | null> {
+  if (!huggingFaceToken) {
+    console.log('HUGGING_FACE_ACCESS_TOKEN not configured, skipping HuggingFace');
+    return null;
+  }
+
+  try {
+    console.log('Calling Hugging Face API as backup...');
+    const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${huggingFaceToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: `<s>[INST] ${systemPrompt}\n\n${userPrompt} [/INST]`,
+        parameters: {
+          max_new_tokens: maxTokens,
+          temperature: 0.7,
+          return_full_text: false,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Hugging Face API error:', response.status, errorText);
+      return null;
+    }
+
+    const result = await response.json();
+    const content = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
+    console.log('Hugging Face response received successfully');
+    return content || null;
+  } catch (error) {
+    console.error('Hugging Face call failed:', error);
+    return null;
+  }
+}
+
+// Helper function to call OpenAI as last fallback
 async function callOpenAI(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string | null> {
   if (!openAIApiKey) {
     console.log('OPENAI_API_KEY not configured, skipping OpenAI fallback');
@@ -63,7 +105,7 @@ async function callOpenAI(systemPrompt: string, userPrompt: string, maxTokens: n
   }
 
   try {
-    console.log('Calling OpenAI API as fallback...');
+    console.log('Calling OpenAI API as last fallback...');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -97,19 +139,25 @@ async function callOpenAI(systemPrompt: string, userPrompt: string, maxTokens: n
   }
 }
 
-// Main LLM call with Groq primary, OpenAI fallback
+// Main LLM call with Groq primary, HuggingFace backup, OpenAI last resort
 async function callLLM(systemPrompt: string, userPrompt: string, maxTokens: number = 800): Promise<string> {
   // Try Groq first
   let response = await callGroq(systemPrompt, userPrompt, maxTokens);
   
-  // If Groq fails, try OpenAI as fallback
+  // If Groq fails, try Hugging Face as free backup
   if (!response) {
-    console.log('Groq failed, trying OpenAI fallback...');
+    console.log('Groq failed, trying Hugging Face backup...');
+    response = await callHuggingFace(systemPrompt, userPrompt, maxTokens);
+  }
+  
+  // If HuggingFace also fails, try OpenAI as last resort
+  if (!response) {
+    console.log('Hugging Face failed, trying OpenAI as last resort...');
     response = await callOpenAI(systemPrompt, userPrompt, maxTokens);
   }
   
   if (!response) {
-    throw new Error('Both Groq and OpenAI failed');
+    throw new Error('All LLM providers failed (Groq, HuggingFace, OpenAI)');
   }
   
   return response;

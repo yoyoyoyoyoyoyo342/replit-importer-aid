@@ -62,6 +62,101 @@ interface LLMForecast {
   insights: string[];
 }
 
+// Helper function to call Groq API
+async function callGroqAPI(systemPrompt: string, userPrompt: string): Promise<string | null> {
+  const groqApiKey = Deno.env.get("GROQ_API_KEY");
+  if (!groqApiKey) {
+    console.log("GROQ_API_KEY not configured");
+    return null;
+  }
+
+  try {
+    console.log("Calling Groq API...");
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${groqApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.3,
+        max_tokens: 4000,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Groq API error: ${response.status} - ${errorText}`);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
+  } catch (error) {
+    console.error("Groq API call failed:", error);
+    return null;
+  }
+}
+
+// Helper function to call Hugging Face API (free backup)
+async function callHuggingFaceAPI(systemPrompt: string, userPrompt: string): Promise<string | null> {
+  const huggingFaceToken = Deno.env.get("HUGGING_FACE_ACCESS_TOKEN");
+  if (!huggingFaceToken) {
+    console.log("HUGGING_FACE_ACCESS_TOKEN not configured");
+    return null;
+  }
+
+  try {
+    console.log("Calling Hugging Face API as backup...");
+    const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${huggingFaceToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: `<s>[INST] ${systemPrompt}\n\n${userPrompt} [/INST]`,
+        parameters: {
+          max_new_tokens: 4000,
+          temperature: 0.3,
+          return_full_text: false,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Hugging Face API error: ${response.status} - ${errorText}`);
+      return null;
+    }
+
+    const result = await response.json();
+    const content = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
+    console.log("Hugging Face response received");
+    return content || null;
+  } catch (error) {
+    console.error("Hugging Face API call failed:", error);
+    return null;
+  }
+}
+
+// Main LLM call with fallback chain: Groq -> HuggingFace
+async function callLLM(systemPrompt: string, userPrompt: string): Promise<string | null> {
+  let response = await callGroqAPI(systemPrompt, userPrompt);
+  
+  if (!response) {
+    console.log("Groq failed, trying Hugging Face backup...");
+    response = await callHuggingFaceAPI(systemPrompt, userPrompt);
+  }
+  
+  return response;
+}
+
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -74,15 +169,6 @@ serve(async (req: Request) => {
       return new Response(
         JSON.stringify({ error: "No weather sources provided" }),
         { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 400 }
-      );
-    }
-
-    const groqApiKey = Deno.env.get("GROQ_API_KEY");
-    if (!groqApiKey) {
-      console.error("GROQ_API_KEY not configured");
-      return new Response(
-        JSON.stringify({ error: "LLM service not configured" }),
-        { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 500 }
       );
     }
 
@@ -128,78 +214,56 @@ ${JSON.stringify(weatherSummary, null, 2)}
 
 Provide your unified weather analysis as JSON.`;
 
-    console.log(`Calling Groq API with ${sources.length} weather sources...`);
+    console.log(`Calling LLM with ${sources.length} weather sources...`);
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${groqApiKey}`,
-        "Content-Type": "application/json",
+    const content = await callLLM(systemPrompt, userPrompt);
+
+    // Helper to create raw API response from first source
+    const createRawApiResponse = (source: WeatherSource) => ({
+      current: {
+        temperature: source.currentWeather?.temperature || 0,
+        feelsLike: source.currentWeather?.feelsLike || 0,
+        condition: source.currentWeather?.condition || "Unknown",
+        description: source.currentWeather?.condition || "Weather data from API",
+        humidity: source.currentWeather?.humidity || 0,
+        windSpeed: source.currentWeather?.windSpeed || 0,
+        pressure: source.currentWeather?.pressure || 1013,
+        confidence: 100
       },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 4000,
-      }),
+      hourly: source.hourlyForecast?.slice(0, 24).map(h => ({
+        time: h.time,
+        temperature: h.temperature,
+        condition: h.condition,
+        precipitation: h.precipitation || 0,
+        confidence: 100
+      })) || [],
+      daily: source.dailyForecast?.slice(0, 7).map(d => ({
+        day: d.day,
+        condition: d.condition,
+        description: d.condition,
+        highTemp: d.highTemp,
+        lowTemp: d.lowTemp,
+        precipitation: d.precipitation || 0,
+        confidence: 100
+      })) || [],
+      summary: `Current: ${source.currentWeather?.condition || 'Unknown'}, ${source.currentWeather?.temperature || 0}°F`,
+      modelAgreement: 100,
+      insights: [],
+      rawApiData: true,
+      source: source.source
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Groq API error: ${response.status} - ${errorText}`);
-      
-      // Return the first source's data directly on any error
+    // If LLM failed, return raw API data
+    if (!content) {
+      console.log("All LLM providers failed, returning raw API data");
       const firstSource = sources[0] as WeatherSource;
-      console.log("Returning raw API data due to LLM error");
       return new Response(
-        JSON.stringify({
-          current: {
-            temperature: firstSource.currentWeather?.temperature || 0,
-            feelsLike: firstSource.currentWeather?.feelsLike || 0,
-            condition: firstSource.currentWeather?.condition || "Unknown",
-            description: firstSource.currentWeather?.condition || "Weather data from API",
-            humidity: firstSource.currentWeather?.humidity || 0,
-            windSpeed: firstSource.currentWeather?.windSpeed || 0,
-            pressure: firstSource.currentWeather?.pressure || 1013,
-            confidence: 100
-          },
-          hourly: firstSource.hourlyForecast?.slice(0, 24).map(h => ({
-            time: h.time,
-            temperature: h.temperature,
-            condition: h.condition,
-            precipitation: h.precipitation || 0,
-            confidence: 100
-          })) || [],
-          daily: firstSource.dailyForecast?.slice(0, 7).map(d => ({
-            day: d.day,
-            condition: d.condition,
-            description: d.condition,
-            highTemp: d.highTemp,
-            lowTemp: d.lowTemp,
-            precipitation: d.precipitation || 0,
-            confidence: 100
-          })) || [],
-          summary: `Current: ${firstSource.currentWeather?.condition || 'Unknown'}, ${firstSource.currentWeather?.temperature || 0}°F`,
-          modelAgreement: 100,
-          insights: [],
-          rawApiData: true,
-          source: firstSource.source
-        }),
+        JSON.stringify(createRawApiResponse(firstSource)),
         { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 200 }
       );
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      throw new Error("No content in Groq response");
-    }
-
-    console.log("Groq response received, parsing...");
+    console.log("LLM response received, parsing...");
 
     let forecast: LLMForecast;
     try {
@@ -213,49 +277,28 @@ Provide your unified weather analysis as JSON.`;
       
       forecast = JSON.parse(cleanContent);
     } catch (parseErr) {
-      console.error("Failed to parse Groq response:", content.substring(0, 500));
-      // Return a fallback forecast based on the first source
+      console.error("Failed to parse LLM response:", content.substring(0, 500));
+      // Return raw API data on parse failure
       const firstSource = sources[0] as WeatherSource;
-      forecast = {
-        current: {
-          temperature: firstSource.currentWeather?.temperature || 50,
-          feelsLike: firstSource.currentWeather?.feelsLike || 50,
-          condition: firstSource.currentWeather?.condition || "Unknown",
-          description: "Weather data aggregated from multiple sources",
-          humidity: firstSource.currentWeather?.humidity || 50,
-          windSpeed: firstSource.currentWeather?.windSpeed || 0,
-          pressure: firstSource.currentWeather?.pressure || 1013,
-          confidence: 70
-        },
-        hourly: firstSource.hourlyForecast?.slice(0, 24).map(h => ({
-          time: h.time,
-          temperature: h.temperature,
-          condition: h.condition,
-          precipitation: h.precipitation || 0,
-          confidence: 70
-        })) || [],
-        daily: firstSource.dailyForecast?.slice(0, 7).map(d => ({
-          day: d.day,
-          condition: d.condition,
-          description: d.condition,
-          highTemp: d.highTemp,
-          lowTemp: d.lowTemp,
-          precipitation: d.precipitation || 0,
-          confidence: 70
-        })) || [],
-        summary: "Weather forecast based on aggregated data sources.",
-        modelAgreement: 70,
-        insights: ["LLM analysis unavailable - using source data directly"]
-      };
-      console.log("Using fallback forecast from source data");
+      console.log("Returning raw API data due to parse error");
+      return new Response(
+        JSON.stringify(createRawApiResponse(firstSource)),
+        { headers: { "Content-Type": "application/json", ...corsHeaders }, status: 200 }
+      );
     }
 
     // Validate and ensure required fields
     if (!forecast.current) {
+      const firstSource = sources[0] as WeatherSource;
       forecast.current = {
-        temperature: 50, feelsLike: 50, condition: "Unknown",
-        description: "Data unavailable", humidity: 50, windSpeed: 0,
-        pressure: 1013, confidence: 50
+        temperature: firstSource.currentWeather?.temperature || 50, 
+        feelsLike: firstSource.currentWeather?.feelsLike || 50, 
+        condition: firstSource.currentWeather?.condition || "Unknown",
+        description: "Data from API", 
+        humidity: firstSource.currentWeather?.humidity || 50, 
+        windSpeed: firstSource.currentWeather?.windSpeed || 0,
+        pressure: firstSource.currentWeather?.pressure || 1013, 
+        confidence: 80
       };
     }
     if (!forecast.summary) {
