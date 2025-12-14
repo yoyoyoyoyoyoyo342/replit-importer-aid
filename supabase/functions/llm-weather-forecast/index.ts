@@ -103,8 +103,8 @@ async function callGroqAPI(systemPrompt: string, userPrompt: string): Promise<st
   }
 }
 
-// Helper function to call Hugging Face API (free backup)
-async function callHuggingFaceAPI(systemPrompt: string, userPrompt: string): Promise<string | null> {
+// Helper function to call Hugging Face - Mixtral (free backup #1)
+async function callHuggingFaceMixtral(systemPrompt: string, userPrompt: string): Promise<string | null> {
   const huggingFaceToken = Deno.env.get("HUGGING_FACE_ACCESS_TOKEN");
   if (!huggingFaceToken) {
     console.log("HUGGING_FACE_ACCESS_TOKEN not configured");
@@ -112,7 +112,7 @@ async function callHuggingFaceAPI(systemPrompt: string, userPrompt: string): Pro
   }
 
   try {
-    console.log("Calling Hugging Face API as backup...");
+    console.log("Calling Hugging Face Mixtral...");
     const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1", {
       method: "POST",
       headers: {
@@ -131,27 +131,73 @@ async function callHuggingFaceAPI(systemPrompt: string, userPrompt: string): Pro
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Hugging Face API error: ${response.status} - ${errorText}`);
+      console.error(`Hugging Face Mixtral error: ${response.status} - ${errorText}`);
       return null;
     }
 
     const result = await response.json();
     const content = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
-    console.log("Hugging Face response received");
+    console.log("Hugging Face Mixtral response received");
     return content || null;
   } catch (error) {
-    console.error("Hugging Face API call failed:", error);
+    console.error("Hugging Face Mixtral call failed:", error);
     return null;
   }
 }
 
-// Main LLM call with fallback chain: Groq -> HuggingFace
+// Helper function to call Hugging Face - Llama 3.1 (free backup #2)
+async function callHuggingFaceLlama(systemPrompt: string, userPrompt: string): Promise<string | null> {
+  const huggingFaceToken = Deno.env.get("HUGGING_FACE_ACCESS_TOKEN");
+  if (!huggingFaceToken) {
+    return null;
+  }
+
+  try {
+    console.log("Calling Hugging Face Llama...");
+    const response = await fetch("https://api-inference.huggingface.co/models/meta-llama/Llama-3.1-8B-Instruct", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${huggingFaceToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n${systemPrompt}<|eot_id|><|start_header_id|>user<|end_header_id|>\n${userPrompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>`,
+        parameters: {
+          max_new_tokens: 4000,
+          temperature: 0.3,
+          return_full_text: false,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Hugging Face Llama error: ${response.status} - ${errorText}`);
+      return null;
+    }
+
+    const result = await response.json();
+    const content = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
+    console.log("Hugging Face Llama response received");
+    return content || null;
+  } catch (error) {
+    console.error("Hugging Face Llama call failed:", error);
+    return null;
+  }
+}
+
+// Main LLM call: Groq -> HuggingFace Mixtral -> HuggingFace Llama
 async function callLLM(systemPrompt: string, userPrompt: string): Promise<string | null> {
   let response = await callGroqAPI(systemPrompt, userPrompt);
   
   if (!response) {
-    console.log("Groq failed, trying Hugging Face backup...");
-    response = await callHuggingFaceAPI(systemPrompt, userPrompt);
+    console.log("Groq failed, trying HuggingFace Mixtral...");
+    response = await callHuggingFaceMixtral(systemPrompt, userPrompt);
+  }
+  
+  if (!response) {
+    console.log("Mixtral failed, trying HuggingFace Llama...");
+    response = await callHuggingFaceLlama(systemPrompt, userPrompt);
   }
   
   return response;
