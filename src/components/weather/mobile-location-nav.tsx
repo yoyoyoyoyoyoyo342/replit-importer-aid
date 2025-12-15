@@ -1,15 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MapPin, Plus, Edit2, ChevronUp, ChevronDown } from "lucide-react";
+import { MapPin, Plus, Edit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LocationSearch } from "./location-search";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SavedLocation {
   id: string;
@@ -31,9 +30,6 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [editingLocation, setEditingLocation] = useState<SavedLocation | null>(null);
   const [editName, setEditName] = useState("");
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [startY, setStartY] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -151,83 +147,17 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
     );
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    // Only track touches on the handle area (first 40px)
-    const touch = e.touches[0];
-    const navElement = navRef.current;
-    if (!navElement) return;
-    
-    const navRect = navElement.getBoundingClientRect();
-    const touchYRelativeToNav = touch.clientY - navRect.top;
-    
-    // Only allow dragging from the handle area (top 48px of the nav)
-    if (touchYRelativeToNav <= 48) {
-      setStartY(touch.clientY);
-      setIsDragging(true);
-      // Prevent default to stop browser behaviors like pull-to-refresh
-      e.preventDefault();
-    }
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    
-    // Prevent default to stop browser's native gestures
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const deltaY = e.touches[0].clientY - startY;
-    
-    // Swipe down to collapse (deltaY > 50)
-    if (deltaY > 50 && !isCollapsed) {
-      setIsCollapsed(true);
-      setIsDragging(false);
-      triggerHaptic();
-    }
-    // Swipe up to expand (deltaY < -50)
-    else if (deltaY < -50 && isCollapsed) {
-      setIsCollapsed(false);
-      setIsDragging(false);
-      triggerHaptic();
-    }
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (isDragging) {
-      e.preventDefault();
-    }
-    setIsDragging(false);
-  };
-
-  const toggleCollapse = () => {
-    triggerHaptic();
-    setIsCollapsed(!isCollapsed);
-  };
-
   return (
     <>
       <nav 
         ref={navRef}
-        className="fixed bottom-0 left-0 right-0 z-50 pb-safe px-2 transition-transform duration-300 ease-out"
-        style={{ transform: isCollapsed ? 'translateY(calc(100% - 36px))' : 'translateY(0)' }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        className="fixed bottom-0 left-0 right-0 z-50 pb-safe px-2"
       >
         <div className="glass-card rounded-3xl border border-border/30 backdrop-blur-xl mx-2 mb-2 shadow-lg">
-          {/* Collapse/Expand Handle - touch-action: none prevents browser gestures */}
-          <button 
-            onClick={toggleCollapse}
-            className="w-full flex items-center justify-center py-3 touch-manipulation"
-            style={{ touchAction: 'none' }}
-          >
+          {/* Handle indicator */}
+          <div className="w-full flex items-center justify-center py-2">
             <div className="w-12 h-1 rounded-full bg-muted-foreground/40" />
-            {isCollapsed ? (
-              <ChevronUp className="absolute h-4 w-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="absolute h-4 w-4 text-muted-foreground opacity-0" />
-            )}
-          </button>
+          </div>
           
           <div className="overflow-x-auto overflow-y-hidden scrollbar-hide">
             <div className="flex items-center gap-1 p-2 pt-0 min-w-max">
@@ -301,7 +231,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
       </nav>
 
       {/* Spacer to prevent content being hidden behind nav */}
-      <div className={`transition-all duration-300 ${isCollapsed ? 'h-12' : 'h-28'}`} />
+      <div className="h-36" />
 
       {/* Rename Location Dialog */}
       <Dialog open={!!editingLocation} onOpenChange={(open) => !open && setEditingLocation(null)}>
