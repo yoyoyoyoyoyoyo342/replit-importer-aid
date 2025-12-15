@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Play, Pause, SkipBack, SkipForward, CloudRain } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -18,55 +17,6 @@ interface RadarFrame {
   path: string;
 }
 
-// Component to handle radar layer updates
-const RadarLayer = ({ 
-  frame, 
-  opacity 
-}: { 
-  frame: RadarFrame | null; 
-  opacity: number;
-}) => {
-  const map = useMap();
-  const layerRef = useRef<L.TileLayer | null>(null);
-
-  useEffect(() => {
-    if (layerRef.current) {
-      map.removeLayer(layerRef.current);
-    }
-
-    if (frame) {
-      const radarLayer = L.tileLayer(
-        `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
-        {
-          opacity: opacity,
-          zIndex: 1000,
-        }
-      );
-      radarLayer.addTo(map);
-      layerRef.current = radarLayer;
-    }
-
-    return () => {
-      if (layerRef.current) {
-        map.removeLayer(layerRef.current);
-      }
-    };
-  }, [frame, opacity, map]);
-
-  return null;
-};
-
-// Component to recenter map
-const MapController = ({ latitude, longitude }: { latitude: number; longitude: number }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    map.setView([latitude, longitude], 8);
-  }, [latitude, longitude, map]);
-
-  return null;
-};
-
 const RainMapCard: React.FC<RainMapCardProps> = ({
   latitude,
   longitude,
@@ -77,7 +27,43 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [opacity, setOpacity] = useState(0.7);
   const [loading, setLoading] = useState(true);
+  
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const radarLayerRef = useRef<L.TileLayer | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    mapRef.current = L.map(mapContainerRef.current, {
+      center: [latitude, longitude],
+      zoom: 8,
+      zoomControl: false,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(mapRef.current);
+
+    // Add zoom control to top-left
+    L.control.zoom({ position: 'topleft' }).addTo(mapRef.current);
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update map center when location changes
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.setView([latitude, longitude], 8);
+    }
+  }, [latitude, longitude]);
 
   // Fetch radar data from RainViewer API
   useEffect(() => {
@@ -113,6 +99,29 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
     const refreshInterval = setInterval(fetchRadarData, 5 * 60 * 1000);
     return () => clearInterval(refreshInterval);
   }, []);
+
+  // Update radar layer when frame changes
+  useEffect(() => {
+    if (!mapRef.current || radarFrames.length === 0) return;
+
+    const currentFrame = radarFrames[currentFrameIndex];
+    if (!currentFrame) return;
+
+    // Remove old radar layer
+    if (radarLayerRef.current) {
+      mapRef.current.removeLayer(radarLayerRef.current);
+    }
+
+    // Add new radar layer
+    radarLayerRef.current = L.tileLayer(
+      `https://tilecache.rainviewer.com${currentFrame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+      {
+        opacity: opacity,
+        zIndex: 1000,
+      }
+    );
+    radarLayerRef.current.addTo(mapRef.current);
+  }, [currentFrameIndex, radarFrames, opacity]);
 
   // Animation playback
   useEffect(() => {
@@ -160,21 +169,9 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
-          ) : (
-            <MapContainer
-              center={[latitude, longitude]}
-              zoom={8}
-              style={{ height: '100%', width: '100%' }}
-              zoomControl={false}
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <MapController latitude={latitude} longitude={longitude} />
-              <RadarLayer frame={currentFrame} opacity={opacity} />
-            </MapContainer>
-          )}
+          ) : null}
+          
+          <div ref={mapContainerRef} className="h-full w-full" />
           
           {/* Time indicator */}
           {currentFrame && (
@@ -210,7 +207,7 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
             <Slider
               value={[currentFrameIndex]}
               min={0}
-              max={radarFrames.length - 1}
+              max={Math.max(radarFrames.length - 1, 0)}
               step={1}
               onValueChange={(value) => {
                 setCurrentFrameIndex(value[0]);
