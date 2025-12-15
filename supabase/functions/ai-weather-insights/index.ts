@@ -65,7 +65,7 @@ async function callHuggingFaceMixtral(systemPrompt: string, userPrompt: string, 
 
   try {
     console.log('Calling Hugging Face Mixtral API...');
-    const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1', {
+    const response = await fetch('https://router.huggingface.co/hf-inference/models/mistralai/Mixtral-8x7B-Instruct-v0.1', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${huggingFaceToken}`,
@@ -105,7 +105,7 @@ async function callHuggingFaceLlama(systemPrompt: string, userPrompt: string, ma
 
   try {
     console.log('Calling Hugging Face Llama API...');
-    const response = await fetch('https://api-inference.huggingface.co/models/meta-llama/Llama-3.1-8B-Instruct', {
+    const response = await fetch('https://router.huggingface.co/hf-inference/models/meta-llama/Llama-3.1-8B-Instruct', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${huggingFaceToken}`,
