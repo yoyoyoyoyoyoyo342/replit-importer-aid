@@ -30,14 +30,12 @@ import { WeatherStationInfo } from "@/components/weather/weather-station-info";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
-import { PredictionDialog } from "@/components/weather/prediction-dialog";
+import { GamesDialog } from "@/components/weather/games-dialog";
 import { useTimeOfDay } from "@/hooks/use-time-of-day";
 import { useTimeOfDayContext } from "@/contexts/time-of-day-context";
-import { LockedPredictionButton } from "@/components/weather/locked-prediction-button";
+import { LockedGamesButton } from "@/components/weather/locked-games-button";
 import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
 import { AQICard } from "@/components/weather/aqi-card";
-import { Leaderboard } from "@/components/weather/leaderboard";
-import { LockedLeaderboard } from "@/components/weather/locked-leaderboard";
 import { BarometerCard } from "@/components/weather/barometer-card";
 import { MobileLocationNav } from "@/components/weather/mobile-location-nav";
 import { HeaderInfoBar } from "@/components/weather/header-info-bar";
@@ -342,10 +340,10 @@ export default function WeatherPage() {
               }} />}
             </div>
 
-            {/* Prediction Row */}
+            {/* Games Row */}
             {selectedLocation && <div className="pt-3 border-t border-border/20">
-                {user ? <PredictionDialog location={selectedLocation.name} latitude={selectedLocation.lat} longitude={selectedLocation.lon} isImperial={isImperial} onPredictionMade={() => refetch()} /> : <LockedFeature isLocked={true}>
-                    <LockedPredictionButton />
+                {user ? <GamesDialog /> : <LockedFeature isLocked={true}>
+                    <LockedGamesButton />
                   </LockedFeature>}
               </div>}
           </CardContent>
@@ -412,12 +410,6 @@ export default function WeatherPage() {
             {/* Morning Weather Review */}
             <MorningWeatherReview weatherData={weatherData.mostAccurate} location={actualStationName} isImperial={isImperial} userId={user?.id} />
 
-            {/* Leaderboard - Only show for non-logged-in users */}
-            {!user && <div className="mb-4">
-                <LockedFeature isLocked={true}>
-                  <LockedLeaderboard />
-                </LockedFeature>
-              </div>}
 
             {/* Weather Cards in User's Preferred Order */}
             {cardOrder.map(cardType => {
