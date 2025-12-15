@@ -35,8 +35,7 @@ export function CloudJumpGame({ onGameEnd, disabled }: CloudJumpGameProps) {
     cloudIdCounter: 0,
     seconds: 0,
     coins: 0,
-    lastTime: 0,
-    scoreTimer: 0,
+    startTime: 0,
     keysPressed: new Set<string>(),
     touchX: null as number | null,
   });
@@ -61,8 +60,7 @@ export function CloudJumpGame({ onGameEnd, disabled }: CloudJumpGameProps) {
     data.cameraY = 0;
     data.seconds = 0;
     data.coins = 0;
-    data.lastTime = 0;
-    data.scoreTimer = 0;
+    data.startTime = Date.now();
     data.clouds = [];
     
     for (let i = 0; i < 10; i++) {
@@ -76,8 +74,12 @@ export function CloudJumpGame({ onGameEnd, disabled }: CloudJumpGameProps) {
 
   const endGame = useCallback(() => {
     const data = gameDataRef.current;
-    const totalScore = data.seconds + data.coins;
-    setDisplayScore(data.seconds);
+    // Calculate seconds based on actual elapsed time
+    const elapsedSeconds = Math.floor((Date.now() - data.startTime) / 1000);
+    data.seconds = elapsedSeconds;
+    
+    const totalScore = elapsedSeconds + data.coins;
+    setDisplayScore(elapsedSeconds);
     setDisplayCoins(data.coins);
     
     if (totalScore > highScore) {
@@ -134,19 +136,18 @@ export function CloudJumpGame({ onGameEnd, disabled }: CloudJumpGameProps) {
     if (!ctx) return;
     
     let animationId: number;
+    let lastFrameTime = performance.now();
     const data = gameDataRef.current;
     
     const gameLoop = (timestamp: number) => {
-      if (data.lastTime === 0) data.lastTime = timestamp;
-      const deltaTime = Math.min(timestamp - data.lastTime, 32);
-      data.lastTime = timestamp;
+      const deltaTime = Math.min(timestamp - lastFrameTime, 32);
+      lastFrameTime = timestamp;
       
-      // Score timer
-      data.scoreTimer += deltaTime;
-      if (data.scoreTimer >= 1000) {
-        data.seconds += 1;
-        setDisplayScore(data.seconds);
-        data.scoreTimer = 0;
+      // Update score display based on actual elapsed time
+      const elapsedSeconds = Math.floor((Date.now() - data.startTime) / 1000);
+      if (elapsedSeconds !== data.seconds) {
+        data.seconds = elapsedSeconds;
+        setDisplayScore(elapsedSeconds);
       }
       
       // Handle input

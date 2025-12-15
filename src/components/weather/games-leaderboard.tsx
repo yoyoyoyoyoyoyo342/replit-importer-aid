@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Trophy, Medal, Award, TrendingUp, Gamepad2 } from "lucide-react";
+import { Trophy, Medal, Award, Gamepad2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DisplayNameDialog } from "./display-name-dialog";
@@ -26,14 +26,11 @@ export const GamesLeaderboard = () => {
   }, [user]);
 
   useEffect(() => {
-    if (hasDisplayName) {
-      fetchLeaderboard();
-    }
-  }, [hasDisplayName]);
+    fetchLeaderboard();
+  }, []);
 
   const checkDisplayName = async () => {
     if (!user) {
-      setLoading(false);
       return;
     }
     
@@ -51,42 +48,26 @@ export const GamesLeaderboard = () => {
       }
     } catch (error) {
       console.error("Error checking display name:", error);
-      setLoading(false);
     }
   };
 
   const fetchLeaderboard = async () => {
     try {
-      // Fetch profiles with points ordered by total_points
+      // Use the leaderboard view which has public access
       const { data, error } = await supabase
-        .from("profiles")
-        .select("display_name, total_points, user_id")
-        .not("display_name", "is", null)
-        .order("total_points", { ascending: false })
+        .from("leaderboard")
+        .select("*")
         .limit(10);
 
       if (error) throw error;
 
-      // Fetch streak data for each user
-      const leaderboardData: LeaderboardEntry[] = [];
-      
-      for (let i = 0; i < (data || []).length; i++) {
-        const profile = data![i];
-        
-        const { data: streakData } = await supabase
-          .from("user_streaks")
-          .select("current_streak, longest_streak")
-          .eq("user_id", profile.user_id)
-          .single();
-
-        leaderboardData.push({
-          rank: i + 1,
-          display_name: profile.display_name || "Anonymous",
-          total_points: profile.total_points || 0,
-          current_streak: streakData?.current_streak || 0,
-          longest_streak: streakData?.longest_streak || 0,
-        });
-      }
+      const leaderboardData: LeaderboardEntry[] = (data || []).map((entry, index) => ({
+        rank: entry.rank || index + 1,
+        display_name: entry.display_name || "Anonymous",
+        total_points: entry.total_points || 0,
+        current_streak: entry.current_streak || 0,
+        longest_streak: entry.longest_streak || 0,
+      }));
 
       setLeaderboard(leaderboardData.slice(0, 5));
     } catch (error) {
@@ -117,7 +98,7 @@ export const GamesLeaderboard = () => {
   };
 
   // If first time and no display name, show dialog
-  if (showNameDialog && !hasDisplayName) {
+  if (showNameDialog && !hasDisplayName && user) {
     return <DisplayNameDialog open={showNameDialog} onClose={handleNameSet} allowSkip={false} />;
   }
 
