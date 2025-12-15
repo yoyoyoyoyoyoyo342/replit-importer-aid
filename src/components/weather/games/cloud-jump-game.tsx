@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Play, RotateCcw } from "lucide-react";
+import { Play } from "lucide-react";
 
 interface CloudJumpGameProps {
-  onScoreUpdate?: (score: number) => void;
+  onGameEnd?: (score: number) => void;
+  disabled?: boolean;
 }
 
 interface Cloud {
@@ -15,9 +16,9 @@ interface Cloud {
   hasCoin: boolean;
 }
 
-export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
+export function CloudJumpGame({ onGameEnd, disabled }: CloudJumpGameProps) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameOver">("idle");
-  const [score, setScore] = useState(0);
+  const [seconds, setSeconds] = useState(0);
   const [coins, setCoins] = useState(0);
   const [highScore, setHighScore] = useState(() => {
     const saved = localStorage.getItem("cloudJumpHighScore");
@@ -31,6 +32,8 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
   const gameRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
   const cloudIdRef = useRef(0);
+  const secondsRef = useRef(0);
+  const coinsRef = useRef(0);
 
   const generateCloud = useCallback((y: number): Cloud => {
     return {
@@ -43,9 +46,12 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
   }, []);
 
   const startGame = useCallback(() => {
+    if (disabled) return;
     setGameState("playing");
-    setScore(0);
+    setSeconds(0);
     setCoins(0);
+    secondsRef.current = 0;
+    coinsRef.current = 0;
     setPlayerX(50);
     setPlayerY(80);
     setVelocityY(-8);
@@ -57,17 +63,17 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
       initialClouds.push(generateCloud(90 - i * 15));
     }
     setClouds(initialClouds);
-  }, [generateCloud]);
+  }, [generateCloud, disabled]);
 
   const endGame = useCallback(() => {
     setGameState("gameOver");
-    const totalScore = score + coins;
+    const totalScore = secondsRef.current + coinsRef.current;
     if (totalScore > highScore) {
       setHighScore(totalScore);
       localStorage.setItem("cloudJumpHighScore", totalScore.toString());
     }
-    onScoreUpdate?.(totalScore);
-  }, [score, coins, highScore, onScoreUpdate]);
+    onGameEnd?.(totalScore);
+  }, [highScore, onGameEnd]);
 
   // Handle keyboard input
   useEffect(() => {
@@ -95,15 +101,24 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
     setPlayerX(Math.max(5, Math.min(95, percentX)));
   }, [gameState]);
 
-  // Game loop
+  // Game loop - 1 point per second + bonus coins
   useEffect(() => {
     if (gameState !== "playing") return;
 
     let lastTime = 0;
+    let scoreTimer = 0;
 
     const gameLoop = (timestamp: number) => {
       const deltaTime = Math.min(timestamp - lastTime, 32);
       lastTime = timestamp;
+
+      // Update seconds every second (1 point per second)
+      scoreTimer += deltaTime;
+      if (scoreTimer >= 1000) {
+        secondsRef.current += 1;
+        setSeconds(secondsRef.current);
+        scoreTimer = 0;
+      }
 
       // Apply gravity
       setVelocityY((prev) => prev + 0.3);
@@ -126,7 +141,6 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
         if (currentPlayerY < cameraY + 40) {
           const newCameraY = currentPlayerY - 40;
           setCameraY(newCameraY);
-          setScore((s) => Math.max(s, Math.floor(-newCameraY)));
         }
         return currentPlayerY;
       });
@@ -149,9 +163,10 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
             setVelocityY(-10);
             jumped = true;
 
-            // Collect coin
+            // Collect coin (+1 bonus point)
             if (cloud.hasCoin) {
-              setCoins((c) => c + 1);
+              coinsRef.current += 1;
+              setCoins(coinsRef.current);
               return { ...cloud, hasCoin: false };
             }
           }
@@ -186,7 +201,7 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
     };
   }, [gameState, playerX, playerY, velocityY, cameraY, endGame, generateCloud]);
 
-  const totalScore = score + coins;
+  const totalScore = seconds + coins;
 
   return (
     <Card className="border-indigo-500/30 bg-gradient-to-b from-sky-300 to-indigo-400 dark:from-indigo-900 dark:to-purple-950">
@@ -194,7 +209,7 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
         <CardTitle className="flex items-center justify-between text-lg text-white">
           <span>☁️ Cloud Jump</span>
           <div className="flex gap-4 text-sm font-normal">
-            <span>Height: {score}</span>
+            <span>Time: {seconds}s</span>
             <span>🪙 {coins}</span>
             <span className="text-white/60">Best: {highScore}</span>
           </div>
@@ -210,13 +225,12 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
           {gameState === "idle" && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm z-10">
               <p className="text-center text-sm text-muted-foreground px-4">
-                Jump on clouds to go higher!<br />
-                Each cloud = 1 point. Collect coins!<br />
-                Use arrow keys or touch to move.
+                Jump on clouds to stay alive!<br />
+                1 point/second + 1 bonus per coin.
               </p>
-              <Button onClick={startGame} className="gap-2">
+              <Button onClick={startGame} className="gap-2" disabled={disabled}>
                 <Play className="w-4 h-4" />
-                Start Game
+                {disabled ? "Already Played Today" : "Start Game"}
               </Button>
             </div>
           )}
@@ -225,15 +239,11 @@ export function CloudJumpGame({ onScoreUpdate }: CloudJumpGameProps) {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm z-10">
               <div className="text-center">
                 <p className="text-2xl font-bold">Game Over!</p>
-                <p className="text-lg">Height: {score} + 🪙 {coins} = {totalScore}</p>
+                <p className="text-lg">{seconds}s + 🪙{coins} = {totalScore} points</p>
                 {totalScore >= highScore && totalScore > 0 && (
                   <p className="text-primary font-semibold">🎉 New High Score!</p>
                 )}
               </div>
-              <Button onClick={startGame} className="gap-2">
-                <RotateCcw className="w-4 h-4" />
-                Play Again
-              </Button>
             </div>
           )}
 
