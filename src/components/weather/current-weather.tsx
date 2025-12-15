@@ -174,14 +174,14 @@ export function CurrentWeather({
     : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0]);
 
   return (
-    <section className="mb-4">
-      <Card className="overflow-hidden border-0 shadow-xl">
+    <section className="mb-4 animate-fade-in">
+      <Card className="overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-shadow duration-500">
         {/* Main Weather Display with Dynamic Gradient */}
         <div className={`relative bg-gradient-to-br ${getWeatherGradient(mostAccurate.currentWeather.condition)} p-4`}>
           {/* Ambient glow effects */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+            <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-pulse-soft" />
+            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/5 rounded-full blur-2xl animate-float" />
           </div>
 
           {/* Top Row: Location + Actions */}
@@ -192,9 +192,9 @@ export function CurrentWeather({
               {currentLocation && (
                 <button
                   onClick={() => isLocationSaved ? removeLocationMutation.mutate() : addLocationMutation.mutate()}
-                  className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                  className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 hover:scale-110 active:scale-95 transition-all duration-200"
                 >
-                  {isLocationSaved ? <Minus className="w-3 h-3 text-white" /> : <Plus className="w-3 h-3 text-white" />}
+                  {isLocationSaved ? <Minus className="w-3 h-3 text-white" /> : <Plus className="w-3 h-3 text-white transition-transform duration-300 hover:rotate-90" />}
                 </button>
               )}
             </div>

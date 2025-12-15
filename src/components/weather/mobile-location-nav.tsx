@@ -165,14 +165,14 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
               <Dialog open={isAddingLocation} onOpenChange={setIsAddingLocation}>
                 <button
                   onClick={handleAddClick}
-                  className={`shrink-0 flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all ${
+                  className={`shrink-0 flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all duration-200 touch-feedback ${
                     isAddingLocation
                       ? "bg-primary/20 scale-95"
-                      : "hover:bg-muted/30 active:scale-95"
+                      : "hover:bg-muted/30 active:scale-[0.92]"
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Plus className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
+                    <Plus className="h-5 w-5 text-primary transition-transform duration-300 hover:rotate-90" />
                   </div>
                   <span className="text-[10px] font-medium text-foreground whitespace-nowrap">Add</span>
                 </button>
@@ -185,22 +185,22 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
               </Dialog>
 
               {/* Saved Locations */}
-              {savedLocations.map((location) => (
-                <div key={location.id} className="relative shrink-0">
+              {savedLocations.map((location, index) => (
+                <div key={location.id} className="relative shrink-0 animate-fade-in" style={{ animationDelay: `${index * 0.05}s` }}>
                   <button
                     onClick={() => handleLocationClick(location.latitude, location.longitude, location.name)}
-                    className={`flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all ${
+                    className={`flex flex-col items-center justify-center gap-1.5 min-w-[80px] py-3 px-4 rounded-2xl transition-all duration-200 touch-feedback ${
                       isCurrent(location)
                         ? "bg-primary/20 scale-95"
-                        : "hover:bg-muted/30 active:scale-95"
+                        : "hover:bg-muted/30 active:scale-[0.92]"
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
                       isCurrent(location)
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                        : "bg-muted hover:bg-muted/80"
                     }`}>
-                      <MapPin className="h-5 w-5" />
+                      <MapPin className={`h-5 w-5 transition-transform duration-200 ${isCurrent(location) ? 'animate-bounce' : ''}`} />
                     </div>
                     <span className="text-[10px] font-medium text-foreground whitespace-nowrap max-w-[72px] truncate">
                       {location.name.split(',')[0].trim()}
@@ -211,7 +211,7 @@ export function MobileLocationNav({ onLocationSelect, currentLocation, isImperia
                   </button>
                   <button
                     onClick={(e) => handleEditClick(location, e)}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center hover:bg-muted/80 transition-colors"
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 flex items-center justify-center hover:bg-muted/80 hover:scale-110 active:scale-95 transition-all duration-200"
                   >
                     <Edit2 className="h-3 w-3 text-muted-foreground" />
                   </button>
