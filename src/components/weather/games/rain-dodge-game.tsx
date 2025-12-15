@@ -28,8 +28,7 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
     playerX: 50,
     raindrops: [] as Raindrop[],
     score: 0,
-    lastTime: 0,
-    scoreTimer: 0,
+    startTime: 0,
     spawnTimer: 0,
     difficulty: 1,
     keysPressed: new Set<string>(),
@@ -43,8 +42,7 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
     data.playerX = 50;
     data.raindrops = [];
     data.score = 0;
-    data.lastTime = 0;
-    data.scoreTimer = 0;
+    data.startTime = Date.now();
     data.spawnTimer = 0;
     data.difficulty = 1;
     
@@ -65,15 +63,17 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
 
   const endGame = useCallback(() => {
     const data = gameDataRef.current;
-    setDisplayScore(data.score);
+    const elapsedSeconds = Math.floor((Date.now() - data.startTime) / 1000);
+    data.score = elapsedSeconds;
+    setDisplayScore(elapsedSeconds);
     
-    if (data.score > highScore) {
-      setHighScore(data.score);
-      localStorage.setItem("rainDodgeHighScore", data.score.toString());
+    if (elapsedSeconds > highScore) {
+      setHighScore(elapsedSeconds);
+      localStorage.setItem("rainDodgeHighScore", elapsedSeconds.toString());
     }
     
     setGameState("gameOver");
-    onGameEnd?.(data.score);
+    onGameEnd?.(elapsedSeconds);
   }, [highScore, onGameEnd]);
 
   // Input handlers
@@ -123,18 +123,18 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
     let animationId: number;
     const data = gameDataRef.current;
     
+    let lastFrameTime = performance.now();
+    
     const gameLoop = (timestamp: number) => {
-      if (data.lastTime === 0) data.lastTime = timestamp;
-      const deltaTime = Math.min(timestamp - data.lastTime, 32);
-      data.lastTime = timestamp;
+      const deltaTime = Math.min(timestamp - lastFrameTime, 32);
+      lastFrameTime = timestamp;
       
-      // Score timer
-      data.scoreTimer += deltaTime;
-      if (data.scoreTimer >= 1000) {
-        data.score += 1;
-        setDisplayScore(data.score);
-        data.scoreTimer = 0;
-        if (data.score % 5 === 0) {
+      // Update score based on elapsed time
+      const elapsedSeconds = Math.floor((Date.now() - data.startTime) / 1000);
+      if (elapsedSeconds !== data.score) {
+        data.score = elapsedSeconds;
+        setDisplayScore(elapsedSeconds);
+        if (elapsedSeconds % 5 === 0) {
           data.difficulty = Math.min(10, data.difficulty + 1);
         }
       }

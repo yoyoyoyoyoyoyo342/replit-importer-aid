@@ -343,7 +343,7 @@ export default function WeatherPage() {
 
             {/* Games Row */}
             {selectedLocation && <div className="pt-3 border-t border-border/20">
-                {user ? <GamesDialog /> : <LockedFeature isLocked={true}>
+                {user ? <GamesDialog weatherCondition={weatherData?.mostAccurate?.currentWeather?.condition} /> : <LockedFeature isLocked={true}>
                     <LockedGamesButton />
                   </LockedFeature>}
               </div>}

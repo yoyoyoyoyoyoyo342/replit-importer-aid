@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Gamepad2, Cloud, Droplets, Snowflake, Zap, Wind, Sun, Trophy, Lock } from "lucide-react";
+import { Gamepad2, Lock, Trophy } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SnowSkiingGame } from "./games/snow-skiing-game";
 import { RainDodgeGame } from "./games/rain-dodge-game";
@@ -15,11 +15,54 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 
-export function GamesDialog() {
+interface GamesDialogProps {
+  weatherCondition?: string;
+}
+
+type GameType = "snow" | "rain" | "cloud" | "lightning" | "wind" | "sun";
+
+const GAME_INFO: Record<GameType, { name: string; emoji: string }> = {
+  snow: { name: "Snow Skiing", emoji: "❄️" },
+  rain: { name: "Rain Dodge", emoji: "🌧️" },
+  cloud: { name: "Cloud Jump", emoji: "☁️" },
+  lightning: { name: "Lightning Dodge", emoji: "⚡" },
+  wind: { name: "Wind Surfer", emoji: "💨" },
+  sun: { name: "Sunshine Collector", emoji: "☀️" },
+};
+
+function mapConditionToGame(condition?: string): GameType {
+  if (!condition) return "sun";
+  
+  const lowerCondition = condition.toLowerCase();
+  
+  if (lowerCondition.includes("snow") || lowerCondition.includes("sleet") || lowerCondition.includes("blizzard") || lowerCondition.includes("flurr")) {
+    return "snow";
+  }
+  if (lowerCondition.includes("thunder") || lowerCondition.includes("lightning") || lowerCondition.includes("storm")) {
+    return "lightning";
+  }
+  if (lowerCondition.includes("rain") || lowerCondition.includes("drizzle") || lowerCondition.includes("shower")) {
+    return "rain";
+  }
+  if (lowerCondition.includes("wind") || lowerCondition.includes("gust") || lowerCondition.includes("breezy")) {
+    return "wind";
+  }
+  if (lowerCondition.includes("cloud") || lowerCondition.includes("overcast") || lowerCondition.includes("fog") || lowerCondition.includes("mist")) {
+    return "cloud";
+  }
+  
+  // Default to sunshine for clear/sunny conditions
+  return "sun";
+}
+
+export function GamesDialog({ weatherCondition }: GamesDialogProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
   const { status, recordGamePlay } = useDailyGameLimit();
   const [gameCompleted, setGameCompleted] = useState(false);
+
+  const currentGame = useMemo(() => mapConditionToGame(weatherCondition), [weatherCondition]);
+  const gameInfo = GAME_INFO[currentGame];
 
   const handleGameEnd = async (score: number) => {
     if (!status.hasPlayedToday && !gameCompleted) {
@@ -31,20 +74,42 @@ export function GamesDialog() {
 
   const isDisabled = status.hasPlayedToday || gameCompleted;
 
+  const renderGame = () => {
+    const props = { onGameEnd: handleGameEnd, disabled: isDisabled };
+    
+    switch (currentGame) {
+      case "snow":
+        return <SnowSkiingGame {...props} />;
+      case "rain":
+        return <RainDodgeGame {...props} />;
+      case "cloud":
+        return <CloudJumpGame {...props} />;
+      case "lightning":
+        return <LightningDodgeGame {...props} />;
+      case "wind":
+        return <WindSurferGame {...props} />;
+      case "sun":
+        return <SunshineCollectorGame {...props} />;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-10 px-4 text-sm sm:h-8 sm:px-3 sm:text-xs flex-1 sm:flex-initial">
           <Gamepad2 className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-          Play Games
+          Play {gameInfo.emoji} {gameInfo.name}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
-            <Gamepad2 className="w-6 h-6" />
-            Weather Mini-Games
+            <span className="text-3xl">{gameInfo.emoji}</span>
+            {gameInfo.name}
           </DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            Today's weather: <span className="font-medium">{weatherCondition || "Clear"}</span>
+          </p>
         </DialogHeader>
 
         {/* Daily limit notice */}
@@ -55,18 +120,18 @@ export function GamesDialog() {
               <div>
                 <p className="font-medium">You've played today!</p>
                 <p className="text-sm text-muted-foreground">
-                  Today's score: {status.todayScore || gameCompleted ? "recorded" : 0} points. Come back tomorrow!
+                  Today's score: {status.todayScore || 0} points. Come back tomorrow!
                 </p>
               </div>
             </CardContent>
           </Card>
         )}
         
-        <Tabs defaultValue="games" className="w-full">
+        <Tabs defaultValue="game" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="games" className="text-sm">
+            <TabsTrigger value="game" className="text-sm">
               <Gamepad2 className="w-4 h-4 mr-2" />
-              Games
+              Play Game
             </TabsTrigger>
             <TabsTrigger value="leaderboard" className="text-sm">
               <Trophy className="w-4 h-4 mr-2" />
@@ -74,53 +139,8 @@ export function GamesDialog() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="games">
-            <Tabs defaultValue="snow" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 gap-1">
-                <TabsTrigger value="snow" className="text-xs px-2">
-                  <Snowflake className="w-4 h-4" />
-                </TabsTrigger>
-                <TabsTrigger value="rain" className="text-xs px-2">
-                  <Droplets className="w-4 h-4" />
-                </TabsTrigger>
-                <TabsTrigger value="cloud" className="text-xs px-2">
-                  <Cloud className="w-4 h-4" />
-                </TabsTrigger>
-                <TabsTrigger value="lightning" className="text-xs px-2">
-                  <Zap className="w-4 h-4" />
-                </TabsTrigger>
-                <TabsTrigger value="wind" className="text-xs px-2">
-                  <Wind className="w-4 h-4" />
-                </TabsTrigger>
-                <TabsTrigger value="sun" className="text-xs px-2">
-                  <Sun className="w-4 h-4" />
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="snow" className="mt-4">
-                <SnowSkiingGame onGameEnd={handleGameEnd} disabled={isDisabled} />
-              </TabsContent>
-              
-              <TabsContent value="rain" className="mt-4">
-                <RainDodgeGame onGameEnd={handleGameEnd} disabled={isDisabled} />
-              </TabsContent>
-              
-              <TabsContent value="cloud" className="mt-4">
-                <CloudJumpGame onGameEnd={handleGameEnd} disabled={isDisabled} />
-              </TabsContent>
-
-              <TabsContent value="lightning" className="mt-4">
-                <LightningDodgeGame onGameEnd={handleGameEnd} disabled={isDisabled} />
-              </TabsContent>
-
-              <TabsContent value="wind" className="mt-4">
-                <WindSurferGame onGameEnd={handleGameEnd} disabled={isDisabled} />
-              </TabsContent>
-
-              <TabsContent value="sun" className="mt-4">
-                <SunshineCollectorGame onGameEnd={handleGameEnd} disabled={isDisabled} />
-              </TabsContent>
-            </Tabs>
+          <TabsContent value="game">
+            {renderGame()}
           </TabsContent>
           
           <TabsContent value="leaderboard">
