@@ -3,40 +3,46 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play } from "lucide-react";
 
-interface RainDodgeGameProps {
+interface SunshineCollectorGameProps {
   onGameEnd?: (score: number) => void;
   disabled?: boolean;
 }
 
-export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
+export function SunshineCollectorGame({ onGameEnd, disabled }: SunshineCollectorGameProps) {
   const [gameState, setGameState] = useState<"idle" | "playing" | "gameOver">("idle");
   const [score, setScore] = useState(0);
+  const [bonus, setBonus] = useState(0);
   const [highScore, setHighScore] = useState(() => {
-    const saved = localStorage.getItem("rainDodgeHighScore");
+    const saved = localStorage.getItem("sunshineCollectorHighScore");
     return saved ? parseInt(saved, 10) : 0;
   });
   const [playerX, setPlayerX] = useState(50);
-  const [raindrops, setRaindrops] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [sunrays, setSunrays] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [clouds, setClouds] = useState<Array<{ id: number; x: number; y: number }>>([]);
   const gameRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
-  const dropIdRef = useRef(0);
+  const itemIdRef = useRef(0);
   const scoreRef = useRef(0);
+  const bonusRef = useRef(0);
 
   const startGame = useCallback(() => {
     if (disabled) return;
     setGameState("playing");
     setScore(0);
+    setBonus(0);
     scoreRef.current = 0;
-    setRaindrops([]);
+    bonusRef.current = 0;
+    setSunrays([]);
+    setClouds([]);
     setPlayerX(50);
   }, [disabled]);
 
   const endGame = useCallback(() => {
     setGameState("gameOver");
-    const finalScore = scoreRef.current;
+    const finalScore = scoreRef.current + bonusRef.current;
     if (finalScore > highScore) {
       setHighScore(finalScore);
-      localStorage.setItem("rainDodgeHighScore", finalScore.toString());
+      localStorage.setItem("sunshineCollectorHighScore", finalScore.toString());
     }
     onGameEnd?.(finalScore);
   }, [highScore, onGameEnd]);
@@ -67,12 +73,13 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
     setPlayerX(Math.max(10, Math.min(90, percentX)));
   }, [gameState]);
 
-  // Game loop - 1 point per second
+  // Game loop
   useEffect(() => {
     if (gameState !== "playing") return;
 
     let lastTime = 0;
-    let dropTimer = 0;
+    let sunTimer = 0;
+    let cloudTimer = 0;
     let scoreTimer = 0;
     let difficulty = 1;
 
@@ -80,45 +87,75 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
       const deltaTime = timestamp - lastTime;
       lastTime = timestamp;
 
-      // Update score every second (1 point per second)
+      // Update score every second
       scoreTimer += deltaTime;
       if (scoreTimer >= 1000) {
         scoreRef.current += 1;
         setScore(scoreRef.current);
         scoreTimer = 0;
-        // Increase difficulty every 5 seconds
         if (scoreRef.current % 5 === 0) {
-          difficulty = Math.min(10, difficulty + 1);
+          difficulty = Math.min(8, difficulty + 1);
         }
       }
 
-      // Spawn raindrops
-      dropTimer += deltaTime;
-      const spawnRate = Math.max(200, 500 - difficulty * 30);
-      if (dropTimer >= spawnRate) {
-        const newDrop = {
-          id: dropIdRef.current++,
-          x: Math.random() * 90 + 5,
+      // Spawn sunrays (collectible)
+      sunTimer += deltaTime;
+      if (sunTimer >= 800) {
+        const newSun = {
+          id: itemIdRef.current++,
+          x: Math.random() * 80 + 10,
           y: 0,
         };
-        setRaindrops((prev) => [...prev, newDrop]);
-        dropTimer = 0;
+        setSunrays((prev) => [...prev, newSun]);
+        sunTimer = 0;
       }
 
-      // Move raindrops and check collisions
-      setRaindrops((prev) => {
-        const speed = 0.06 + difficulty * 0.008;
-        const updated = prev
-          .map((drop) => ({ ...drop, y: drop.y + deltaTime * speed }))
-          .filter((drop) => drop.y < 100);
+      // Spawn clouds (obstacles)
+      cloudTimer += deltaTime;
+      const cloudRate = Math.max(1000, 2000 - difficulty * 100);
+      if (cloudTimer >= cloudRate) {
+        const newCloud = {
+          id: itemIdRef.current++,
+          x: Math.random() * 80 + 10,
+          y: 0,
+        };
+        setClouds((prev) => [...prev, newCloud]);
+        cloudTimer = 0;
+      }
 
-        // Check collision with player
-        const playerY = 85;
-        for (const drop of updated) {
+      // Move and handle sunrays
+      setSunrays((prev) => {
+        const updated: typeof prev = [];
+        for (const ray of prev) {
+          const newY = ray.y + deltaTime * 0.06;
+          
+          // Check if collected
+          if (newY >= 80 && newY <= 95 && Math.abs(ray.x - playerX) < 10) {
+            bonusRef.current += 1;
+            setBonus(bonusRef.current);
+            continue;
+          }
+          
+          if (newY < 100) {
+            updated.push({ ...ray, y: newY });
+          }
+        }
+        return updated;
+      });
+
+      // Move and handle clouds
+      setClouds((prev) => {
+        const speed = 0.05 + difficulty * 0.005;
+        const updated = prev
+          .map((cloud) => ({ ...cloud, y: cloud.y + deltaTime * speed }))
+          .filter((cloud) => cloud.y < 100);
+
+        // Check collision
+        for (const cloud of updated) {
           if (
-            drop.y >= playerY - 5 &&
-            drop.y <= playerY + 8 &&
-            Math.abs(drop.x - playerX) < 8
+            cloud.y >= 75 &&
+            cloud.y <= 95 &&
+            Math.abs(cloud.x - playerX) < 12
           ) {
             endGame();
             return [];
@@ -140,44 +177,32 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
     };
   }, [gameState, playerX, endGame]);
 
+  const totalScore = score + bonus;
+
   return (
-    <Card className="border-blue-500/30 bg-gradient-to-b from-slate-600 to-slate-800 dark:from-slate-800 dark:to-slate-950">
+    <Card className="border-yellow-400/30 bg-gradient-to-b from-yellow-100 to-orange-200 dark:from-yellow-900 dark:to-orange-950">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center justify-between text-lg text-white">
-          <span>🌧️ Rain Dodge</span>
+        <CardTitle className="flex items-center justify-between text-lg">
+          <span>☀️ Sunshine Collector</span>
           <div className="flex gap-4 text-sm font-normal">
-            <span>Score: {score}</span>
-            <span className="text-white/60">Best: {highScore}</span>
+            <span>Time: {score}s</span>
+            <span>☀️ {bonus}</span>
+            <span className="text-muted-foreground">Best: {highScore}</span>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div
           ref={gameRef}
-          className="relative h-64 bg-gradient-to-b from-slate-700 to-slate-900 rounded-lg overflow-hidden touch-none"
+          className="relative h-64 bg-gradient-to-b from-yellow-200 to-orange-300 dark:from-yellow-800 dark:to-orange-900 rounded-lg overflow-hidden touch-none"
           onTouchMove={handleTouch}
           onTouchStart={handleTouch}
         >
-          {/* Rain effect background */}
-          <div className="absolute inset-0 opacity-20">
-            {[...Array(15)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-0.5 h-4 bg-blue-300 animate-pulse"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                }}
-              />
-            ))}
-          </div>
-
           {gameState === "idle" && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm z-10">
               <p className="text-center text-sm text-muted-foreground px-4">
-                Dodge the raindrops!<br />
-                1 point per second survived.
+                Collect sunrays, avoid clouds!<br />
+                1 point/second + 1 per sunray.
               </p>
               <Button onClick={startGame} className="gap-2" disabled={disabled}>
                 <Play className="w-4 h-4" />
@@ -190,36 +215,51 @@ export function RainDodgeGame({ onGameEnd, disabled }: RainDodgeGameProps) {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm z-10">
               <div className="text-center">
                 <p className="text-2xl font-bold">Game Over!</p>
-                <p className="text-lg">Score: {score} points</p>
-                {score >= highScore && score > 0 && (
+                <p className="text-lg">{score}s + ☀️{bonus} = {totalScore} points</p>
+                {totalScore >= highScore && totalScore > 0 && (
                   <p className="text-primary font-semibold">🎉 New High Score!</p>
                 )}
               </div>
             </div>
           )}
 
+          {/* Sunrays */}
+          {sunrays.map((ray) => (
+            <div
+              key={ray.id}
+              className="absolute text-2xl"
+              style={{
+                left: `${ray.x}%`,
+                top: `${ray.y}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              ☀️
+            </div>
+          ))}
+
+          {/* Clouds */}
+          {clouds.map((cloud) => (
+            <div
+              key={cloud.id}
+              className="absolute text-3xl"
+              style={{
+                left: `${cloud.x}%`,
+                top: `${cloud.y}%`,
+                transform: "translateX(-50%)",
+              }}
+            >
+              ☁️
+            </div>
+          ))}
+
           {/* Player */}
           <div
             className="absolute w-10 h-10 text-3xl transition-all duration-75"
             style={{ left: `${playerX}%`, bottom: "8%", transform: "translateX(-50%)" }}
           >
-            🧍
+            🧺
           </div>
-
-          {/* Raindrops */}
-          {raindrops.map((drop) => (
-            <div
-              key={drop.id}
-              className="absolute text-lg"
-              style={{
-                left: `${drop.x}%`,
-                top: `${drop.y}%`,
-                transform: "translateX(-50%)",
-              }}
-            >
-              💧
-            </div>
-          ))}
         </div>
       </CardContent>
     </Card>
