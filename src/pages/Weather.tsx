@@ -39,6 +39,7 @@ import { AQICard } from "@/components/weather/aqi-card";
 import { BarometerCard } from "@/components/weather/barometer-card";
 import { MobileLocationNav } from "@/components/weather/mobile-location-nav";
 import { HeaderInfoBar } from "@/components/weather/header-info-bar";
+import RainMapCard from "@/components/weather/rain-map-card";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -426,6 +427,10 @@ export default function WeatherPage() {
               return null;
             case "hourly":
               return <HourlyForecast key="hourly" hourlyData={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} is24Hour={is24Hour} />;
+            case "rainMap":
+              return <div key="rainMap" className="mb-4">
+                      <RainMapCard latitude={selectedLocation.lat} longitude={selectedLocation.lon} locationName={actualStationName} />
+                    </div>;
             case "tenDay":
               return <TenDayForecast key="tenDay" dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} hourlyForecast={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} is24Hour={is24Hour} />;
             case "detailedMetrics":

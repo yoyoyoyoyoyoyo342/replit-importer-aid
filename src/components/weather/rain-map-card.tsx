@@ -1,0 +1,279 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { MapPin, Play, Pause, SkipBack, SkipForward, CloudRain } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+interface RainMapCardProps {
+  latitude: number;
+  longitude: number;
+  locationName: string;
+}
+
+interface RadarFrame {
+  time: number;
+  path: string;
+}
+
+// Component to handle radar layer updates
+const RadarLayer = ({ 
+  frame, 
+  opacity 
+}: { 
+  frame: RadarFrame | null; 
+  opacity: number;
+}) => {
+  const map = useMap();
+  const layerRef = useRef<L.TileLayer | null>(null);
+
+  useEffect(() => {
+    if (layerRef.current) {
+      map.removeLayer(layerRef.current);
+    }
+
+    if (frame) {
+      const radarLayer = L.tileLayer(
+        `https://tilecache.rainviewer.com${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+        {
+          opacity: opacity,
+          zIndex: 1000,
+        }
+      );
+      radarLayer.addTo(map);
+      layerRef.current = radarLayer;
+    }
+
+    return () => {
+      if (layerRef.current) {
+        map.removeLayer(layerRef.current);
+      }
+    };
+  }, [frame, opacity, map]);
+
+  return null;
+};
+
+// Component to recenter map
+const MapController = ({ latitude, longitude }: { latitude: number; longitude: number }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    map.setView([latitude, longitude], 8);
+  }, [latitude, longitude, map]);
+
+  return null;
+};
+
+const RainMapCard: React.FC<RainMapCardProps> = ({
+  latitude,
+  longitude,
+  locationName,
+}) => {
+  const [radarFrames, setRadarFrames] = useState<RadarFrame[]>([]);
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [opacity, setOpacity] = useState(0.7);
+  const [loading, setLoading] = useState(true);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch radar data from RainViewer API
+  useEffect(() => {
+    const fetchRadarData = async () => {
+      try {
+        const response = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+        const data = await response.json();
+        
+        // Combine past and nowcast frames
+        const frames: RadarFrame[] = [
+          ...data.radar.past.map((frame: { time: number; path: string }) => ({
+            time: frame.time,
+            path: frame.path,
+          })),
+          ...data.radar.nowcast.map((frame: { time: number; path: string }) => ({
+            time: frame.time,
+            path: frame.path,
+          })),
+        ];
+        
+        setRadarFrames(frames);
+        setCurrentFrameIndex(data.radar.past.length - 1); // Start at most recent past frame
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch radar data:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchRadarData();
+    
+    // Refresh radar data every 5 minutes
+    const refreshInterval = setInterval(fetchRadarData, 5 * 60 * 1000);
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  // Animation playback
+  useEffect(() => {
+    if (isPlaying && radarFrames.length > 0) {
+      intervalRef.current = setInterval(() => {
+        setCurrentFrameIndex((prev) => {
+          if (prev >= radarFrames.length - 1) {
+            return 0; // Loop back to start
+          }
+          return prev + 1;
+        });
+      }, 500);
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isPlaying, radarFrames.length]);
+
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const currentFrame = radarFrames[currentFrameIndex] || null;
+  const isPast = radarFrames.length > 0 && currentFrameIndex < radarFrames.findIndex(f => f.time > Date.now() / 1000);
+
+  return (
+    <Card className="overflow-hidden border-0 shadow-lg">
+      <CardHeader className="pb-2 bg-gradient-to-r from-blue-500/80 via-cyan-500/70 to-blue-500/80">
+        <CardTitle className="flex items-center gap-2 text-white text-lg">
+          <CloudRain className="h-5 w-5" />
+          Rain Radar
+        </CardTitle>
+        <div className="flex items-center gap-1 text-white/80 text-sm">
+          <MapPin className="h-3 w-3" />
+          {locationName}
+        </div>
+      </CardHeader>
+      <CardContent className="p-0 bg-background/50">
+        <div className="relative h-[300px] md:h-[400px] w-full">
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <MapContainer
+              center={[latitude, longitude]}
+              zoom={8}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <MapController latitude={latitude} longitude={longitude} />
+              <RadarLayer frame={currentFrame} opacity={opacity} />
+            </MapContainer>
+          )}
+          
+          {/* Time indicator */}
+          {currentFrame && (
+            <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-1.5 text-sm font-medium z-[1000]">
+              <span className={isPast ? 'text-muted-foreground' : 'text-primary'}>
+                {isPast ? 'Past' : 'Forecast'}
+              </span>
+              <span className="ml-2">{formatTime(currentFrame.time)}</span>
+            </div>
+          )}
+
+          {/* Legend */}
+          <div className="absolute bottom-16 right-2 bg-background/90 backdrop-blur-sm rounded-lg p-2 z-[1000]">
+            <div className="text-xs font-medium mb-1">Intensity</div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#88DDFF' }}></div>
+              <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#00FF00' }}></div>
+              <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#FFFF00' }}></div>
+              <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#FF8800' }}></div>
+              <div className="w-4 h-3 rounded-sm" style={{ backgroundColor: '#FF0000' }}></div>
+            </div>
+            <div className="flex justify-between text-[10px] text-muted-foreground mt-0.5">
+              <span>Light</span>
+              <span>Heavy</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Playback controls */}
+        <div className="p-4 space-y-3 border-t border-border/50">
+          {/* Timeline slider */}
+          <div className="space-y-1">
+            <Slider
+              value={[currentFrameIndex]}
+              min={0}
+              max={radarFrames.length - 1}
+              step={1}
+              onValueChange={(value) => {
+                setCurrentFrameIndex(value[0]);
+                setIsPlaying(false);
+              }}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{radarFrames[0] ? formatTime(radarFrames[0].time) : '--:--'}</span>
+              <span>{radarFrames[radarFrames.length - 1] ? formatTime(radarFrames[radarFrames.length - 1].time) : '--:--'}</span>
+            </div>
+          </div>
+
+          {/* Control buttons */}
+          <div className="flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                setCurrentFrameIndex(0);
+                setIsPlaying(false);
+              }}
+              disabled={radarFrames.length === 0}
+            >
+              <SkipBack className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="default"
+              size="icon"
+              onClick={() => setIsPlaying(!isPlaying)}
+              disabled={radarFrames.length === 0}
+            >
+              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                setCurrentFrameIndex(radarFrames.length - 1);
+                setIsPlaying(false);
+              }}
+              disabled={radarFrames.length === 0}
+            >
+              <SkipForward className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Opacity control */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">Opacity</span>
+            <Slider
+              value={[opacity * 100]}
+              min={20}
+              max={100}
+              step={10}
+              onValueChange={(value) => setOpacity(value[0] / 100)}
+              className="flex-1"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default RainMapCard;
