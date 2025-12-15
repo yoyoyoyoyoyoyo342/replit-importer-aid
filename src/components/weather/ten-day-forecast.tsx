@@ -83,13 +83,10 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
                 onOpenChange={() => toggleDay(index)}
               >
                 <CollapsibleTrigger className="w-full">
-                  <div 
-                    className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50 cursor-pointer hover:from-primary/15 hover:to-primary/10 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] animate-fade-in"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50 cursor-pointer hover:from-primary/15 hover:to-primary/10 transition-all">
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-medium text-muted-foreground w-12">{day.day}</span>
-                      <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center transition-transform duration-300 hover:rotate-12">
+                      <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center">
                         {getConditionIcon(day.condition, "w-5 h-5")}
                       </div>
                       <span className="text-sm font-medium text-foreground truncate max-w-[100px]">{day.condition}</span>
@@ -105,25 +102,26 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
                           {isImperial ? day.lowTemp : Math.round((day.lowTemp - 32) * 5/9)}°
                         </span>
                       </div>
-                      <div className={`transition-transform duration-300 ${expandedDay === index ? 'rotate-180' : ''}`}>
+                      {expandedDay === index ? (
+                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                      ) : (
                         <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      </div>
+                      )}
                     </div>
                   </div>
                 </CollapsibleTrigger>
                 
-                <CollapsibleContent className="mt-2 animate-fade-in">
+                <CollapsibleContent className="mt-2">
                   <div className="rounded-xl p-3 bg-gradient-to-br from-primary/5 to-accent/5 border border-border/50">
                     <div className="flex items-center gap-2 mb-3">
-                      <Clock className="w-4 h-4 text-primary animate-pulse" />
+                      <Clock className="w-4 h-4 text-primary" />
                       <span className="text-sm font-medium">Hourly Breakdown</span>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
                       {getHourlyForDay(index).map((hour, hourIndex) => (
                         <div
                           key={hourIndex}
-                          className="text-center p-2 rounded-lg bg-background/60 border border-border/30 animate-scale-in hover:bg-background/80 transition-all duration-200 hover:scale-105 active:scale-95"
-                          style={{ animationDelay: `${hourIndex * 0.02}s` }}
+                          className="text-center p-2 rounded-lg bg-background/60 border border-border/30"
                         >
                           <div className="text-xs text-muted-foreground mb-1">
                             {formatTime(hour.time, is24Hour)}
@@ -146,12 +144,19 @@ export function TenDayForecast({ dailyForecast, weatherSources, hourlyForecast, 
           {dailyForecast.length > 4 && (
             <button
               onClick={() => setShowAllDays(!showAllDays)}
-              className="w-full mt-3 py-2 px-4 rounded-xl bg-gradient-to-r from-primary/20 to-accent/20 hover:from-primary/30 hover:to-accent/30 text-sm font-medium text-foreground transition-all duration-200 flex items-center justify-center gap-2 hover:scale-[1.01] active:scale-[0.99]"
+              className="w-full mt-3 py-2 px-4 rounded-xl bg-gradient-to-r from-primary/20 to-accent/20 hover:from-primary/30 hover:to-accent/30 text-sm font-medium text-foreground transition-all flex items-center justify-center gap-2"
             >
-              <div className={`transition-transform duration-300 ${showAllDays ? 'rotate-180' : ''}`}>
-                <ChevronDown className="w-4 h-4" />
-              </div>
-              {showAllDays ? 'Show Less' : 'Show All 10 Days'}
+              {showAllDays ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  Show Less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  Show All 10 Days
+                </>
+              )}
             </button>
           )}
         </div>

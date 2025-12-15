@@ -88,14 +88,13 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
               {defaultVisibleData.map((hour, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50 animate-fade-in hover:bg-primary/15 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
-                  style={{ animationDelay: `${index * 0.05}s` }}
+                  className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-muted-foreground w-14">
                       {formatTime(hour.time, is24Hour)}
                     </span>
-                    <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center transition-transform duration-300 hover:rotate-12">
+                    <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center">
                       {getConditionIcon(hour.condition)}
                     </div>
                   </div>
@@ -113,14 +112,13 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
                   {fullDayData.slice(defaultVisibleData.length).map((hour, index) => (
                     <div
                       key={index + defaultVisibleData.length}
-                      className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50 animate-fade-in hover:bg-primary/15 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
-                      style={{ animationDelay: `${index * 0.03}s` }}
+                      className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50"
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-sm font-medium text-muted-foreground w-14">
                           {formatTime(hour.time, is24Hour)}
                         </span>
-                        <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center transition-transform duration-300 hover:rotate-12">
+                        <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center">
                           {getConditionIcon(hour.condition)}
                         </div>
                       </div>
