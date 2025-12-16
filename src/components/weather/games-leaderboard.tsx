@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Trophy, Medal, Award, Gamepad2 } from "lucide-react";
+import { Trophy, Medal, Award, Gamepad2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DisplayNameDialog } from "./display-name-dialog";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 
 interface LeaderboardEntry {
   rank: number;
@@ -16,10 +17,28 @@ interface LeaderboardEntry {
 
 export const GamesLeaderboard = () => {
   const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNameDialog, setShowNameDialog] = useState(false);
   const [hasDisplayName, setHasDisplayName] = useState(false);
+
+  // Locked state for non-admins
+  if (!adminLoading && !isAdmin) {
+    return (
+      <Card className="p-6 bg-background/40 backdrop-blur-md border-border/50">
+        <div className="py-8 text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
+            <Lock className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Leaderboard Locked</h3>
+          <p className="text-muted-foreground text-sm">
+            The leaderboard is currently available for admins only.
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   useEffect(() => {
     checkDisplayName();

@@ -12,6 +12,7 @@ import { SunshineCollectorGame } from "./games/sunshine-collector-game";
 import { GamesLeaderboard } from "./games-leaderboard";
 import { useDailyGameLimit } from "@/hooks/use-daily-game-limit";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -51,13 +52,13 @@ function mapConditionToGame(condition?: string): GameType {
     return "cloud";
   }
   
-  // Default to sunshine for clear/sunny conditions
   return "sun";
 }
 
 export function GamesDialog({ weatherCondition }: GamesDialogProps) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
   const { status, recordGamePlay } = useDailyGameLimit();
   const [gameCompleted, setGameCompleted] = useState(false);
 
@@ -93,6 +94,39 @@ export function GamesDialog({ weatherCondition }: GamesDialogProps) {
     }
   };
 
+  // Locked state for non-admins
+  if (!adminLoading && !isAdmin) {
+    return (
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className="h-10 px-4 text-sm sm:h-8 sm:px-3 sm:text-xs flex-1 sm:flex-initial opacity-60">
+            <Lock className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
+            Games (Admin Only)
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Lock className="w-6 h-6 text-muted-foreground" />
+              Games Locked
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-8 text-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
+              <Gamepad2 className="w-10 h-10 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground mb-2">
+              Weather games are currently available for admins only.
+            </p>
+            <p className="text-sm text-muted-foreground/70">
+              Check back later for public access!
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -112,7 +146,6 @@ export function GamesDialog({ weatherCondition }: GamesDialogProps) {
           </p>
         </DialogHeader>
 
-        {/* Daily limit notice */}
         {isDisabled && (
           <Card className="border-primary/30 bg-primary/10">
             <CardContent className="p-4 flex items-center gap-3">
