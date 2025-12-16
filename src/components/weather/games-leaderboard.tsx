@@ -72,15 +72,12 @@ export const GamesLeaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      // Use the leaderboard view which has public access
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .select("*")
-        .limit(10);
+      // Use the get_leaderboard RPC function which has SECURITY DEFINER to bypass RLS
+      const { data, error } = await supabase.rpc("get_leaderboard");
 
       if (error) throw error;
 
-      const leaderboardData: LeaderboardEntry[] = (data || []).map((entry, index) => ({
+      const leaderboardData: LeaderboardEntry[] = (data || []).map((entry: any, index: number) => ({
         rank: entry.rank || index + 1,
         display_name: entry.display_name || "Anonymous",
         total_points: entry.total_points || 0,
@@ -88,6 +85,7 @@ export const GamesLeaderboard = () => {
         longest_streak: entry.longest_streak || 0,
       }));
 
+      // Limit to top 5 players
       setLeaderboard(leaderboardData.slice(0, 5));
     } catch (error) {
       console.error("Error fetching leaderboard:", error);

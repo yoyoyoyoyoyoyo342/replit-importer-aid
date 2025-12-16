@@ -168,6 +168,11 @@ export function CurrentWeather({
   const lowTemp = isImperial 
     ? mostAccurate.dailyForecast[0]?.lowTemp 
     : Math.round((mostAccurate.dailyForecast[0]?.lowTemp - 32) * 5 / 9);
+  
+  // Convert visibility from miles to km when metric is selected
+  const displayVisibility = isImperial 
+    ? mostAccurate.currentWeather.visibility 
+    : Math.round(mostAccurate.currentWeather.visibility * 1.60934 * 10) / 10;
 
   const locationDisplay = displayName 
     ? displayName.split(',')[0] 
@@ -246,7 +251,7 @@ export function CurrentWeather({
             </div>
             <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2.5 text-center">
               <Eye className="w-4 h-4 text-white/80 mx-auto mb-1" />
-              <p className="text-white font-semibold text-sm">{mostAccurate.currentWeather.visibility}</p>
+              <p className="text-white font-semibold text-sm">{displayVisibility}</p>
               <p className="text-white/60 text-xs">{isImperial ? 'mi' : 'km'}</p>
             </div>
           </div>
