@@ -254,7 +254,7 @@ Key Guidelines:
 - Be specific about timing and conditions
 ${userRoutines && userRoutines.length > 0 ? `
 - IMPORTANT: Tailor advice to the user's daily routines:
-${userRoutines.map((r: any) => `  * ${r.name} at ${r.time} on ${r.days_of_week.join(', ')} - ${r.activity_type} activity`).join('\n')}
+${userRoutines.filter((r: any) => r?.days_of_week).map((r: any) => `  * ${r.name || 'Routine'} at ${r.time || 'unspecified time'} on ${(r.days_of_week || []).join(', ')} - ${r.activity_type || 'general'} activity`).join('\n')}
 - Consider which routines happen today and provide weather-specific advice for them` : ''}
 
 Current Weather in ${location}:
@@ -358,7 +358,7 @@ Current Weather Context for ${location}:
 - Visibility: ${chatVisibility} ${isImperial ? 'miles' : 'km'}
 ${userRoutines && userRoutines.length > 0 ? `
 User's Daily Routines:
-${userRoutines.map((r: any) => `- ${r.name} at ${r.time} on ${r.days_of_week.join(', ')} (${r.activity_type} activity)`).join('\n')}
+${userRoutines.filter((r: any) => r?.days_of_week).map((r: any) => `- ${r.name || 'Routine'} at ${r.time || 'unspecified time'} on ${(r.days_of_week || []).join(', ')} (${r.activity_type || 'general'} activity)`).join('\n')}
 Consider these routines when providing weather advice.` : ''}
 
 Guidelines:
