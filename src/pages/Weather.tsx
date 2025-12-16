@@ -294,13 +294,9 @@ export default function WeatherPage() {
           {/* Gradient Header */}
           <div className="bg-gradient-to-r from-sky-500/70 via-blue-600/60 to-indigo-700/70 p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              {/* Logo & Title */}
-              <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Rainz Logo" className="w-12 h-12 sm:w-14 sm:h-14 drop-shadow-lg rounded-xl" />
-                <div className="flex flex-col">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">Rainz Weather</h1>
-                  <p className="text-sm text-white/80">Be prepared.</p>
-                </div>
+              <div className="flex flex-col">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">Rainz Weather</h1>
+                <p className="text-sm text-white/80">Be prepared.</p>
               </div>
 
               {/* Auth & Controls */}
