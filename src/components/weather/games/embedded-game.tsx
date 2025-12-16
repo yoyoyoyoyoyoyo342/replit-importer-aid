@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, ExternalLink, RefreshCw } from "lucide-react";
+import { Loader2, ExternalLink, RefreshCw, Smartphone } from "lucide-react";
 
 interface EmbeddedGameProps {
   gameUrl: string;
@@ -11,43 +11,43 @@ interface EmbeddedGameProps {
   disabled?: boolean;
 }
 
-// Known embeddable game URLs for each weather theme
+// Mobile-friendly embeddable game URLs (all have "mobile" tag with touch controls)
 export const GAME_URLS = {
-  // Snow Skiing - Ski themed endless runner
+  // Snow Skiing - Jeep racing on terrain (mobile-friendly physics game)
   snow: {
-    url: "https://www.onlinegames.io/games/2021/3/police-chase-drifter/index.html",
-    fallback: "https://www.onlinegames.io/games/police-chase-drifter/",
-    name: "Snow Drifter",
+    url: "https://www.onlinegames.io/games/2023/freezenova.com/jeep-racing/index.html",
+    fallback: "https://www.onlinegames.io/games/jeep-racing/",
+    name: "Snow Rider",
   },
-  // Rain Dodge - Dodging game
+  // Rain Dodge - Dinosaur endless runner (mobile-friendly, tap to jump)
   rain: {
-    url: "https://www.onlinegames.io/games/2023/q2/geometry-dash-freezenova/index.html",
-    fallback: "https://www.onlinegames.io/games/geometry-dash-freezenova/",
-    name: "Rain Runner",
+    url: "https://www.onlinegames.io/games/2023/q2/dinosaur-game/index.html",
+    fallback: "https://www.onlinegames.io/games/dinosaur-game/",
+    name: "Rain Dash",
   },
-  // Cloud Jump - Platformer jumping game  
+  // Cloud Jump - Stickman physics/jumping (mobile-friendly tap controls)
   cloud: {
-    url: "https://www.onlinegames.io/games/2024/code/6/get-on-top/index.html",
-    fallback: "https://www.onlinegames.io/games/get-on-top/",
-    name: "Cloud Hopper",
+    url: "https://www.onlinegames.io/games/2023/construct/185/crazy-stickman-physics/index.html",
+    fallback: "https://www.onlinegames.io/games/crazy-stickman-physics/",
+    name: "Cloud Bounce",
   },
-  // Lightning Dodge - Fast reaction game
+  // Lightning Dodge - Zombie Sniper fast reaction (mobile-friendly tap to shoot)
   lightning: {
-    url: "https://cloud.onlinegames.io/games/2024/construct/299/geometry-escape/index-og.html",
-    fallback: "https://www.onlinegames.io/games/geometry-escape/",
-    name: "Lightning Escape",
+    url: "https://www.onlinegames.io/games/2022/construct/116/zombie-sniper/index.html",
+    fallback: "https://www.onlinegames.io/games/zombie-sniper/",
+    name: "Storm Shooter",
   },
-  // Wind Surfer - Racing/movement game
+  // Wind Surfer - Football King movement game (mobile-friendly touch)
   wind: {
-    url: "https://cloud.onlinegames.io/games/2024/construct/219/stickman-parkour/index-og.html",
-    fallback: "https://www.onlinegames.io/games/stickman-parkour/",
-    name: "Wind Runner",
+    url: "https://www.onlinegames.io/games/2024/construct/226/football-king/index.html",
+    fallback: "https://www.onlinegames.io/games/football-king/",
+    name: "Wind Kick",
   },
-  // Sunshine Collector - Collection/clicker game
+  // Sunshine Collector - Capybara Clicker (mobile-friendly tap game)
   sun: {
     url: "https://www.onlinegames.io/games/2023/q2/capybara-clicker-pro/index.html",
     fallback: "https://www.onlinegames.io/games/capybara-clicker-pro/",
-    name: "Sun Collector",
+    name: "Sun Tapper",
   },
 };
 
@@ -118,17 +118,26 @@ export function EmbeddedGame({
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="text-lg">{gameName}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">{gameName}</CardTitle>
+            <div className="flex items-center gap-1 text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-1 rounded-full">
+              <Smartphone className="w-3 h-3" />
+              Mobile Ready
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center h-[400px] text-center gap-4">
+        <CardContent className="flex flex-col items-center justify-center h-[350px] sm:h-[400px] text-center gap-4">
           <p className="text-muted-foreground">
-            Ready to play? Click start to begin your weather-themed adventure!
+            Ready to play? Tap start to begin your weather-themed adventure!
           </p>
-          <Button onClick={handleStartGame} size="lg">
+          <Button onClick={handleStartGame} size="lg" className="min-w-[150px]">
             Start Game
           </Button>
           <p className="text-xs text-muted-foreground">
             Play for 30 seconds to earn 50 points
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            Works on desktop & mobile with touch controls
           </p>
         </CardContent>
       </Card>
@@ -141,11 +150,11 @@ export function EmbeddedGame({
         <CardHeader>
           <CardTitle className="text-lg">{gameName}</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center h-[400px] text-center gap-4">
+        <CardContent className="flex flex-col items-center justify-center h-[350px] sm:h-[400px] text-center gap-4">
           <p className="text-muted-foreground">
             Unable to load the game. You can try again or play on the original site.
           </p>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={handleRefresh}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Try Again
@@ -164,10 +173,16 @@ export function EmbeddedGame({
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{gameName}</CardTitle>
-          <Button variant="ghost" size="sm" asChild>
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <CardTitle className="text-base sm:text-lg truncate">{gameName}</CardTitle>
+            <div className="hidden sm:flex items-center gap-1 text-xs text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">
+              <Smartphone className="w-3 h-3" />
+              Mobile
+            </div>
+          </div>
+          <Button variant="ghost" size="sm" asChild className="shrink-0">
             <a href={fallbackUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4" />
             </a>
@@ -187,11 +202,12 @@ export function EmbeddedGame({
           id="game-iframe"
           src={gameUrl}
           title={gameName}
-          className="w-full h-[450px] border-0 rounded-b-lg"
+          className="w-full h-[400px] sm:h-[450px] border-0 rounded-b-lg"
           onLoad={handleIframeLoad}
           onError={handleIframeError}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
           sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+          style={{ touchAction: 'manipulation' }}
         />
       </CardContent>
     </Card>
