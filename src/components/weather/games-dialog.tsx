@@ -3,12 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Gamepad2, Lock, Trophy } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SnowSkiingGame } from "./games/snow-skiing-game";
-import { RainDodgeGame } from "./games/rain-dodge-game";
-import { CloudJumpGame } from "./games/cloud-jump-game";
-import { LightningDodgeGame } from "./games/lightning-dodge-game";
-import { WindSurferGame } from "./games/wind-surfer-game";
-import { SunshineCollectorGame } from "./games/sunshine-collector-game";
+import { EmbeddedGame, GAME_URLS } from "./games/embedded-game";
 import { GamesLeaderboard } from "./games-leaderboard";
 import { useDailyGameLimit } from "@/hooks/use-daily-game-limit";
 import { useAuth } from "@/hooks/use-auth";
@@ -64,6 +59,7 @@ export function GamesDialog({ weatherCondition }: GamesDialogProps) {
 
   const currentGame = useMemo(() => mapConditionToGame(weatherCondition), [weatherCondition]);
   const gameInfo = GAME_INFO[currentGame];
+  const gameConfig = GAME_URLS[currentGame];
 
   const handleGameEnd = async (score: number) => {
     if (!status.hasPlayedToday && !gameCompleted) {
@@ -76,22 +72,15 @@ export function GamesDialog({ weatherCondition }: GamesDialogProps) {
   const isDisabled = status.hasPlayedToday || gameCompleted;
 
   const renderGame = () => {
-    const props = { onGameEnd: handleGameEnd, disabled: isDisabled };
-    
-    switch (currentGame) {
-      case "snow":
-        return <SnowSkiingGame {...props} />;
-      case "rain":
-        return <RainDodgeGame {...props} />;
-      case "cloud":
-        return <CloudJumpGame {...props} />;
-      case "lightning":
-        return <LightningDodgeGame {...props} />;
-      case "wind":
-        return <WindSurferGame {...props} />;
-      case "sun":
-        return <SunshineCollectorGame {...props} />;
-    }
+    return (
+      <EmbeddedGame
+        gameUrl={gameConfig.url}
+        gameName={`${gameInfo.emoji} ${gameInfo.name}`}
+        fallbackUrl={gameConfig.fallback}
+        onGameEnd={handleGameEnd}
+        disabled={isDisabled}
+      />
+    );
   };
 
   // Locked state for non-admins
