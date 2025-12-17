@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Trophy, Medal, Award, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 interface LeaderboardEntry {
   rank: number;
+  user_id: string;
   display_name: string;
   total_points: number;
   current_streak: number;
@@ -18,6 +20,7 @@ interface LeaderboardEntry {
 
 export const Leaderboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNameDialog, setShowNameDialog] = useState(false);
@@ -55,11 +58,51 @@ export const Leaderboard = () => {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data, error } = await supabase.rpc("get_leaderboard");
+      // Get leaderboard data with user_ids
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, total_points")
+        .not("display_name", "is", null)
+        .order("total_points", { ascending: false })
+        .limit(10);
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
 
-      setLeaderboard((data || []).slice(0, 5) as LeaderboardEntry[]);
+      // Get streak data for each user
+      const leaderboardWithStreaks = await Promise.all(
+        (profilesData || []).map(async (profile, index) => {
+          const { data: streakData } = await supabase
+            .from("user_streaks")
+            .select("current_streak, longest_streak")
+            .eq("user_id", profile.user_id)
+            .maybeSingle();
+
+          const { count: totalPredictions } = await supabase
+            .from("weather_predictions")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", profile.user_id);
+
+          const { count: correctPredictions } = await supabase
+            .from("weather_predictions")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", profile.user_id)
+            .eq("is_verified", true)
+            .eq("is_correct", true);
+
+          return {
+            rank: index + 1,
+            user_id: profile.user_id,
+            display_name: profile.display_name,
+            total_points: profile.total_points || 0,
+            current_streak: streakData?.current_streak || 0,
+            longest_streak: streakData?.longest_streak || 0,
+            total_predictions: totalPredictions || 0,
+            correct_predictions: correctPredictions || 0,
+          };
+        })
+      );
+
+      setLeaderboard(leaderboardWithStreaks.slice(0, 5));
     } catch (error) {
       console.error("Error fetching leaderboard:", error);
     } finally {
@@ -150,9 +193,12 @@ export const Leaderboard = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground truncate">
+                  <button
+                    onClick={() => navigate(`/profile/${entry.user_id}`)}
+                    className="font-bold text-foreground truncate hover:text-primary hover:underline transition-colors text-left"
+                  >
                     {entry.display_name}
-                  </p>
+                  </button>
                   <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1">
                     <span className="font-medium">{accuracy}% accurate</span>
                     <span>•</span>

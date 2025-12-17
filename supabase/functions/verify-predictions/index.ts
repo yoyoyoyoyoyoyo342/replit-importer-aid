@@ -136,6 +136,122 @@ serve(async (req) => {
           .update({ total_points: newTotalPoints })
           .eq('user_id', prediction.user_id);
 
+        // Check if this prediction is part of a battle and resolve it
+        const { data: battles } = await supabase
+          .from('prediction_battles')
+          .select('*')
+          .eq('battle_date', predictionDate)
+          .eq('status', 'accepted')
+          .or(`challenger_prediction_id.eq.${prediction.id},opponent_prediction_id.eq.${prediction.id}`);
+
+        for (const battle of battles || []) {
+          // Check if both predictions are now verified
+          const { data: challengerPred } = await supabase
+            .from('weather_predictions')
+            .select('points_earned, is_verified')
+            .eq('id', battle.challenger_prediction_id)
+            .maybeSingle();
+
+          const { data: opponentPred } = await supabase
+            .from('weather_predictions')
+            .select('points_earned, is_verified')
+            .eq('id', battle.opponent_prediction_id)
+            .maybeSingle();
+
+          if (challengerPred?.is_verified && opponentPred?.is_verified) {
+            const challengerScore = challengerPred.points_earned || 0;
+            const opponentScore = opponentPred.points_earned || 0;
+            
+            let winnerId = null;
+            if (challengerScore > opponentScore) {
+              winnerId = battle.challenger_id;
+            } else if (opponentScore > challengerScore) {
+              winnerId = battle.opponent_id;
+            }
+            // If tied, no winner
+
+            // Update battle with results
+            await supabase
+              .from('prediction_battles')
+              .update({
+                status: 'completed',
+                challenger_score: challengerScore,
+                opponent_score: opponentScore,
+                winner_id: winnerId,
+                updated_at: new Date().toISOString(),
+              })
+              .eq('id', battle.id);
+
+            // Award 100 bonus points to the winner
+            if (winnerId) {
+              const { data: winnerProfile } = await supabase
+                .from('profiles')
+                .select('total_points')
+                .eq('user_id', winnerId)
+                .single();
+
+              const newWinnerPoints = (winnerProfile?.total_points || 0) + 100;
+
+              await supabase
+                .from('profiles')
+                .update({ total_points: newWinnerPoints })
+                .eq('user_id', winnerId);
+
+              // Notify the winner
+              const { data: loserProfile } = await supabase
+                .from('profiles')
+                .select('display_name')
+                .eq('user_id', winnerId === battle.challenger_id ? battle.opponent_id : battle.challenger_id)
+                .maybeSingle();
+
+              await supabase.from('user_notifications').insert({
+                user_id: winnerId,
+                type: 'battle_won',
+                title: 'Battle Victory! 🏆',
+                message: `You won the weather battle against ${loserProfile?.display_name || 'your opponent'}! +100 bonus points!`,
+                metadata: { battle_id: battle.id, bonus_points: 100 },
+              });
+
+              // Notify the loser
+              const loserId = winnerId === battle.challenger_id ? battle.opponent_id : battle.challenger_id;
+              const { data: winnerProfileName } = await supabase
+                .from('profiles')
+                .select('display_name')
+                .eq('user_id', winnerId)
+                .maybeSingle();
+
+              await supabase.from('user_notifications').insert({
+                user_id: loserId,
+                type: 'battle_lost',
+                title: 'Battle Ended',
+                message: `${winnerProfileName?.display_name || 'Your opponent'} won the weather battle. Better luck next time!`,
+                metadata: { battle_id: battle.id },
+              });
+
+              console.log(`Battle ${battle.id} completed. Winner: ${winnerId} (+100 bonus points)`);
+            } else {
+              // Notify both users of a tie
+              await supabase.from('user_notifications').insert([
+                {
+                  user_id: battle.challenger_id,
+                  type: 'battle_tie',
+                  title: 'Battle Tied!',
+                  message: 'Your weather battle ended in a tie! No bonus points awarded.',
+                  metadata: { battle_id: battle.id },
+                },
+                {
+                  user_id: battle.opponent_id,
+                  type: 'battle_tie',
+                  title: 'Battle Tied!',
+                  message: 'Your weather battle ended in a tie! No bonus points awarded.',
+                  metadata: { battle_id: battle.id },
+                },
+              ]);
+              console.log(`Battle ${battle.id} completed with a tie.`);
+            }
+          }
+        }
+
         verifiedCount++;
         console.log(`Verified prediction ${prediction.id}: ${isCorrect ? 'Correct' : 'Incorrect'} (${pointsEarned} points)`);
       } catch (error) {

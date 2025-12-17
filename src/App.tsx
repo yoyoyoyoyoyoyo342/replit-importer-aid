@@ -26,6 +26,7 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataSettings = lazy(() => import("./pages/DataSettings"));
 const About = lazy(() => import("./pages/About"));
+const UserProfile = lazy(() => import("./pages/UserProfile"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -100,6 +101,7 @@ function AppContent() {
                         <Route path="/privacy" element={<PrivacyPolicy />} />
                         <Route path="/data-settings" element={<DataSettings />} />
                         <Route path="/about" element={<About />} />
+                        <Route path="/profile/:userId" element={<UserProfile />} />
                         <Route path="/weather" element={<Navigate to="/" replace />} />
                         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                         <Route path="*" element={<NotFound />} />
