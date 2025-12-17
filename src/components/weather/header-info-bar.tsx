@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Flame, Trophy, X, Inbox, Circle } from "lucide-react";
+import { Bell, Flame, Trophy, X, Inbox, Circle, Swords, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useUserStreaks } from "@/hooks/use-user-streaks";
@@ -9,6 +9,16 @@ import { Badge } from "@/components/ui/badge";
 interface BroadcastMessage {
   id: string;
   message: string;
+  created_at: string;
+}
+
+interface UserNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  metadata: any;
+  is_read: boolean;
   created_at: string;
 }
 
@@ -52,6 +62,7 @@ interface HeaderInfoBarProps {
 export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
   const { streakData, loading: streakLoading } = useUserStreaks();
   const [messages, setMessages] = useState<BroadcastMessage[]>([]);
+  const [userNotifications, setUserNotifications] = useState<UserNotification[]>([]);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
   const [isOpen, setIsOpen] = useState(false);
@@ -74,8 +85,8 @@ export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
 
     loadMessages();
 
-    // Listen for new messages
-    const channel = supabase
+    // Listen for new broadcast messages
+    const broadcastChannel = supabase
       .channel('header-broadcast-messages')
       .on(
         'postgres_changes',
@@ -92,9 +103,54 @@ export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(broadcastChannel);
     };
   }, []);
+
+  // Load user-specific notifications
+  useEffect(() => {
+    if (!user) {
+      setUserNotifications([]);
+      return;
+    }
+
+    async function loadUserNotifications() {
+      const { data } = await supabase
+        .from('user_notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (data) {
+        setUserNotifications(data);
+      }
+    }
+
+    loadUserNotifications();
+
+    // Listen for new user notifications in realtime
+    const userChannel = supabase
+      .channel(`user-notifications-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'user_notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newNotification = payload.new as UserNotification;
+          setUserNotifications(prev => [newNotification, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(userChannel);
+    };
+  }, [user]);
 
   // Mark messages as read when opening inbox
   useEffect(() => {
@@ -106,15 +162,49 @@ export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
       });
       setReadIds(getReadMessages());
     }
-  }, [isOpen, messages]);
+
+    // Mark user notifications as read
+    if (isOpen && userNotifications.length > 0 && user) {
+      const unreadNotifications = userNotifications.filter(n => !n.is_read);
+      if (unreadNotifications.length > 0) {
+        supabase
+          .from('user_notifications')
+          .update({ is_read: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false)
+          .then(() => {
+            setUserNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+          });
+      }
+    }
+  }, [isOpen, messages, userNotifications, user]);
 
   const handleDismiss = (id: string) => {
     markMessageAsDismissed(id);
     setDismissedIds(prev => new Set([...prev, id]));
   };
 
-  const unreadMessages = messages.filter(m => !dismissedIds.has(m.id) && !readIds.has(m.id));
-  const unreadCount = unreadMessages.length;
+  const handleDismissUserNotification = async (id: string) => {
+    await supabase.from('user_notifications').delete().eq('id', id);
+    setUserNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'battle_challenge':
+        return <Swords className="h-4 w-4 text-yellow-500" />;
+      case 'battle_accepted':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'battle_result':
+        return <Trophy className="h-4 w-4 text-primary" />;
+      default:
+        return <Bell className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
+  const unreadBroadcasts = messages.filter(m => !dismissedIds.has(m.id) && !readIds.has(m.id));
+  const unreadUserNotifications = userNotifications.filter(n => !n.is_read);
+  const totalUnread = unreadBroadcasts.length + unreadUserNotifications.length;
   const visibleMessages = messages.filter(m => !dismissedIds.has(m.id));
 
   return (
@@ -137,7 +227,7 @@ export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
         <PopoverTrigger asChild>
           <Button variant="ghost" size="sm" className="relative h-8 w-8 p-0">
             <Inbox className="h-4 w-4" />
-            {unreadCount > 0 && (
+            {totalUnread > 0 && (
               <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 bg-destructive rounded-full animate-pulse" />
             )}
           </Button>
@@ -145,20 +235,53 @@ export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
         <PopoverContent className="w-80 p-0 bg-popover border border-border shadow-lg z-[9999]" align="end">
           <div className="flex items-center justify-between p-3 border-b border-border bg-muted/30">
             <h4 className="font-semibold text-sm">Notifications</h4>
-            {unreadCount > 0 && (
+            {totalUnread > 0 && (
               <Badge variant="secondary" className="text-xs">
-                {unreadCount} new
+                {totalUnread} new
               </Badge>
             )}
           </div>
-          <div className="max-h-64 overflow-y-auto overscroll-contain">
-            {visibleMessages.length === 0 ? (
+          <div className="max-h-80 overflow-y-auto overscroll-contain">
+            {visibleMessages.length === 0 && userNotifications.length === 0 ? (
               <div className="p-6 text-center text-muted-foreground">
                 <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No notifications</p>
               </div>
             ) : (
               <div className="divide-y divide-border">
+                {/* User Notifications (Battle challenges, etc.) */}
+                {userNotifications.map((notification) => (
+                  <div 
+                    key={notification.id} 
+                    className={`p-3 transition-colors ${!notification.is_read ? 'bg-primary/5' : 'bg-background'}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      {!notification.is_read && (
+                        <Circle className="h-2 w-2 mt-1.5 fill-primary text-primary shrink-0" />
+                      )}
+                      <div className="shrink-0 mt-0.5">
+                        {getNotificationIcon(notification.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-primary mb-1">{notification.title}</p>
+                        <p className="text-sm text-foreground break-words">{notification.message}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(notification.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0 shrink-0 hover:bg-destructive/10"
+                        onClick={() => handleDismissUserNotification(notification.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Broadcast Messages */}
                 {visibleMessages.map((message) => {
                   const isUnread = !readIds.has(message.id);
                   return (
