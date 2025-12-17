@@ -21,19 +21,19 @@ export const GAME_URLS = {
     name: "Snow Skiing",
     description: "Ski down the snowy mountain! Use arrow keys or swipe to steer.",
   },
-  // Rain Dodge - T-Rex runner (dodge obstacles like avoiding raindrops)
+  // Rain - Flood Runner (endless runner with rising water/rain)
   rain: {
-    url: "https://wayou.github.io/t-rex-runner/",
-    fallback: "https://wayou.github.io/t-rex-runner/",
-    name: "Rain Dodge",
-    description: "Dodge the obstacles! Tap or press space to jump.",
+    url: "https://phaser.io/examples/v3/view/arcade/endless-runner",
+    fallback: "https://phaser.io/examples/v3/view/arcade/endless-runner",
+    name: "Flood Runner",
+    description: "Run from the rising flood! Tap or press space to jump.",
   },
-  // Cloud Jump - Flappy Bird style game (fly through the clouds)
+  // Cloud - Cloud Jumper (vertical platformer jumping between clouds)
   cloud: {
-    url: "https://elmejdki.github.io/FlappyBird/",
-    fallback: "https://elmejdki.github.io/FlappyBird/",
-    name: "Cloud Jump",
-    description: "Fly through the clouds! Tap or click to flap.",
+    url: "https://phaser.io/examples/v3/view/arcade/platformer",
+    fallback: "https://phaser.io/examples/v3/view/arcade/platformer",
+    name: "Cloud Jumper",
+    description: "Jump between clouds! Use arrow keys to move and jump.",
   },
   // Lightning Dodge - Fast reaction game (quick reflexes like lightning)
   lightning: {
