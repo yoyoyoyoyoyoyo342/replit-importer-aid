@@ -32,11 +32,16 @@ export const PredictionDialog = ({
   const [activeTab, setActiveTab] = useState("predict");
   const [createBattleMode, setCreateBattleMode] = useState(false);
   const [targetUser, setTargetUser] = useState<{ id: string; name: string } | null>(null);
+  const [acceptingBattleId, setAcceptingBattleId] = useState<string | null>(null);
   const { t } = useLanguage();
-  const { pendingChallenges, createBattle } = usePredictionBattles();
+  const { pendingChallenges, createBattle, acceptBattle } = usePredictionBattles();
 
   const handlePredictionMade = async (predictionId?: string) => {
-    if (createBattleMode && predictionId) {
+    // If accepting a battle, link the prediction to it
+    if (acceptingBattleId && predictionId) {
+      await acceptBattle(acceptingBattleId, predictionId);
+      setAcceptingBattleId(null);
+    } else if (createBattleMode && predictionId) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const battleDate = tomorrow.toISOString().split("T")[0];
@@ -46,11 +51,12 @@ export const PredictionDialog = ({
     setOpen(false);
     setTargetUser(null);
     setCreateBattleMode(false);
+    setAcceptingBattleId(null);
   };
 
   const handleAcceptBattle = (battleId: string) => {
+    setAcceptingBattleId(battleId);
     setActiveTab("predict");
-    // User needs to make a prediction first, then we'll link it to the battle
   };
 
   const handleSelectUser = (userId: string, displayName: string) => {
@@ -63,6 +69,7 @@ export const PredictionDialog = ({
       if (!isOpen) {
         setTargetUser(null);
         setCreateBattleMode(false);
+        setAcceptingBattleId(null);
       }
     }}>
       <DialogTrigger asChild>
@@ -103,24 +110,34 @@ export const PredictionDialog = ({
           </TabsList>
           
           <TabsContent value="predict" className="mt-6">
-            <div className="mb-4 flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
-              <div className="flex items-center gap-2">
-                <Swords className="w-5 h-5 text-primary" />
-                <div>
-                  <Label htmlFor="battle-mode" className="font-medium">Challenge Mode</Label>
-                  <p className="text-xs text-muted-foreground">Challenge someone to a prediction battle</p>
-                </div>
+            {acceptingBattleId && (
+              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  <Swords className="w-4 h-4 inline mr-1" />
+                  Make your prediction to accept the challenge!
+                </p>
               </div>
-              <Switch
-                id="battle-mode"
-                checked={createBattleMode}
-                onCheckedChange={(checked) => {
-                  setCreateBattleMode(checked);
-                  if (!checked) setTargetUser(null);
-                }}
-              />
-            </div>
-            {createBattleMode && (
+            )}
+            {!acceptingBattleId && (
+              <div className="mb-4 flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2">
+                  <Swords className="w-5 h-5 text-primary" />
+                  <div>
+                    <Label htmlFor="battle-mode" className="font-medium">Challenge Mode</Label>
+                    <p className="text-xs text-muted-foreground">Challenge someone to a prediction battle</p>
+                  </div>
+                </div>
+                <Switch
+                  id="battle-mode"
+                  checked={createBattleMode}
+                  onCheckedChange={(checked) => {
+                    setCreateBattleMode(checked);
+                    if (!checked) setTargetUser(null);
+                  }}
+                />
+              </div>
+            )}
+            {createBattleMode && !acceptingBattleId && (
               <div className="mb-4 space-y-3">
                 <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                   <p className="text-sm text-yellow-600 dark:text-yellow-400">
@@ -144,7 +161,7 @@ export const PredictionDialog = ({
               longitude={longitude}
               onPredictionMade={handlePredictionMade}
               isImperial={isImperial}
-              returnPredictionId={createBattleMode}
+              returnPredictionId={createBattleMode || !!acceptingBattleId}
             />
           </TabsContent>
           
