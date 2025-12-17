@@ -30,10 +30,10 @@ import { WeatherStationInfo } from "@/components/weather/weather-station-info";
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { useLanguage } from "@/contexts/language-context";
 import { WeatherTrendsCard } from "@/components/weather/weather-trends-card";
-import { GamesDialog } from "@/components/weather/games-dialog";
+import { PredictionDialog } from "@/components/weather/prediction-dialog";
 import { useTimeOfDay } from "@/hooks/use-time-of-day";
 import { useTimeOfDayContext } from "@/contexts/time-of-day-context";
-import { LockedGamesButton } from "@/components/weather/locked-games-button";
+import { LockedPredictionButton } from "@/components/weather/locked-prediction-button";
 import { useHyperlocalWeather } from "@/hooks/use-hyperlocal-weather";
 import { AQICard } from "@/components/weather/aqi-card";
 import { BarometerCard } from "@/components/weather/barometer-card";
@@ -337,10 +337,16 @@ export default function WeatherPage() {
               }} />}
             </div>
 
-            {/* Games Row */}
+            {/* Predictions Row */}
             {selectedLocation && <div className="pt-3 border-t border-border/20">
-                {user ? <GamesDialog weatherCondition={weatherData?.mostAccurate?.currentWeather?.condition} /> : <LockedFeature isLocked={true}>
-                    <LockedGamesButton />
+                {user ? <PredictionDialog 
+                  location={selectedLocation?.name || "Unknown"}
+                  latitude={selectedLocation?.lat || 0}
+                  longitude={selectedLocation?.lon || 0}
+                  isImperial={isImperial}
+                  onPredictionMade={() => {}}
+                /> : <LockedFeature isLocked={true}>
+                    <LockedPredictionButton />
                   </LockedFeature>}
               </div>}
           </CardContent>
