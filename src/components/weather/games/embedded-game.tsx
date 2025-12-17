@@ -14,47 +14,47 @@ interface EmbeddedGameProps {
 
 // Known embeddable game URLs for each weather theme - all ad-free GitHub hosted games
 export const GAME_URLS = {
-  // Snow - Falling Objects (catch falling snowflakes)
+  // Snow - SkiFree classic skiing game
   snow: {
-    url: "https://labs.phaser.io/view.html?src=src/arcade/falling%20objects.js",
-    fallback: "https://labs.phaser.io/view.html?src=src/arcade/falling%20objects.js",
-    name: "Snowflake Catcher",
-    description: "Catch the falling snowflakes! Move to collect them.",
+    url: "https://basicallydan.github.io/skifree.js/",
+    fallback: "https://basicallydan.github.io/skifree.js/",
+    name: "Snow Skiing",
+    description: "Ski down the snowy mountain! Use arrow keys or swipe to steer.",
   },
-  // Rain - Endless Runner (run from the flood)
+  // Rain - Flappy Bird style game (dodge the rain)
   rain: {
-    url: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
-    fallback: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
-    name: "Flood Runner",
-    description: "Run from the rising flood! Use arrow keys to move and jump.",
+    url: "https://nebez.github.io/floppybird/",
+    fallback: "https://nebez.github.io/floppybird/",
+    name: "Rain Dodge",
+    description: "Dodge the obstacles! Tap or click to flap and stay airborne.",
   },
-  // Cloud - Platformer (jump between clouds)
+  // Cloud - 2048 puzzle (match clouds)
   cloud: {
-    url: "https://labs.phaser.io/view.html?src=src/arcade/platformer/basic%20platformer.js",
-    fallback: "https://labs.phaser.io/view.html?src=src/arcade/platformer/basic%20platformer.js",
-    name: "Cloud Jumper",
-    description: "Jump between clouds! Use arrow keys to move and jump.",
+    url: "https://thedoggybrad.github.io/2048ontheweb/",
+    fallback: "https://thedoggybrad.github.io/2048ontheweb/",
+    name: "Cloud Match",
+    description: "Match the tiles! Use arrow keys to slide and combine.",
   },
-  // Lightning - Timed Events (react fast like lightning)
+  // Lightning - HexGL fast racer (lightning speed)
   lightning: {
-    url: "https://labs.phaser.io/view.html?src=src/time/timed%20event.js",
-    fallback: "https://labs.phaser.io/view.html?src=src/time/timed%20event.js",
-    name: "Lightning Reflexes",
-    description: "React fast like lightning! Click at the right moment.",
+    url: "https://hexgl.bkcore.com/play/",
+    fallback: "https://hexgl.bkcore.com/play/",
+    name: "Lightning Racer",
+    description: "Race at lightning speed! Use arrow keys to steer.",
   },
-  // Wind - Velocity from angle (ride the wind currents)
+  // Wind - Tetris (falling blocks like wind gusts)
   wind: {
-    url: "https://labs.phaser.io/view.html?src=src/arcade/velocity%20from%20angle.js",
-    fallback: "https://labs.phaser.io/view.html?src=src/arcade/velocity%20from%20angle.js",
-    name: "Wind Rider",
-    description: "Ride the wind currents! Use mouse to control direction.",
+    url: "https://aerolab.github.io/blockrain.js/",
+    fallback: "https://aerolab.github.io/blockrain.js/",
+    name: "Wind Blocks",
+    description: "Stack the falling blocks! Use arrow keys to move and rotate.",
   },
-  // Sun - Collect Stars (collect sunshine rays)
+  // Sun - Cube Composer puzzle (bright and colorful)
   sun: {
-    url: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
-    fallback: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
-    name: "Sunshine Collector",
-    description: "Collect the sunshine! Move around to gather rays.",
+    url: "https://david-peter.de/cube-composer/",
+    fallback: "https://david-peter.de/cube-composer/",
+    name: "Sunshine Puzzles",
+    description: "Solve colorful puzzles! Click functions to transform cubes.",
   },
 };
 
