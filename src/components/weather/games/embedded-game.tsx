@@ -7,47 +7,54 @@ interface EmbeddedGameProps {
   gameUrl: string;
   gameName: string;
   fallbackUrl: string;
+  description?: string;
   onGameEnd?: (score: number) => void;
   disabled?: boolean;
 }
 
 // Known embeddable game URLs for each weather theme - all ad-free GitHub hosted games
 export const GAME_URLS = {
-  // Snow Skiing - Classic SkiFree game
+  // Snow Skiing - Classic SkiFree game (ski down the mountain, avoid obstacles)
   snow: {
     url: "https://basicallydan.github.io/skifree.js/",
     fallback: "https://basicallydan.github.io/skifree.js/",
-    name: "SkiFree",
+    name: "Snow Skiing",
+    description: "Ski down the snowy mountain! Use arrow keys or swipe to steer.",
   },
-  // Rain Dodge - T-Rex runner dodge game
+  // Rain Dodge - T-Rex runner (dodge obstacles like avoiding raindrops)
   rain: {
     url: "https://wayou.github.io/t-rex-runner/",
     fallback: "https://wayou.github.io/t-rex-runner/",
-    name: "Rain Runner",
+    name: "Rain Dodge",
+    description: "Dodge the obstacles! Tap or press space to jump.",
   },
-  // Cloud Jump - Flappy Bird style game
+  // Cloud Jump - Flappy Bird style game (fly through the clouds)
   cloud: {
     url: "https://elmejdki.github.io/FlappyBird/",
     fallback: "https://elmejdki.github.io/FlappyBird/",
-    name: "Cloud Flapper",
+    name: "Cloud Jump",
+    description: "Fly through the clouds! Tap or click to flap.",
   },
-  // Lightning Dodge - Fast reaction dino game
+  // Lightning Dodge - Fast reaction game (quick reflexes like lightning)
   lightning: {
-    url: "https://chrome-dino-game.github.io/",
-    fallback: "https://chrome-dino-game.github.io/",
+    url: "https://wayou.github.io/t-rex-runner/",
+    fallback: "https://wayou.github.io/t-rex-runner/",
     name: "Lightning Dash",
+    description: "React fast like lightning! Tap or press space to jump.",
   },
-  // Wind Surfer - Another T-Rex runner variant
+  // Wind Surfer - Surf the wind currents
   wind: {
     url: "https://wayou.github.io/t-rex-runner/",
     fallback: "https://wayou.github.io/t-rex-runner/",
-    name: "Wind Runner",
+    name: "Wind Surfer",
+    description: "Surf the wind! Tap or press space to jump.",
   },
-  // Sunshine Collector - Simple clicker game
+  // Sunshine Collector - Fly and collect sunshine
   sun: {
-    url: "https://nicofilips.github.io/CookieClicker.io/",
-    fallback: "https://nicofilips.github.io/CookieClicker.io/",
-    name: "Sun Clicker",
+    url: "https://elmejdki.github.io/FlappyBird/",
+    fallback: "https://elmejdki.github.io/FlappyBird/",
+    name: "Sunshine Collector",
+    description: "Collect sunshine by flying high! Tap or click to flap.",
   },
 };
 
