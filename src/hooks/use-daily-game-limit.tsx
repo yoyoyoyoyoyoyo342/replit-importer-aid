@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsAdmin } from "@/hooks/use-is-admin";
 import { supabase } from "@/integrations/supabase/client";
 
 interface DailyGameStatus {
@@ -10,6 +11,7 @@ interface DailyGameStatus {
 
 export const useDailyGameLimit = () => {
   const { user } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const [status, setStatus] = useState<DailyGameStatus>({
     hasPlayedToday: false,
     todayScore: null,
@@ -20,6 +22,17 @@ export const useDailyGameLimit = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const checkDailyStatus = useCallback(async () => {
+    // Admins can play unlimited times - never mark as played
+    if (isAdmin) {
+      setStatus({
+        hasPlayedToday: false,
+        todayScore: null,
+        lastPlayDate: null,
+      });
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       // For non-logged-in users, check localStorage
       const localData = localStorage.getItem("dailyGamePlay");
@@ -68,27 +81,30 @@ export const useDailyGameLimit = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, today]);
+  }, [user, today, isAdmin]);
 
   useEffect(() => {
     checkDailyStatus();
   }, [checkDailyStatus]);
 
   const recordGamePlay = useCallback(async (score: number) => {
-    const storageKey = user ? `dailyGamePlay_${user.id}` : "dailyGamePlay";
-    
-    localStorage.setItem(storageKey, JSON.stringify({
-      date: today,
-      score,
-    }));
+    // Admins don't have their plays recorded for daily limit purposes
+    if (!isAdmin) {
+      const storageKey = user ? `dailyGamePlay_${user.id}` : "dailyGamePlay";
+      
+      localStorage.setItem(storageKey, JSON.stringify({
+        date: today,
+        score,
+      }));
 
-    setStatus({
-      hasPlayedToday: true,
-      todayScore: score,
-      lastPlayDate: today,
-    });
+      setStatus({
+        hasPlayedToday: true,
+        todayScore: score,
+        lastPlayDate: today,
+      });
+    }
 
-    // If logged in, update profile points
+    // If logged in, update profile points (still award points to admins)
     if (user) {
       try {
         const { data: profile } = await supabase
@@ -105,7 +121,7 @@ export const useDailyGameLimit = () => {
         console.error("Error updating points:", error);
       }
     }
-  }, [user, today]);
+  }, [user, today, isAdmin]);
 
   return { status, loading, recordGamePlay, checkDailyStatus };
 };
