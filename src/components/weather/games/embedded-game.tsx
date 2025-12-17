@@ -11,43 +11,43 @@ interface EmbeddedGameProps {
   disabled?: boolean;
 }
 
-// Known embeddable game URLs for each weather theme
+// Known embeddable game URLs for each weather theme - all ad-free GitHub hosted games
 export const GAME_URLS = {
-  // Snow Skiing - Ski themed endless runner
+  // Snow Skiing - Classic SkiFree game
   snow: {
-    url: "https://www.onlinegames.io/games/2021/3/police-chase-drifter/index.html",
-    fallback: "https://www.onlinegames.io/games/police-chase-drifter/",
-    name: "Snow Drifter",
+    url: "https://basicallydan.github.io/skifree.js/",
+    fallback: "https://basicallydan.github.io/skifree.js/",
+    name: "SkiFree",
   },
-  // Rain Dodge - Dodging game
+  // Rain Dodge - T-Rex runner dodge game
   rain: {
-    url: "https://www.onlinegames.io/games/2023/q2/geometry-dash-freezenova/index.html",
-    fallback: "https://www.onlinegames.io/games/geometry-dash-freezenova/",
+    url: "https://wayou.github.io/t-rex-runner/",
+    fallback: "https://wayou.github.io/t-rex-runner/",
     name: "Rain Runner",
   },
-  // Cloud Jump - Platformer jumping game  
+  // Cloud Jump - Flappy Bird style game
   cloud: {
-    url: "https://www.onlinegames.io/games/2024/code/6/get-on-top/index.html",
-    fallback: "https://www.onlinegames.io/games/get-on-top/",
-    name: "Cloud Hopper",
+    url: "https://elmejdki.github.io/FlappyBird/",
+    fallback: "https://elmejdki.github.io/FlappyBird/",
+    name: "Cloud Flapper",
   },
-  // Lightning Dodge - Fast reaction game
+  // Lightning Dodge - Fast reaction dino game
   lightning: {
-    url: "https://cloud.onlinegames.io/games/2024/construct/299/geometry-escape/index-og.html",
-    fallback: "https://www.onlinegames.io/games/geometry-escape/",
-    name: "Lightning Escape",
+    url: "https://chrome-dino-game.github.io/",
+    fallback: "https://chrome-dino-game.github.io/",
+    name: "Lightning Dash",
   },
-  // Wind Surfer - Racing/movement game
+  // Wind Surfer - Another T-Rex runner variant
   wind: {
-    url: "https://cloud.onlinegames.io/games/2024/construct/219/stickman-parkour/index-og.html",
-    fallback: "https://www.onlinegames.io/games/stickman-parkour/",
+    url: "https://wayou.github.io/t-rex-runner/",
+    fallback: "https://wayou.github.io/t-rex-runner/",
     name: "Wind Runner",
   },
-  // Sunshine Collector - Collection/clicker game
+  // Sunshine Collector - Simple clicker game
   sun: {
-    url: "https://www.onlinegames.io/games/2023/q2/capybara-clicker-pro/index.html",
-    fallback: "https://www.onlinegames.io/games/capybara-clicker-pro/",
-    name: "Sun Collector",
+    url: "https://nicofilips.github.io/CookieClicker.io/",
+    fallback: "https://nicofilips.github.io/CookieClicker.io/",
+    name: "Sun Clicker",
   },
 };
 
@@ -60,13 +60,20 @@ export function EmbeddedGame({
 }: EmbeddedGameProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
     // Reset states when URL changes
     setIsLoading(true);
     setHasError(false);
-  }, [gameUrl]);
+    
+    // Award points after 30 seconds of playing
+    if (onGameEnd && !disabled) {
+      const timer = setTimeout(() => {
+        onGameEnd(50);
+      }, 30000);
+      return () => clearTimeout(timer);
+    }
+  }, [gameUrl, onGameEnd, disabled]);
 
   const handleIframeLoad = () => {
     setIsLoading(false);
@@ -77,22 +84,9 @@ export function EmbeddedGame({
     setHasError(true);
   };
 
-  const handleStartGame = () => {
-    setGameStarted(true);
-    // Simulate game end after play session (user plays in iframe)
-    // Since we can't track iframe game scores, we award points for playing
-    if (onGameEnd && !disabled) {
-      // Award base points for playing
-      setTimeout(() => {
-        onGameEnd(50); // Base points for playing an embedded game
-      }, 30000); // After 30 seconds of play time
-    }
-  };
-
   const handleRefresh = () => {
     setIsLoading(true);
     setHasError(false);
-    // Force iframe reload by updating key
     const iframe = document.getElementById('game-iframe') as HTMLIFrameElement;
     if (iframe) {
       iframe.src = iframe.src;
@@ -108,27 +102,6 @@ export function EmbeddedGame({
         <CardContent className="flex flex-col items-center justify-center h-[400px] text-center">
           <p className="text-muted-foreground mb-4">
             You've already played today! Come back tomorrow for another game.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!gameStarted) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-lg">{gameName}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center h-[400px] text-center gap-4">
-          <p className="text-muted-foreground">
-            Ready to play? Click start to begin your weather-themed adventure!
-          </p>
-          <Button onClick={handleStartGame} size="lg">
-            Start Game
-          </Button>
-          <p className="text-xs text-muted-foreground">
-            Play for 30 seconds to earn 50 points
           </p>
         </CardContent>
       </Card>
@@ -166,7 +139,12 @@ export function EmbeddedGame({
     <Card className="w-full">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">{gameName}</CardTitle>
+          <div>
+            <CardTitle className="text-lg">{gameName}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Play for 30 seconds to earn 50 points
+            </p>
+          </div>
           <Button variant="ghost" size="sm" asChild>
             <a href={fallbackUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4" />
@@ -187,11 +165,10 @@ export function EmbeddedGame({
           id="game-iframe"
           src={gameUrl}
           title={gameName}
-          className="w-full h-[450px] border-0 rounded-b-lg"
+          className="w-full h-[450px] border-0 rounded-b-lg bg-white"
           onLoad={handleIframeLoad}
           onError={handleIframeError}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
         />
       </CardContent>
     </Card>
