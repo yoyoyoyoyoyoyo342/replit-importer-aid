@@ -196,6 +196,78 @@ export type Database = {
         }
         Relationships: []
       }
+      prediction_battles: {
+        Row: {
+          battle_date: string
+          bonus_points: number | null
+          challenger_id: string
+          challenger_prediction_id: string | null
+          challenger_score: number | null
+          created_at: string | null
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+          opponent_id: string | null
+          opponent_prediction_id: string | null
+          opponent_score: number | null
+          status: string
+          updated_at: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          battle_date: string
+          bonus_points?: number | null
+          challenger_id: string
+          challenger_prediction_id?: string | null
+          challenger_score?: number | null
+          created_at?: string | null
+          id?: string
+          latitude: number
+          location_name: string
+          longitude: number
+          opponent_id?: string | null
+          opponent_prediction_id?: string | null
+          opponent_score?: number | null
+          status?: string
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          battle_date?: string
+          bonus_points?: number | null
+          challenger_id?: string
+          challenger_prediction_id?: string | null
+          challenger_score?: number | null
+          created_at?: string | null
+          id?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+          opponent_id?: string | null
+          opponent_prediction_id?: string | null
+          opponent_score?: number | null
+          status?: string
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prediction_battles_challenger_prediction_id_fkey"
+            columns: ["challenger_prediction_id"]
+            isOneToOne: false
+            referencedRelation: "weather_predictions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prediction_battles_opponent_prediction_id_fkey"
+            columns: ["opponent_prediction_id"]
+            isOneToOne: false
+            referencedRelation: "weather_predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

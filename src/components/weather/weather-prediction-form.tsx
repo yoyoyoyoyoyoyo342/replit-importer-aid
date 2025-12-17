@@ -14,8 +14,9 @@ interface WeatherPredictionFormProps {
   location: string;
   latitude: number;
   longitude: number;
-  onPredictionMade: () => void;
+  onPredictionMade: (predictionId?: string) => void;
   isImperial: boolean;
+  returnPredictionId?: boolean;
 }
 
 const weatherConditions = [
@@ -53,7 +54,8 @@ export const WeatherPredictionForm = ({
   latitude, 
   longitude,
   onPredictionMade,
-  isImperial
+  isImperial,
+  returnPredictionId = false
 }: WeatherPredictionFormProps) => {
   const { user } = useAuth();
   const [predictedHigh, setPredictedHigh] = useState("");
@@ -108,7 +110,7 @@ export const WeatherPredictionForm = ({
         return;
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("weather_predictions")
         .insert({
           user_id: user.id,
@@ -119,7 +121,9 @@ export const WeatherPredictionForm = ({
           location_name: location,
           latitude,
           longitude,
-        });
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
 
@@ -127,7 +131,7 @@ export const WeatherPredictionForm = ({
       setPredictedHigh("");
       setPredictedLow("");
       setPredictedCondition("");
-      onPredictionMade();
+      onPredictionMade(returnPredictionId ? data?.id : undefined);
     } catch (error: any) {
       toast.error("Failed to submit prediction");
       console.error("Error submitting prediction:", error);
