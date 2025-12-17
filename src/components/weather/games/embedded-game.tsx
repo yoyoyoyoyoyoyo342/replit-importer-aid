@@ -35,19 +35,19 @@ export const GAME_URLS = {
     name: "Cloud Jumper",
     description: "Jump between clouds! Use arrow keys to move and jump.",
   },
-  // Lightning Dodge - Fast reaction game (quick reflexes like lightning)
+  // Lightning - Timed Events (react fast like lightning)
   lightning: {
-    url: "https://wayou.github.io/t-rex-runner/",
-    fallback: "https://wayou.github.io/t-rex-runner/",
-    name: "Lightning Dash",
-    description: "React fast like lightning! Tap or press space to jump.",
+    url: "https://phaser.io/examples/v3/view/time/timed-events",
+    fallback: "https://phaser.io/examples/v3/view/time/timed-events",
+    name: "Lightning Reflexes",
+    description: "React fast like lightning! Click at the right moment.",
   },
-  // Wind Surfer - Surf the wind currents
+  // Wind Surfer - Velocity from angle (ride the wind currents)
   wind: {
-    url: "https://wayou.github.io/t-rex-runner/",
-    fallback: "https://wayou.github.io/t-rex-runner/",
-    name: "Wind Surfer",
-    description: "Surf the wind! Tap or press space to jump.",
+    url: "https://phaser.io/examples/v3/view/arcade/velocity-from-angle",
+    fallback: "https://phaser.io/examples/v3/view/arcade/velocity-from-angle",
+    name: "Wind Rider",
+    description: "Ride the wind currents! Use mouse to control direction.",
   },
   // Sunshine Collector - Fly and collect sunshine
   sun: {
