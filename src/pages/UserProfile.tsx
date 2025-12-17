@@ -15,7 +15,12 @@ import {
   TrendingUp,
   Calendar,
   CheckCircle,
-  XCircle
+  Star,
+  Crown,
+  Shield,
+  Sparkles,
+  Zap,
+  Medal
 } from "lucide-react";
 
 interface UserProfileData {
@@ -35,6 +40,8 @@ interface BattleStats {
   wins: number;
   losses: number;
   pending: number;
+  currentWinStreak: number;
+  longestWinStreak: number;
 }
 
 interface PredictionStats {
@@ -80,11 +87,12 @@ const UserProfile = () => {
 
       setStreakData(streakInfo);
 
-      // Fetch battle stats
+      // Fetch battle stats with win streak
       const { data: battles } = await supabase
         .from("prediction_battles")
-        .select("status, winner_id, challenger_id, opponent_id")
-        .or(`challenger_id.eq.${userId},opponent_id.eq.${userId}`);
+        .select("status, winner_id, challenger_id, opponent_id, updated_at")
+        .or(`challenger_id.eq.${userId},opponent_id.eq.${userId}`)
+        .order("updated_at", { ascending: false });
 
       if (battles) {
         const wins = battles.filter(b => b.winner_id === userId).length;
@@ -92,11 +100,36 @@ const UserProfile = () => {
         const losses = completed.filter(b => b.winner_id && b.winner_id !== userId).length;
         const pending = battles.filter(b => b.status === "pending" || b.status === "accepted").length;
 
+        // Calculate current win streak (consecutive wins from most recent)
+        let currentWinStreak = 0;
+        const completedBattles = battles.filter(b => b.status === "completed");
+        for (const battle of completedBattles) {
+          if (battle.winner_id === userId) {
+            currentWinStreak++;
+          } else {
+            break;
+          }
+        }
+
+        // Calculate longest win streak
+        let longestWinStreak = 0;
+        let tempStreak = 0;
+        for (const battle of [...completedBattles].reverse()) {
+          if (battle.winner_id === userId) {
+            tempStreak++;
+            longestWinStreak = Math.max(longestWinStreak, tempStreak);
+          } else {
+            tempStreak = 0;
+          }
+        }
+
         setBattleStats({
           total_battles: battles.length,
           wins,
           losses,
           pending,
+          currentWinStreak,
+          longestWinStreak,
         });
       }
 
@@ -288,18 +321,18 @@ const UserProfile = () => {
               <p className="text-xs text-muted-foreground">Made a prediction</p>
             </div>
 
-            {/* Streak Master */}
-            <div className={`p-3 rounded-lg border ${(streakData?.longest_streak || 0) >= 7 ? 'bg-orange-500/10 border-orange-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
-              <Flame className={`h-6 w-6 mb-1 ${(streakData?.longest_streak || 0) >= 7 ? 'text-orange-500' : 'text-muted-foreground'}`} />
-              <p className="text-sm font-medium">Streak Master</p>
-              <p className="text-xs text-muted-foreground">7-day streak</p>
+            {/* Weather Guru - 50 predictions */}
+            <div className={`p-3 rounded-lg border ${(predictionStats?.total_predictions || 0) >= 50 ? 'bg-cyan-500/10 border-cyan-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Sparkles className={`h-6 w-6 mb-1 ${(predictionStats?.total_predictions || 0) >= 50 ? 'text-cyan-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Weather Guru</p>
+              <p className="text-xs text-muted-foreground">50 predictions</p>
             </div>
 
-            {/* Battle Victor */}
-            <div className={`p-3 rounded-lg border ${(battleStats?.wins || 0) >= 1 ? 'bg-green-500/10 border-green-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
-              <Trophy className={`h-6 w-6 mb-1 ${(battleStats?.wins || 0) >= 1 ? 'text-green-500' : 'text-muted-foreground'}`} />
-              <p className="text-sm font-medium">Battle Victor</p>
-              <p className="text-xs text-muted-foreground">Won a battle</p>
+            {/* Perfect Prediction - 100% accuracy (min 5 predictions) */}
+            <div className={`p-3 rounded-lg border ${(predictionStats?.accuracy || 0) === 100 && (predictionStats?.correct_predictions || 0) >= 5 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Star className={`h-6 w-6 mb-1 ${(predictionStats?.accuracy || 0) === 100 && (predictionStats?.correct_predictions || 0) >= 5 ? 'text-amber-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Perfect Prediction</p>
+              <p className="text-xs text-muted-foreground">100% accuracy (5+)</p>
             </div>
 
             {/* Accuracy Pro */}
@@ -309,11 +342,32 @@ const UserProfile = () => {
               <p className="text-xs text-muted-foreground">70%+ accuracy</p>
             </div>
 
-            {/* Points Legend */}
-            <div className={`p-3 rounded-lg border ${(profile.total_points || 0) >= 1000 ? 'bg-purple-500/10 border-purple-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
-              <TrendingUp className={`h-6 w-6 mb-1 ${(profile.total_points || 0) >= 1000 ? 'text-purple-500' : 'text-muted-foreground'}`} />
-              <p className="text-sm font-medium">Points Legend</p>
-              <p className="text-xs text-muted-foreground">1000+ points</p>
+            {/* Streak Master */}
+            <div className={`p-3 rounded-lg border ${(streakData?.longest_streak || 0) >= 7 ? 'bg-orange-500/10 border-orange-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Flame className={`h-6 w-6 mb-1 ${(streakData?.longest_streak || 0) >= 7 ? 'text-orange-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Streak Master</p>
+              <p className="text-xs text-muted-foreground">7-day streak</p>
+            </div>
+
+            {/* Streak Legend - 30 day streak */}
+            <div className={`p-3 rounded-lg border ${(streakData?.longest_streak || 0) >= 30 ? 'bg-red-500/10 border-red-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Zap className={`h-6 w-6 mb-1 ${(streakData?.longest_streak || 0) >= 30 ? 'text-red-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Streak Legend</p>
+              <p className="text-xs text-muted-foreground">30-day streak</p>
+            </div>
+
+            {/* Battle Victor */}
+            <div className={`p-3 rounded-lg border ${(battleStats?.wins || 0) >= 1 ? 'bg-green-500/10 border-green-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Trophy className={`h-6 w-6 mb-1 ${(battleStats?.wins || 0) >= 1 ? 'text-green-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Battle Victor</p>
+              <p className="text-xs text-muted-foreground">Won a battle</p>
+            </div>
+
+            {/* Undefeated - 5 wins in a row */}
+            <div className={`p-3 rounded-lg border ${(battleStats?.longestWinStreak || 0) >= 5 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Shield className={`h-6 w-6 mb-1 ${(battleStats?.longestWinStreak || 0) >= 5 ? 'text-emerald-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Undefeated</p>
+              <p className="text-xs text-muted-foreground">5 wins in a row</p>
             </div>
 
             {/* Battle Champion */}
@@ -321,6 +375,27 @@ const UserProfile = () => {
               <Swords className={`h-6 w-6 mb-1 ${(battleStats?.wins || 0) >= 10 ? 'text-yellow-500' : 'text-muted-foreground'}`} />
               <p className="text-sm font-medium">Battle Champion</p>
               <p className="text-xs text-muted-foreground">10 battle wins</p>
+            </div>
+
+            {/* Points Legend */}
+            <div className={`p-3 rounded-lg border ${(profile.total_points || 0) >= 1000 ? 'bg-purple-500/10 border-purple-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <TrendingUp className={`h-6 w-6 mb-1 ${(profile.total_points || 0) >= 1000 ? 'text-purple-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Points Legend</p>
+              <p className="text-xs text-muted-foreground">1000+ points</p>
+            </div>
+
+            {/* Weather Elite - 5000 points */}
+            <div className={`p-3 rounded-lg border ${(profile.total_points || 0) >= 5000 ? 'bg-pink-500/10 border-pink-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Crown className={`h-6 w-6 mb-1 ${(profile.total_points || 0) >= 5000 ? 'text-pink-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Weather Elite</p>
+              <p className="text-xs text-muted-foreground">5000+ points</p>
+            </div>
+
+            {/* Veteran - 100 predictions */}
+            <div className={`p-3 rounded-lg border ${(predictionStats?.total_predictions || 0) >= 100 ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-muted/20 border-border/30 opacity-50'}`}>
+              <Medal className={`h-6 w-6 mb-1 ${(predictionStats?.total_predictions || 0) >= 100 ? 'text-indigo-500' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">Weather Veteran</p>
+              <p className="text-xs text-muted-foreground">100 predictions</p>
             </div>
           </div>
         </Card>
