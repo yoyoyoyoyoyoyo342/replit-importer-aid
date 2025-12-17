@@ -90,7 +90,8 @@ export const usePredictionBattles = () => {
     latitude: number,
     longitude: number,
     battleDate: string,
-    predictionId: string
+    predictionId: string,
+    targetOpponentId?: string
   ) => {
     if (!user) return null;
 
@@ -99,6 +100,7 @@ export const usePredictionBattles = () => {
         .from("prediction_battles")
         .insert({
           challenger_id: user.id,
+          opponent_id: targetOpponentId || null,
           location_name: locationName,
           latitude,
           longitude,
@@ -111,9 +113,31 @@ export const usePredictionBattles = () => {
 
       if (error) throw error;
 
+      // Get challenger's display name for the notification
+      const { data: challengerProfile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const challengerName = challengerProfile?.display_name || "Someone";
+
+      // If targeting a specific opponent, send them a notification
+      if (targetOpponentId) {
+        await supabase.from("user_notifications").insert({
+          user_id: targetOpponentId,
+          type: "battle_challenge",
+          title: "New Battle Challenge!",
+          message: `${challengerName} challenged you to a weather prediction battle for ${locationName}!`,
+          metadata: { battle_id: data.id, challenger_name: challengerName, location: locationName },
+        });
+      }
+
       toast({
         title: "Battle Created!",
-        description: "Your challenge is now open for others to accept.",
+        description: targetOpponentId 
+          ? "Challenge sent! They'll be notified."
+          : "Your challenge is now open for others to accept.",
       });
 
       await fetchBattles();
@@ -133,6 +157,13 @@ export const usePredictionBattles = () => {
     if (!user) return false;
 
     try {
+      // Get battle info first
+      const { data: battle } = await supabase
+        .from("prediction_battles")
+        .select("challenger_id, location_name")
+        .eq("id", battleId)
+        .single();
+
       const { error } = await supabase
         .from("prediction_battles")
         .update({
@@ -143,6 +174,26 @@ export const usePredictionBattles = () => {
         .eq("id", battleId);
 
       if (error) throw error;
+
+      // Get accepter's display name
+      const { data: accepterProfile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const accepterName = accepterProfile?.display_name || "Someone";
+
+      // Notify the challenger that their battle was accepted
+      if (battle?.challenger_id) {
+        await supabase.from("user_notifications").insert({
+          user_id: battle.challenger_id,
+          type: "battle_accepted",
+          title: "Challenge Accepted!",
+          message: `${accepterName} accepted your weather battle challenge for ${battle.location_name}!`,
+          metadata: { battle_id: battleId, opponent_name: accepterName },
+        });
+      }
 
       toast({
         title: "Challenge Accepted!",
