@@ -1,0 +1,238 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+
+interface Battle {
+  id: string;
+  challenger_id: string;
+  opponent_id: string | null;
+  challenger_prediction_id: string | null;
+  opponent_prediction_id: string | null;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  battle_date: string;
+  status: string;
+  winner_id: string | null;
+  challenger_score: number | null;
+  opponent_score: number | null;
+  bonus_points: number;
+  created_at: string;
+  challenger_name?: string;
+  opponent_name?: string;
+}
+
+export const usePredictionBattles = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [battles, setBattles] = useState<Battle[]>([]);
+  const [pendingChallenges, setPendingChallenges] = useState<Battle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchBattles = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("prediction_battles")
+        .select("*")
+        .or(`challenger_id.eq.${user.id},opponent_id.eq.${user.id}`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch display names for battles
+      const battlesWithNames = await Promise.all(
+        (data || []).map(async (battle) => {
+          const [challengerProfile, opponentProfile] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("display_name")
+              .eq("user_id", battle.challenger_id)
+              .maybeSingle(),
+            battle.opponent_id
+              ? supabase
+                  .from("profiles")
+                  .select("display_name")
+                  .eq("user_id", battle.opponent_id)
+                  .maybeSingle()
+              : Promise.resolve({ data: null }),
+          ]);
+
+          return {
+            ...battle,
+            challenger_name: challengerProfile.data?.display_name || "Unknown",
+            opponent_name: opponentProfile.data?.display_name || "Waiting...",
+          };
+        })
+      );
+
+      setBattles(battlesWithNames);
+      setPendingChallenges(
+        battlesWithNames.filter(
+          (b) => b.status === "pending" && b.opponent_id === user.id
+        )
+      );
+    } catch (error) {
+      console.error("Error fetching battles:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBattles();
+  }, [user]);
+
+  const createBattle = async (
+    locationName: string,
+    latitude: number,
+    longitude: number,
+    battleDate: string,
+    predictionId: string
+  ) => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from("prediction_battles")
+        .insert({
+          challenger_id: user.id,
+          location_name: locationName,
+          latitude,
+          longitude,
+          battle_date: battleDate,
+          challenger_prediction_id: predictionId,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Battle Created!",
+        description: "Your challenge is now open for others to accept.",
+      });
+
+      await fetchBattles();
+      return data;
+    } catch (error) {
+      console.error("Error creating battle:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create battle challenge.",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const acceptBattle = async (battleId: string, predictionId: string) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from("prediction_battles")
+        .update({
+          opponent_id: user.id,
+          opponent_prediction_id: predictionId,
+          status: "accepted",
+        })
+        .eq("id", battleId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Challenge Accepted!",
+        description: "May the best predictor win!",
+      });
+
+      await fetchBattles();
+      return true;
+    } catch (error) {
+      console.error("Error accepting battle:", error);
+      toast({
+        title: "Error",
+        description: "Failed to accept challenge.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const declineBattle = async (battleId: string) => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from("prediction_battles")
+        .update({ status: "declined" })
+        .eq("id", battleId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Challenge Declined",
+        description: "The challenge has been declined.",
+      });
+
+      await fetchBattles();
+      return true;
+    } catch (error) {
+      console.error("Error declining battle:", error);
+      return false;
+    }
+  };
+
+  const getOpenBattles = async (locationName: string, battleDate: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("prediction_battles")
+        .select("*")
+        .eq("location_name", locationName)
+        .eq("battle_date", battleDate)
+        .eq("status", "pending")
+        .is("opponent_id", null);
+
+      if (error) throw error;
+
+      // Filter out user's own battles and add names
+      const filteredBattles = (data || []).filter(
+        (b) => b.challenger_id !== user?.id
+      );
+
+      const battlesWithNames = await Promise.all(
+        filteredBattles.map(async (battle) => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("user_id", battle.challenger_id)
+            .maybeSingle();
+
+          return {
+            ...battle,
+            challenger_name: profile?.display_name || "Unknown",
+          };
+        })
+      );
+
+      return battlesWithNames;
+    } catch (error) {
+      console.error("Error fetching open battles:", error);
+      return [];
+    }
+  };
+
+  return {
+    battles,
+    pendingChallenges,
+    loading,
+    createBattle,
+    acceptBattle,
+    declineBattle,
+    getOpenBattles,
+    refetch: fetchBattles,
+  };
+};
