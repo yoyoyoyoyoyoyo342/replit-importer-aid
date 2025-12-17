@@ -5,6 +5,7 @@ import { Target, Trophy, Swords } from "lucide-react";
 import { WeatherPredictionForm } from "./weather-prediction-form";
 import { Leaderboard } from "./leaderboard";
 import { PredictionBattles } from "./prediction-battles";
+import { UserSearch } from "./user-search";
 import { useLanguage } from "@/contexts/language-context";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ export const PredictionDialog = ({
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("predict");
   const [createBattleMode, setCreateBattleMode] = useState(false);
+  const [targetUser, setTargetUser] = useState<{ id: string; name: string } | null>(null);
   const { t } = useLanguage();
   const { pendingChallenges, createBattle } = usePredictionBattles();
 
@@ -38,10 +40,12 @@ export const PredictionDialog = ({
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const battleDate = tomorrow.toISOString().split("T")[0];
-      await createBattle(location, latitude, longitude, battleDate, predictionId);
+      await createBattle(location, latitude, longitude, battleDate, predictionId, targetUser?.id);
     }
     onPredictionMade();
     setOpen(false);
+    setTargetUser(null);
+    setCreateBattleMode(false);
   };
 
   const handleAcceptBattle = (battleId: string) => {
@@ -49,8 +53,18 @@ export const PredictionDialog = ({
     // User needs to make a prediction first, then we'll link it to the battle
   };
 
+  const handleSelectUser = (userId: string, displayName: string) => {
+    setTargetUser({ id: userId, name: displayName });
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      setOpen(isOpen);
+      if (!isOpen) {
+        setTargetUser(null);
+        setCreateBattleMode(false);
+      }
+    }}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-10 px-4 text-sm sm:h-8 sm:px-3 sm:text-xs flex-1 sm:flex-initial relative">
           <Target className="w-4 h-4 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
@@ -94,21 +108,34 @@ export const PredictionDialog = ({
                 <Swords className="w-5 h-5 text-primary" />
                 <div>
                   <Label htmlFor="battle-mode" className="font-medium">Challenge Mode</Label>
-                  <p className="text-xs text-muted-foreground">Create a battle for others to accept</p>
+                  <p className="text-xs text-muted-foreground">Challenge someone to a prediction battle</p>
                 </div>
               </div>
               <Switch
                 id="battle-mode"
                 checked={createBattleMode}
-                onCheckedChange={setCreateBattleMode}
+                onCheckedChange={(checked) => {
+                  setCreateBattleMode(checked);
+                  if (!checked) setTargetUser(null);
+                }}
               />
             </div>
             {createBattleMode && (
-              <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  <Swords className="w-4 h-4 inline mr-1" />
-                  Your prediction will create a head-to-head battle. If someone accepts, the winner gets <strong>+50 bonus points</strong>!
-                </p>
+              <div className="mb-4 space-y-3">
+                <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                    <Swords className="w-4 h-4 inline mr-1" />
+                    {targetUser 
+                      ? `You're challenging ${targetUser.name}! Winner gets +50 bonus points!`
+                      : "Search for a user to challenge, or leave empty for an open challenge anyone can accept."
+                    }
+                  </p>
+                </div>
+                <UserSearch
+                  onSelectUser={handleSelectUser}
+                  selectedUser={targetUser}
+                  onClearSelection={() => setTargetUser(null)}
+                />
               </div>
             )}
             <WeatherPredictionForm
