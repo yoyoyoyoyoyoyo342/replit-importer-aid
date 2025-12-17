@@ -16,43 +16,43 @@ interface EmbeddedGameProps {
 export const GAME_URLS = {
   // Snow - Falling Objects (catch falling snowflakes)
   snow: {
-    url: "https://phaser.io/examples/v3/view/arcade/falling-objects",
-    fallback: "https://phaser.io/examples/v3/view/arcade/falling-objects",
+    url: "https://labs.phaser.io/view.html?src=src/arcade/falling%20objects.js",
+    fallback: "https://labs.phaser.io/view.html?src=src/arcade/falling%20objects.js",
     name: "Snowflake Catcher",
     description: "Catch the falling snowflakes! Move to collect them.",
   },
-  // Rain - Flood Runner (endless runner with rising water/rain)
+  // Rain - Endless Runner (run from the flood)
   rain: {
-    url: "https://phaser.io/examples/v3/view/arcade/endless-runner",
-    fallback: "https://phaser.io/examples/v3/view/arcade/endless-runner",
+    url: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
+    fallback: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
     name: "Flood Runner",
-    description: "Run from the rising flood! Tap or press space to jump.",
+    description: "Run from the rising flood! Use arrow keys to move and jump.",
   },
-  // Cloud - Cloud Jumper (vertical platformer jumping between clouds)
+  // Cloud - Platformer (jump between clouds)
   cloud: {
-    url: "https://phaser.io/examples/v3/view/arcade/platformer",
-    fallback: "https://phaser.io/examples/v3/view/arcade/platformer",
+    url: "https://labs.phaser.io/view.html?src=src/arcade/platformer/basic%20platformer.js",
+    fallback: "https://labs.phaser.io/view.html?src=src/arcade/platformer/basic%20platformer.js",
     name: "Cloud Jumper",
     description: "Jump between clouds! Use arrow keys to move and jump.",
   },
   // Lightning - Timed Events (react fast like lightning)
   lightning: {
-    url: "https://phaser.io/examples/v3/view/time/timed-events",
-    fallback: "https://phaser.io/examples/v3/view/time/timed-events",
+    url: "https://labs.phaser.io/view.html?src=src/time/timed%20event.js",
+    fallback: "https://labs.phaser.io/view.html?src=src/time/timed%20event.js",
     name: "Lightning Reflexes",
     description: "React fast like lightning! Click at the right moment.",
   },
-  // Wind Surfer - Velocity from angle (ride the wind currents)
+  // Wind - Velocity from angle (ride the wind currents)
   wind: {
-    url: "https://phaser.io/examples/v3/view/arcade/velocity-from-angle",
-    fallback: "https://phaser.io/examples/v3/view/arcade/velocity-from-angle",
+    url: "https://labs.phaser.io/view.html?src=src/arcade/velocity%20from%20angle.js",
+    fallback: "https://labs.phaser.io/view.html?src=src/arcade/velocity%20from%20angle.js",
     name: "Wind Rider",
     description: "Ride the wind currents! Use mouse to control direction.",
   },
   // Sun - Collect Stars (collect sunshine rays)
   sun: {
-    url: "https://phaser.io/examples/v3/view/arcade/collect-stars",
-    fallback: "https://phaser.io/examples/v3/view/arcade/collect-stars",
+    url: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
+    fallback: "https://labs.phaser.io/view.html?src=src/games/firstgame/part9.js",
     name: "Sunshine Collector",
     description: "Collect the sunshine! Move around to gather rays.",
   },
