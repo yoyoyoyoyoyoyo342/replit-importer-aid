@@ -14,12 +14,12 @@ interface EmbeddedGameProps {
 
 // Known embeddable game URLs for each weather theme - all ad-free GitHub hosted games
 export const GAME_URLS = {
-  // Snow Skiing - Classic SkiFree game (ski down the mountain, avoid obstacles)
+  // Snow - Falling Objects (catch falling snowflakes)
   snow: {
-    url: "https://basicallydan.github.io/skifree.js/",
-    fallback: "https://basicallydan.github.io/skifree.js/",
-    name: "Snow Skiing",
-    description: "Ski down the snowy mountain! Use arrow keys or swipe to steer.",
+    url: "https://phaser.io/examples/v3/view/arcade/falling-objects",
+    fallback: "https://phaser.io/examples/v3/view/arcade/falling-objects",
+    name: "Snowflake Catcher",
+    description: "Catch the falling snowflakes! Move to collect them.",
   },
   // Rain - Flood Runner (endless runner with rising water/rain)
   rain: {
@@ -49,12 +49,12 @@ export const GAME_URLS = {
     name: "Wind Rider",
     description: "Ride the wind currents! Use mouse to control direction.",
   },
-  // Sunshine Collector - Fly and collect sunshine
+  // Sun - Collect Stars (collect sunshine rays)
   sun: {
-    url: "https://elmejdki.github.io/FlappyBird/",
-    fallback: "https://elmejdki.github.io/FlappyBird/",
+    url: "https://phaser.io/examples/v3/view/arcade/collect-stars",
+    fallback: "https://phaser.io/examples/v3/view/arcade/collect-stars",
     name: "Sunshine Collector",
-    description: "Collect sunshine by flying high! Tap or click to flap.",
+    description: "Collect the sunshine! Move around to gather rays.",
   },
 };
 
