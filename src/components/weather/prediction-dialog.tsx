@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Target, Trophy, Swords } from "lucide-react";
+import { Target, Trophy, Swords, CheckCircle } from "lucide-react";
 import { WeatherPredictionForm } from "./weather-prediction-form";
 import { Leaderboard } from "./leaderboard";
 import { PredictionBattles } from "./prediction-battles";
@@ -12,6 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { usePredictionBattles } from "@/hooks/use-prediction-battles";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
 
 interface PredictionDialogProps {
   location: string;
@@ -21,6 +24,19 @@ interface PredictionDialogProps {
   onPredictionMade: () => void;
 }
 
+interface ExistingPrediction {
+  id: string;
+  predicted_high: number;
+  predicted_low: number;
+  predicted_condition: string;
+}
+
+interface AcceptingBattle {
+  id: string;
+  date: string;
+  challengerName: string;
+}
+
 export const PredictionDialog = ({
   location,
   latitude,
@@ -28,19 +44,50 @@ export const PredictionDialog = ({
   isImperial,
   onPredictionMade
 }: PredictionDialogProps) => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("predict");
   const [createBattleMode, setCreateBattleMode] = useState(false);
   const [targetUser, setTargetUser] = useState<{ id: string; name: string } | null>(null);
-  const [acceptingBattleId, setAcceptingBattleId] = useState<string | null>(null);
+  const [acceptingBattle, setAcceptingBattle] = useState<AcceptingBattle | null>(null);
+  const [existingPrediction, setExistingPrediction] = useState<ExistingPrediction | null>(null);
+  const [loadingExisting, setLoadingExisting] = useState(false);
   const { t } = useLanguage();
-  const { pendingChallenges, createBattle, acceptBattle } = usePredictionBattles();
+  const { pendingChallenges, battles, createBattle, acceptBattle } = usePredictionBattles();
+
+  // Check for existing prediction when accepting a battle
+  useEffect(() => {
+    const checkExistingPrediction = async () => {
+      if (!acceptingBattle || !user) {
+        setExistingPrediction(null);
+        return;
+      }
+
+      setLoadingExisting(true);
+      try {
+        const { data } = await supabase
+          .from("weather_predictions")
+          .select("id, predicted_high, predicted_low, predicted_condition")
+          .eq("user_id", user.id)
+          .eq("prediction_date", acceptingBattle.date)
+          .maybeSingle();
+
+        setExistingPrediction(data);
+      } catch (error) {
+        console.error("Error checking existing prediction:", error);
+      } finally {
+        setLoadingExisting(false);
+      }
+    };
+
+    checkExistingPrediction();
+  }, [acceptingBattle, user]);
 
   const handlePredictionMade = async (predictionId?: string) => {
     // If accepting a battle, link the prediction to it
-    if (acceptingBattleId && predictionId) {
-      await acceptBattle(acceptingBattleId, predictionId);
-      setAcceptingBattleId(null);
+    if (acceptingBattle && predictionId) {
+      await acceptBattle(acceptingBattle.id, predictionId);
+      setAcceptingBattle(null);
     } else if (createBattleMode && predictionId) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
@@ -51,12 +98,30 @@ export const PredictionDialog = ({
     setOpen(false);
     setTargetUser(null);
     setCreateBattleMode(false);
-    setAcceptingBattleId(null);
+    setAcceptingBattle(null);
+    setExistingPrediction(null);
   };
 
   const handleAcceptBattle = (battleId: string) => {
-    setAcceptingBattleId(battleId);
+    // Find the battle to get its date
+    const battle = [...pendingChallenges, ...battles].find(b => b.id === battleId);
+    if (battle) {
+      setAcceptingBattle({
+        id: battleId,
+        date: battle.battle_date,
+        challengerName: battle.challenger_name || "Unknown"
+      });
+    }
     setActiveTab("predict");
+  };
+
+  const handleUseExistingPrediction = async () => {
+    if (!existingPrediction || !acceptingBattle) return;
+    await acceptBattle(acceptingBattle.id, existingPrediction.id);
+    setAcceptingBattle(null);
+    setExistingPrediction(null);
+    onPredictionMade();
+    setOpen(false);
   };
 
   const handleSelectUser = (userId: string, displayName: string) => {
@@ -69,7 +134,8 @@ export const PredictionDialog = ({
       if (!isOpen) {
         setTargetUser(null);
         setCreateBattleMode(false);
-        setAcceptingBattleId(null);
+        setAcceptingBattle(null);
+        setExistingPrediction(null);
       }
     }}>
       <DialogTrigger asChild>
@@ -110,15 +176,37 @@ export const PredictionDialog = ({
           </TabsList>
           
           <TabsContent value="predict" className="mt-6">
-            {acceptingBattleId && (
-              <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  <Swords className="w-4 h-4 inline mr-1" />
-                  Make your prediction to accept the challenge!
-                </p>
+            {acceptingBattle && (
+              <div className="mb-4 space-y-3">
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    <Swords className="w-4 h-4 inline mr-1" />
+                    Accepting challenge from {acceptingBattle.challengerName}!
+                  </p>
+                </div>
+                
+                {loadingExisting ? (
+                  <div className="text-sm text-muted-foreground">Checking for existing prediction...</div>
+                ) : existingPrediction ? (
+                  <Card className="p-4 bg-primary/10 border-primary/20">
+                    <p className="text-sm font-medium mb-2">You already have a prediction for this date!</p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      High: {existingPrediction.predicted_high}° | Low: {existingPrediction.predicted_low}° | {existingPrediction.predicted_condition}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleUseExistingPrediction}>
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Use This Prediction
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setExistingPrediction(null)}>
+                        Make New Prediction
+                      </Button>
+                    </div>
+                  </Card>
+                ) : null}
               </div>
             )}
-            {!acceptingBattleId && (
+            {!acceptingBattle && (
               <div className="mb-4 flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <div className="flex items-center gap-2">
                   <Swords className="w-5 h-5 text-primary" />
@@ -137,7 +225,7 @@ export const PredictionDialog = ({
                 />
               </div>
             )}
-            {createBattleMode && !acceptingBattleId && (
+            {createBattleMode && !acceptingBattle && (
               <div className="mb-4 space-y-3">
                 <div className="p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                   <p className="text-sm text-yellow-600 dark:text-yellow-400">
@@ -155,14 +243,16 @@ export const PredictionDialog = ({
                 />
               </div>
             )}
-            <WeatherPredictionForm
-              location={location}
-              latitude={latitude}
-              longitude={longitude}
-              onPredictionMade={handlePredictionMade}
-              isImperial={isImperial}
-              returnPredictionId={createBattleMode || !!acceptingBattleId}
-            />
+            {(!acceptingBattle || !existingPrediction) && (
+              <WeatherPredictionForm
+                location={location}
+                latitude={latitude}
+                longitude={longitude}
+                onPredictionMade={handlePredictionMade}
+                isImperial={isImperial}
+                returnPredictionId={createBattleMode || !!acceptingBattle}
+              />
+            )}
           </TabsContent>
           
           <TabsContent value="battles" className="mt-6">
