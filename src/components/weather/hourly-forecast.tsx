@@ -22,6 +22,7 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
     if (c.includes("shower") || c.includes("rain")) return <CloudRain className={iconClass} />;
     if (c.includes("snow")) return <Snowflake className={iconClass} />;
     if (c.includes("fog")) return <CloudFog className={iconClass} />;
+    if (c.includes("overcast")) return <Cloud className={iconClass} />;
     if (c.includes("partly") || c.includes("sun")) return <CloudSun className={iconClass} />;
     if (c.includes("cloud")) return <Cloud className={iconClass} />;
     return <Sun className={iconClass} />;

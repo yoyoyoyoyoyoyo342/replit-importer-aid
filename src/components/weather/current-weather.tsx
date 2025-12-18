@@ -131,6 +131,7 @@ export function CurrentWeather({
     if (c.includes("drizzle")) return <CloudDrizzle className={iconClass} />;
     if (c.includes("shower") || c.includes("rain")) return <CloudRain className={iconClass} />;
     if (c.includes("fog")) return <CloudFog className={iconClass} />;
+    if (c.includes("overcast")) return <Cloud className={iconClass} />;
     if (c.includes("partly") || c.includes("sun")) return <CloudSun className={iconClass} />;
     if (c.includes("cloud")) return <Cloud className={iconClass} />;
     return <Sun className={iconClass} />;
@@ -142,8 +143,9 @@ export function CurrentWeather({
     if (c.includes("rain") || c.includes("shower") || c.includes("drizzle")) return "from-slate-500/80 via-blue-600/70 to-slate-600/80";
     if (c.includes("snow") || c.includes("sleet")) return "from-slate-200/80 via-blue-100/70 to-white/80";
     if (c.includes("fog") || c.includes("mist")) return "from-gray-300/80 via-gray-400/70 to-gray-500/80";
+    if (c.includes("overcast")) return "from-gray-500/80 via-slate-600/70 to-gray-700/80";
     if (c.includes("cloud") && !c.includes("partly")) return "from-gray-400/80 via-slate-500/70 to-gray-600/80";
-    if (c.includes("partly") || c.includes("overcast")) return "from-blue-300/80 via-gray-300/70 to-blue-400/80";
+    if (c.includes("partly")) return "from-blue-300/80 via-gray-300/70 to-blue-400/80";
     // Clear/sunny
     return "from-sky-300/80 via-blue-400/70 to-indigo-500/80";
   };
