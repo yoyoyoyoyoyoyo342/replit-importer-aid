@@ -1,11 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 import { 
   ArrowLeft, 
   Trophy, 
@@ -24,13 +30,32 @@ import {
   Medal,
   User,
   Clock,
-  Activity
+  Activity,
+  Edit3,
+  Camera,
+  Save,
+  X,
+  Loader2,
+  Eye,
+  Sunrise,
+  CloudRain,
+  Snowflake,
+  ThermometerSun,
+  Wind,
+  MapPin,
+  Heart,
+  Gem,
+  Rocket,
+  Brain,
+  Gift
 } from "lucide-react";
 
 interface UserProfileData {
   display_name: string;
   total_points: number;
   created_at: string;
+  bio: string | null;
+  avatar_url: string | null;
 }
 
 interface StreakData {
@@ -121,14 +146,12 @@ const StatCard = ({
   value, 
   sublabel,
   color = "primary",
-  trend
 }: { 
   icon: any; 
   label: string; 
   value: string | number; 
   sublabel?: string;
   color?: string;
-  trend?: "up" | "down" | "neutral";
 }) => {
   const colorClasses: Record<string, string> = {
     primary: "from-primary/20 to-primary/5 border-primary/30",
@@ -152,9 +175,6 @@ const StatCard = ({
     <div className={`p-4 rounded-xl bg-gradient-to-br ${colorClasses[color]} border backdrop-blur-sm animate-fade-in`}>
       <div className="flex items-center justify-between mb-2">
         <Icon className={`h-5 w-5 ${iconColors[color]}`} />
-        {trend && (
-          <TrendingUp className={`h-4 w-4 ${trend === "up" ? "text-green-500" : trend === "down" ? "text-red-500 rotate-180" : "text-muted-foreground"}`} />
-        )}
       </div>
       <p className="text-2xl font-bold text-foreground">{value}</p>
       <p className="text-sm text-muted-foreground">{label}</p>
@@ -179,18 +199,11 @@ const AchievementBadge = ({
   color: string;
   rarity?: "common" | "rare" | "epic" | "legendary";
 }) => {
-  const rarityGlow: Record<string, string> = {
-    common: "",
-    rare: "shadow-blue-500/20",
-    epic: "shadow-purple-500/30",
-    legendary: "shadow-yellow-500/40",
-  };
-
-  const rarityBorder: Record<string, string> = {
-    common: "border-border/30",
-    rare: "border-blue-500/50",
-    epic: "border-purple-500/50",
-    legendary: "border-yellow-500/50 animate-pulse",
+  const rarityBadgeColors: Record<string, string> = {
+    common: "bg-gray-500/20 text-gray-400",
+    rare: "bg-blue-500/20 text-blue-400",
+    epic: "bg-purple-500/20 text-purple-400",
+    legendary: "bg-gradient-to-r from-yellow-500/20 to-orange-500/20 text-yellow-400",
   };
 
   return (
@@ -198,32 +211,37 @@ const AchievementBadge = ({
       className={`
         relative p-4 rounded-xl border transition-all duration-300
         ${unlocked 
-          ? `bg-${color}/10 ${rarityBorder[rarity]} shadow-lg ${rarityGlow[rarity]} hover:scale-105` 
+          ? `bg-gradient-to-br from-${color}/10 to-transparent border-${color}/30 shadow-lg hover:scale-[1.02]` 
           : 'bg-muted/10 border-border/20 opacity-40 grayscale'
         }
       `}
+      style={unlocked ? { 
+        background: `linear-gradient(135deg, ${color}15 0%, transparent 100%)`,
+        borderColor: `${color}40`
+      } : undefined}
     >
       {unlocked && rarity === "legendary" && (
-        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-yellow-500/10 via-transparent to-yellow-500/10 animate-pulse" />
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-yellow-500/5 via-transparent to-yellow-500/5 animate-pulse" />
       )}
       <div className="relative flex items-start gap-3">
-        <div className={`
-          p-2.5 rounded-lg 
-          ${unlocked ? `bg-${color}/20` : 'bg-muted/20'}
-        `}>
-          <Icon className={`h-6 w-6 ${unlocked ? `text-${color}` : 'text-muted-foreground'}`} 
-            style={{ color: unlocked ? color : undefined }} 
+        <div 
+          className="p-2.5 rounded-lg"
+          style={{ backgroundColor: unlocked ? `${color}20` : undefined }}
+        >
+          <Icon 
+            className="h-6 w-6" 
+            style={{ color: unlocked ? color : 'hsl(var(--muted-foreground))' }} 
           />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className={`font-semibold text-sm ${unlocked ? 'text-foreground' : 'text-muted-foreground'}`}>
               {name}
             </p>
-            {unlocked && rarity !== "common" && (
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            {rarity !== "common" && (
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${rarityBadgeColors[rarity]}`}>
                 {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
-              </Badge>
+              </span>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
@@ -239,11 +257,22 @@ const AchievementBadge = ({
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [streakData, setStreakData] = useState<StreakData | null>(null);
   const [battleStats, setBattleStats] = useState<BattleStats | null>(null);
   const [predictionStats, setPredictionStats] = useState<PredictionStats | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Edit state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editDisplayName, setEditDisplayName] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isOwnProfile = user?.id === userId;
 
   useEffect(() => {
     if (userId) {
@@ -251,13 +280,20 @@ const UserProfile = () => {
     }
   }, [userId]);
 
+  useEffect(() => {
+    if (profile) {
+      setEditDisplayName(profile.display_name || "");
+      setEditBio(profile.bio || "");
+    }
+  }, [profile]);
+
   const fetchUserData = async () => {
     if (!userId) return;
 
     try {
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("display_name, total_points, created_at")
+        .select("display_name, total_points, created_at, bio, avatar_url")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -341,6 +377,87 @@ const UserProfile = () => {
     }
   };
 
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be less than 2MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+
+      // Delete existing avatar if any
+      await supabase.storage.from('avatars').remove([fileName]);
+
+      // Upload new avatar
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl + `?t=${Date.now()}` })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Refresh profile data
+      await fetchUserData();
+      toast.success("Avatar updated successfully!");
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast.error("Failed to upload avatar");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          display_name: editDisplayName.trim() || null,
+          bio: editBio.trim() || null 
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await fetchUserData();
+      setEditDialogOpen(false);
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast.error("Failed to save profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 p-4 md:p-8">
@@ -386,25 +503,70 @@ const UserProfile = () => {
     ? Math.round((battleStats.wins / (battleStats.wins + battleStats.losses)) * 100) 
     : 0;
 
+  const userLevel = Math.floor((profile.total_points || 0) / 500) + 1;
+
   const achievements = [
+    // Prediction achievements
     { icon: CheckCircle, name: "First Prediction", description: "Made your first prediction", unlocked: (predictionStats?.total_predictions || 0) > 0, color: "#22c55e", rarity: "common" as const },
+    { icon: Target, name: "Getting Started", description: "10 predictions made", unlocked: (predictionStats?.total_predictions || 0) >= 10, color: "#3b82f6", rarity: "common" as const },
     { icon: Sparkles, name: "Weather Guru", description: "50 predictions made", unlocked: (predictionStats?.total_predictions || 0) >= 50, color: "#06b6d4", rarity: "rare" as const },
     { icon: Medal, name: "Weather Veteran", description: "100 predictions made", unlocked: (predictionStats?.total_predictions || 0) >= 100, color: "#6366f1", rarity: "epic" as const },
+    { icon: Brain, name: "Weather Expert", description: "250 predictions made", unlocked: (predictionStats?.total_predictions || 0) >= 250, color: "#8b5cf6", rarity: "epic" as const },
+    { icon: Rocket, name: "Weather Master", description: "500 predictions made", unlocked: (predictionStats?.total_predictions || 0) >= 500, color: "#ec4899", rarity: "legendary" as const },
+    
+    // Accuracy achievements
+    { icon: Eye, name: "Sharp Eye", description: "50%+ prediction accuracy", unlocked: (predictionStats?.accuracy || 0) >= 50 && (predictionStats?.total_predictions || 0) >= 5, color: "#22c55e", rarity: "common" as const },
+    { icon: Target, name: "Accuracy Pro", description: "70%+ prediction accuracy", unlocked: (predictionStats?.accuracy || 0) >= 70 && (predictionStats?.total_predictions || 0) >= 5, color: "#3b82f6", rarity: "rare" as const },
+    { icon: Gem, name: "Weather Savant", description: "85%+ prediction accuracy", unlocked: (predictionStats?.accuracy || 0) >= 85 && (predictionStats?.total_predictions || 0) >= 10, color: "#a855f7", rarity: "epic" as const },
     { icon: Star, name: "Perfect Prediction", description: "100% accuracy with 5+ predictions", unlocked: (predictionStats?.accuracy || 0) === 100 && (predictionStats?.correct_predictions || 0) >= 5, color: "#f59e0b", rarity: "legendary" as const },
-    { icon: Target, name: "Accuracy Pro", description: "70%+ prediction accuracy", unlocked: (predictionStats?.accuracy || 0) >= 70, color: "#3b82f6", rarity: "rare" as const },
+    
+    // Streak achievements
+    { icon: Flame, name: "On Fire", description: "3-day prediction streak", unlocked: (streakData?.longest_streak || 0) >= 3, color: "#f97316", rarity: "common" as const },
     { icon: Flame, name: "Streak Master", description: "7-day prediction streak", unlocked: (streakData?.longest_streak || 0) >= 7, color: "#f97316", rarity: "rare" as const },
+    { icon: Flame, name: "Dedicated", description: "14-day prediction streak", unlocked: (streakData?.longest_streak || 0) >= 14, color: "#ef4444", rarity: "epic" as const },
     { icon: Zap, name: "Streak Legend", description: "30-day prediction streak", unlocked: (streakData?.longest_streak || 0) >= 30, color: "#ef4444", rarity: "legendary" as const },
+    
+    // Battle achievements
+    { icon: Swords, name: "Challenger", description: "Participated in first battle", unlocked: (battleStats?.total_battles || 0) >= 1, color: "#ef4444", rarity: "common" as const },
     { icon: Trophy, name: "Battle Victor", description: "Won your first battle", unlocked: (battleStats?.wins || 0) >= 1, color: "#22c55e", rarity: "common" as const },
+    { icon: Shield, name: "Battle Hardened", description: "5 battle wins", unlocked: (battleStats?.wins || 0) >= 5, color: "#3b82f6", rarity: "rare" as const },
     { icon: Swords, name: "Battle Champion", description: "Won 10 battles", unlocked: (battleStats?.wins || 0) >= 10, color: "#eab308", rarity: "epic" as const },
+    { icon: Crown, name: "Battle King", description: "Won 25 battles", unlocked: (battleStats?.wins || 0) >= 25, color: "#f59e0b", rarity: "legendary" as const },
     { icon: Shield, name: "Undefeated", description: "5 consecutive wins", unlocked: (battleStats?.longestWinStreak || 0) >= 5, color: "#10b981", rarity: "epic" as const },
+    { icon: Shield, name: "Unstoppable", description: "10 consecutive wins", unlocked: (battleStats?.longestWinStreak || 0) >= 10, color: "#f59e0b", rarity: "legendary" as const },
+    
+    // Points achievements
+    { icon: TrendingUp, name: "Rising Star", description: "100+ total points", unlocked: (profile.total_points || 0) >= 100, color: "#22c55e", rarity: "common" as const },
+    { icon: TrendingUp, name: "Points Collector", description: "500+ total points", unlocked: (profile.total_points || 0) >= 500, color: "#3b82f6", rarity: "rare" as const },
     { icon: TrendingUp, name: "Points Legend", description: "1000+ total points", unlocked: (profile.total_points || 0) >= 1000, color: "#a855f7", rarity: "rare" as const },
-    { icon: Crown, name: "Weather Elite", description: "5000+ total points", unlocked: (profile.total_points || 0) >= 5000, color: "#ec4899", rarity: "legendary" as const },
+    { icon: Gem, name: "Points Master", description: "2500+ total points", unlocked: (profile.total_points || 0) >= 2500, color: "#ec4899", rarity: "epic" as const },
+    { icon: Crown, name: "Weather Elite", description: "5000+ total points", unlocked: (profile.total_points || 0) >= 5000, color: "#f59e0b", rarity: "legendary" as const },
+    { icon: Crown, name: "Weather God", description: "10000+ total points", unlocked: (profile.total_points || 0) >= 10000, color: "#fbbf24", rarity: "legendary" as const },
+    
+    // Visit achievements
+    { icon: Calendar, name: "Regular", description: "10 total visits", unlocked: (streakData?.total_visits || 0) >= 10, color: "#22c55e", rarity: "common" as const },
+    { icon: Heart, name: "Loyal User", description: "50 total visits", unlocked: (streakData?.total_visits || 0) >= 50, color: "#ec4899", rarity: "rare" as const },
+    { icon: Gift, name: "Dedicated Fan", description: "100 total visits", unlocked: (streakData?.total_visits || 0) >= 100, color: "#8b5cf6", rarity: "epic" as const },
+    
+    // Special achievements
+    { icon: Sunrise, name: "Early Bird", description: "Member for 7+ days", unlocked: daysSinceJoined >= 7, color: "#f97316", rarity: "common" as const },
+    { icon: MapPin, name: "Weather Watcher", description: "Member for 30+ days", unlocked: daysSinceJoined >= 30, color: "#3b82f6", rarity: "rare" as const },
+    { icon: Star, name: "OG Member", description: "Member for 90+ days", unlocked: daysSinceJoined >= 90, color: "#a855f7", rarity: "epic" as const },
   ];
 
   const unlockedCount = achievements.filter(a => a.unlocked).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 pb-32">
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleAvatarUpload}
+        accept="image/*"
+        className="hidden"
+      />
+
       {/* Header */}
       <div className="relative">
         {/* Background gradient */}
@@ -428,25 +590,108 @@ const UserProfile = () => {
             <div className="relative p-6 md:p-8">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Avatar */}
-                <div className="relative">
-                  <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
-                    <span className="text-4xl font-bold text-primary-foreground">
-                      {profile.display_name?.charAt(0).toUpperCase() || "?"}
-                    </span>
-                  </div>
+                <div className="relative group">
+                  {profile.avatar_url ? (
+                    <img 
+                      src={profile.avatar_url}
+                      alt={profile.display_name}
+                      className="w-28 h-28 rounded-full object-cover shadow-lg shadow-primary/30 border-4 border-background"
+                    />
+                  ) : (
+                    <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg shadow-primary/30">
+                      <span className="text-4xl font-bold text-primary-foreground">
+                        {profile.display_name?.charAt(0).toUpperCase() || "?"}
+                      </span>
+                    </div>
+                  )}
+                  
                   {/* Level indicator */}
                   <div className="absolute -bottom-1 -right-1 w-10 h-10 rounded-full bg-background border-2 border-primary flex items-center justify-center">
-                    <span className="text-sm font-bold text-primary">
-                      {Math.floor((profile.total_points || 0) / 500) + 1}
-                    </span>
+                    <span className="text-sm font-bold text-primary">{userLevel}</span>
                   </div>
+
+                  {/* Edit avatar overlay */}
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                    >
+                      {uploading ? (
+                        <Loader2 className="h-8 w-8 text-white animate-spin" />
+                      ) : (
+                        <Camera className="h-8 w-8 text-white" />
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 text-center md:text-left">
-                  <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-                    {profile.display_name}
-                  </h1>
+                  <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+                    <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                      {profile.display_name}
+                    </h1>
+                    {isOwnProfile && (
+                      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Edit3 className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Edit Profile</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="displayName">Display Name</Label>
+                              <Input
+                                id="displayName"
+                                value={editDisplayName}
+                                onChange={(e) => setEditDisplayName(e.target.value)}
+                                placeholder="Enter your display name"
+                                maxLength={50}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="bio">Bio</Label>
+                              <Textarea
+                                id="bio"
+                                value={editBio}
+                                onChange={(e) => setEditBio(e.target.value)}
+                                placeholder="Tell us about yourself..."
+                                rows={3}
+                                maxLength={200}
+                              />
+                              <p className="text-xs text-muted-foreground text-right">
+                                {editBio.length}/200
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                              <X className="h-4 w-4 mr-2" />
+                              Cancel
+                            </Button>
+                            <Button onClick={handleSaveProfile} disabled={saving}>
+                              {saving ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                <Save className="h-4 w-4 mr-2" />
+                              )}
+                              Save
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
+                  
+                  {profile.bio && (
+                    <p className="text-muted-foreground mb-3 max-w-md">{profile.bio}</p>
+                  )}
+                  
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-muted-foreground">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="h-4 w-4" />
@@ -479,6 +724,7 @@ const UserProfile = () => {
                   <Trophy className="h-6 w-6 text-primary mx-auto mb-2" />
                   <p className="text-4xl font-bold text-primary">{profile.total_points.toLocaleString()}</p>
                   <p className="text-sm text-muted-foreground">Total Points</p>
+                  <p className="text-xs text-muted-foreground mt-1">Level {userLevel}</p>
                 </div>
               </div>
             </div>
