@@ -6,6 +6,108 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Fetch LLM-processed weather data for a location and date
+async function fetchLLMWeatherData(lat: number, lon: number, date: string) {
+  try {
+    // First fetch raw weather data from Open-Meteo
+    const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode&start_date=${date}&end_date=${date}&temperature_unit=fahrenheit&timezone=auto`;
+    const weatherResponse = await fetch(weatherUrl);
+    const weatherData = await weatherResponse.json();
+
+    if (!weatherData.daily || !weatherData.daily.temperature_2m_max) {
+      console.log(`No weather data available for ${date}`);
+      return null;
+    }
+
+    const rawActualHigh = weatherData.daily.temperature_2m_max[0];
+    const rawActualLow = weatherData.daily.temperature_2m_min[0];
+    const rawWeatherCode = weatherData.daily.weathercode[0];
+    const rawCondition = mapWeatherCodeToCondition(rawWeatherCode);
+
+    // Try to get LLM-processed data for more accurate "experimental" results
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.log("Supabase credentials not available, using raw data");
+      return { actualHigh: rawActualHigh, actualLow: rawActualLow, actualCondition: rawCondition };
+    }
+
+    // Create weather source format for LLM processing
+    const weatherSource = {
+      source: "Open-Meteo",
+      currentWeather: {
+        temperature: Math.round((rawActualHigh + rawActualLow) / 2),
+        condition: rawCondition,
+        humidity: 50,
+        windSpeed: 10,
+        feelsLike: Math.round((rawActualHigh + rawActualLow) / 2),
+        pressure: 1013
+      },
+      hourlyForecast: [],
+      dailyForecast: [{
+        day: new Date(date).toLocaleDateString([], { weekday: "short" }),
+        condition: rawCondition,
+        highTemp: rawActualHigh,
+        lowTemp: rawActualLow,
+        precipitation: 0
+      }]
+    };
+
+    // Call the LLM weather forecast function
+    const llmUrl = `${supabaseUrl}/functions/v1/llm-weather-forecast`;
+    const llmResponse = await fetch(llmUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sources: [weatherSource],
+        location: `${lat},${lon}`
+      })
+    });
+
+    if (!llmResponse.ok) {
+      console.log("LLM forecast failed, using raw data");
+      return { actualHigh: rawActualHigh, actualLow: rawActualLow, actualCondition: rawCondition };
+    }
+
+    const llmData = await llmResponse.json();
+    
+    // If LLM returned processed data, use it
+    if (llmData && !llmData.rawApiData && llmData.daily && llmData.daily.length > 0) {
+      const llmDaily = llmData.daily[0];
+      console.log(`Using LLM-processed data: high=${llmDaily.highTemp}, low=${llmDaily.lowTemp}, condition=${llmDaily.condition}`);
+      return {
+        actualHigh: llmDaily.highTemp,
+        actualLow: llmDaily.lowTemp,
+        actualCondition: normalizeCondition(llmDaily.condition)
+      };
+    }
+
+    // Fallback to raw data
+    return { actualHigh: rawActualHigh, actualLow: rawActualLow, actualCondition: rawCondition };
+  } catch (error) {
+    console.error("Error fetching LLM weather data:", error);
+    return null;
+  }
+}
+
+// Normalize LLM condition to match prediction conditions
+function normalizeCondition(condition: string): string {
+  const c = condition.toLowerCase();
+  if (c.includes('clear') || c.includes('sunny')) return 'sunny';
+  if (c.includes('partly')) return 'partly-cloudy';
+  if (c.includes('overcast') || c.includes('cloudy')) return 'cloudy';
+  if (c.includes('thunder')) return 'rainy';
+  if (c.includes('heavy rain')) return 'rainy';
+  if (c.includes('rain') || c.includes('drizzle') || c.includes('shower')) return 'rainy';
+  if (c.includes('snow') || c.includes('sleet')) return 'snowy';
+  if (c.includes('fog')) return 'cloudy';
+  return 'cloudy';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -56,23 +158,21 @@ serve(async (req) => {
     // Verify each prediction
     for (const prediction of predictions) {
       try {
-        // Fetch actual weather data for the prediction location and date
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${prediction.latitude}&longitude=${prediction.longitude}&daily=temperature_2m_max,temperature_2m_min,weathercode&start_date=${predictionDate}&end_date=${predictionDate}&temperature_unit=fahrenheit&timezone=auto`;
-        
-        const weatherResponse = await fetch(weatherUrl);
-        const weatherData = await weatherResponse.json();
+        // Fetch LLM-processed weather data (experimental data is the "correct" answer)
+        const llmWeather = await fetchLLMWeatherData(
+          prediction.latitude, 
+          prediction.longitude, 
+          predictionDate
+        );
 
-        if (!weatherData.daily || !weatherData.daily.temperature_2m_max) {
+        if (!llmWeather) {
           console.log(`No weather data available for prediction ${prediction.id}`);
           continue;
         }
 
-        const actualHigh = weatherData.daily.temperature_2m_max[0];
-        const actualLow = weatherData.daily.temperature_2m_min[0];
-        const actualWeatherCode = weatherData.daily.weathercode[0];
-
-        // Map weather code to condition
-        const actualCondition = mapWeatherCodeToCondition(actualWeatherCode);
+        const actualHigh = llmWeather.actualHigh;
+        const actualLow = llmWeather.actualLow;
+        const actualCondition = llmWeather.actualCondition;
 
         // Check if prediction is correct (within 5 degrees for temps and exact match for condition)
         const highAccurate = Math.abs(prediction.predicted_high - actualHigh) <= 5;
@@ -163,12 +263,15 @@ serve(async (req) => {
             const opponentScore = opponentPred.points_earned || 0;
             
             let winnerId = null;
+            let loserId = null;
             if (challengerScore > opponentScore) {
               winnerId = battle.challenger_id;
+              loserId = battle.opponent_id;
             } else if (opponentScore > challengerScore) {
               winnerId = battle.opponent_id;
+              loserId = battle.challenger_id;
             }
-            // If tied, no winner
+            // If tied, no winner or loser
 
             // Update battle with results
             await supabase
@@ -182,8 +285,9 @@ serve(async (req) => {
               })
               .eq('id', battle.id);
 
-            // Award 100 bonus points to the winner
-            if (winnerId) {
+            // Award 100 bonus points to the winner, deduct 50 from loser
+            if (winnerId && loserId) {
+              // Winner gets +100 points
               const { data: winnerProfile } = await supabase
                 .from('profiles')
                 .select('total_points')
@@ -197,23 +301,36 @@ serve(async (req) => {
                 .update({ total_points: newWinnerPoints })
                 .eq('user_id', winnerId);
 
-              // Notify the winner
+              // Loser gets -50 points
               const { data: loserProfile } = await supabase
                 .from('profiles')
+                .select('total_points')
+                .eq('user_id', loserId)
+                .single();
+
+              const newLoserPoints = Math.max(0, (loserProfile?.total_points || 0) - 50);
+
+              await supabase
+                .from('profiles')
+                .update({ total_points: newLoserPoints })
+                .eq('user_id', loserId);
+
+              // Notify the winner
+              const { data: loserDisplayName } = await supabase
+                .from('profiles')
                 .select('display_name')
-                .eq('user_id', winnerId === battle.challenger_id ? battle.opponent_id : battle.challenger_id)
+                .eq('user_id', loserId)
                 .maybeSingle();
 
               await supabase.from('user_notifications').insert({
                 user_id: winnerId,
                 type: 'battle_won',
                 title: 'Battle Victory! 🏆',
-                message: `You won the weather battle against ${loserProfile?.display_name || 'your opponent'}! +100 bonus points!`,
+                message: `You won the weather battle against ${loserDisplayName?.display_name || 'your opponent'}! +100 bonus points!`,
                 metadata: { battle_id: battle.id, bonus_points: 100 },
               });
 
               // Notify the loser
-              const loserId = winnerId === battle.challenger_id ? battle.opponent_id : battle.challenger_id;
               const { data: winnerProfileName } = await supabase
                 .from('profiles')
                 .select('display_name')
@@ -224,11 +341,11 @@ serve(async (req) => {
                 user_id: loserId,
                 type: 'battle_lost',
                 title: 'Battle Ended',
-                message: `${winnerProfileName?.display_name || 'Your opponent'} won the weather battle. Better luck next time!`,
-                metadata: { battle_id: battle.id },
+                message: `${winnerProfileName?.display_name || 'Your opponent'} won the weather battle. -50 points. Better luck next time!`,
+                metadata: { battle_id: battle.id, penalty_points: -50 },
               });
 
-              console.log(`Battle ${battle.id} completed. Winner: ${winnerId} (+100 bonus points)`);
+              console.log(`Battle ${battle.id} completed. Winner: ${winnerId} (+100 points), Loser: ${loserId} (-50 points)`);
             } else {
               // Notify both users of a tie
               await supabase.from('user_notifications').insert([
