@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,30 +13,47 @@ import { Eye, EyeOff } from 'lucide-react';
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [resetMode, setResetMode] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check if this is a password reset flow
+    const isReset = searchParams.get('reset') === 'true';
+    setResetMode(isReset);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
-        navigate('/');
+        // Don't redirect if in reset mode - user needs to set new password
+        if (!isReset) {
+          navigate('/');
+        }
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Check reset param again in case it changed
+      const currentIsReset = new URLSearchParams(window.location.search).get('reset') === 'true';
+      
       if (session?.user) {
         setUser(session.user);
-        navigate('/');
+        // Don't redirect if in reset mode
+        if (!currentIsReset) {
+          navigate('/');
+        }
       } else {
         setUser(null);
       }
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   const cleanupAuthState = () => {
     Object.keys(localStorage).forEach(key => {
@@ -98,6 +115,39 @@ export default function Auth() {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({ variant: "destructive", title: "Passwords Don't Match", description: "Please make sure both passwords are the same." });
+      return;
+    }
+    
+    if (newPassword.length < 6) {
+      toast({ variant: "destructive", title: "Password Too Short", description: "Password must be at least 6 characters." });
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) {
+        toast({ variant: "destructive", title: "Password Update Failed", description: error.message });
+        return;
+      }
+      
+      toast({ title: "Password Updated!", description: "Your password has been successfully changed." });
+      // Clear reset mode and redirect
+      setResetMode(false);
+      window.location.href = '/';
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Password Update Failed", description: error.message || "An unexpected error occurred" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -139,6 +189,66 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  // Show password reset form if in reset mode
+  if (resetMode && user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Set New Password</CardTitle>
+            <CardDescription>Enter your new password below</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordReset} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <div className="relative">
+                  <Input 
+                    id="new-password" 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Enter new password" 
+                    value={newPassword} 
+                    onChange={e => setNewPassword(e.target.value)} 
+                    required 
+                    minLength={6}
+                    className="pr-10"
+                  />
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(prev => !prev); }}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <div className="relative">
+                  <Input 
+                    id="confirm-password" 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Confirm new password" 
+                    value={confirmPassword} 
+                    onChange={e => setConfirmPassword(e.target.value)} 
+                    required 
+                    minLength={6}
+                    className="pr-10"
+                  />
+                </div>
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
