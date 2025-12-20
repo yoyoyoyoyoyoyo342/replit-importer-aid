@@ -14,6 +14,7 @@ import { Footer } from "@/components/ui/footer";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { PWAInstallPopup } from "@/components/ui/pwa-install-popup";
 import { useAnalytics } from "@/hooks/use-analytics";
+import { useToast } from "@/hooks/use-toast";
 
 // Critical components - load immediately
 import Weather from "./pages/Weather";
@@ -42,6 +43,38 @@ const queryClient = new QueryClient({
 function AnalyticsTracker() {
   useAnalytics();
   return null;
+}
+
+function useOAuthErrorToast() {
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+
+    const queryError = url.searchParams.get("error") || url.searchParams.get("error_code");
+    const queryDesc = url.searchParams.get("error_description");
+
+    const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+    const hashError = hashParams.get("error") || hashParams.get("error_code");
+    const hashDesc = hashParams.get("error_description");
+
+    const error = queryError || hashError;
+    const description = queryDesc || hashDesc;
+
+    if (!error) return;
+
+    toast({
+      variant: "destructive",
+      title: "Google sign-in failed",
+      description: description ? decodeURIComponent(description) : error,
+    });
+
+    // Clean URL so refresh doesn't re-toast.
+    url.searchParams.delete("error");
+    url.searchParams.delete("error_code");
+    url.searchParams.delete("error_description");
+    window.history.replaceState({}, document.title, url.pathname + url.search);
+  }, [toast]);
 }
 
 // Prefetch saved locations for faster loading
@@ -77,6 +110,7 @@ function usePrefetchSavedLocations() {
 function AppContent() {
   const { isNightTime } = useTimeOfDayContext();
   usePrefetchSavedLocations();
+  useOAuthErrorToast();
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="weather-app-theme" isNightTime={isNightTime}>
