@@ -100,13 +100,23 @@ export default function Auth() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?reset=true`
+      const response = await supabase.functions.invoke('send-password-reset', {
+        body: {
+          email,
+          redirectUrl: `${window.location.origin}/auth?reset=true`
+        }
       });
-      if (error) {
-        toast({ variant: "destructive", title: "Password Reset Failed", description: error.message });
+      
+      if (response.error) {
+        toast({ variant: "destructive", title: "Password Reset Failed", description: response.error.message });
         return;
       }
+      
+      if (response.data?.error) {
+        toast({ variant: "destructive", title: "Password Reset Failed", description: response.data.error });
+        return;
+      }
+      
       toast({ title: "Reset Link Sent!", description: "Check your email for a password reset link." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Password Reset Failed", description: error.message || "An unexpected error occurred" });
@@ -214,15 +224,13 @@ export default function Auth() {
                     minLength={6}
                     className="pr-10"
                   />
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => setShowPassword(prev => !prev)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(prev => !prev); }}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </div>
+                  </button>
                 </div>
               </div>
               <div className="space-y-2">
@@ -282,15 +290,13 @@ export default function Auth() {
                       required 
                       className="pr-10"
                     />
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => setShowPassword(prev => !prev)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(prev => !prev); }}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </div>
+                    </button>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -321,15 +327,13 @@ export default function Auth() {
                       minLength={6}
                       className="pr-10"
                     />
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => setShowPassword(prev => !prev)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowPassword(prev => !prev); }}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </div>
+                    </button>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
