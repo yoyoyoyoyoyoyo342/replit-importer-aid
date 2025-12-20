@@ -207,3 +207,58 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Carbon Ads Styling - Non-intrusive, themed */
+#carbonads {
+  display: flex;
+  max-width: 330px;
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  gap: 0.75rem;
+}
+
+#carbonads a {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+}
+
+#carbonads a:hover {
+  color: hsl(var(--primary));
+}
+
+.carbon-wrap {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.carbon-img {
+  flex-shrink: 0;
+}
+
+.carbon-img img {
+  display: block;
+  border-radius: calc(var(--radius) - 0.25rem);
+}
+
+.carbon-text {
+  color: hsl(var(--muted-foreground));
+}
+
+.carbon-poweredby {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+.carbon-poweredby:hover {
+  opacity: 1;
+}
