@@ -1,9 +1,15 @@
 import { Link } from "react-router-dom";
+import { CarbonAd } from "./carbon-ad";
 
 export function Footer() {
   return (
     <footer className="w-full border-t border-border bg-background/80 backdrop-blur-sm mt-auto">
       <div className="container mx-auto px-4 py-6">
+        {/* Non-intrusive Carbon Ad */}
+        <div className="flex justify-center mb-6">
+          <CarbonAd />
+        </div>
+        
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <div className="flex flex-wrap justify-center md:justify-start gap-4">
             <Link to="/about" className="hover:text-foreground transition-colors">
