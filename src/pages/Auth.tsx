@@ -204,17 +204,30 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      // Prevent state/cookie mismatches from stale sessions
+      cleanupAuthState();
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {}
+
+      const redirectTo = `${window.location.origin}/`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`
-        }
+          redirectTo,
+        },
       });
+
       if (error) {
         toast({ variant: "destructive", title: "Google Sign In Failed", description: error.message });
       }
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Google Sign In Failed", description: error.message || "An unexpected error occurred" });
+      toast({
+        variant: "destructive",
+        title: "Google Sign In Failed",
+        description: error.message || "An unexpected error occurred",
+      });
     } finally {
       setLoading(false);
     }
