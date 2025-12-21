@@ -95,7 +95,7 @@ export function SettingsDialog({
   const { isIOS, isPWAInstalled, needsPWAInstall, requestPermission: requestNotificationPermission, sendTestNotification } = usePushNotifications();
   const { preferences: cookiePreferences, savePreferences: saveCookiePreferences } = useCookieConsent();
   const { useExperimental, setUseExperimental } = useExperimentalData();
-  const { isSubscribed, openCheckout } = useSubscription();
+  const { isSubscribed, openCheckout, openPortal } = useSubscription();
   const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
@@ -430,33 +430,24 @@ export function SettingsDialog({
               </p>
             </div>
 
-            {/* Experimental Data - Premium Feature */}
+            {/* Experimental Data - Premium Feature (Always on for subscribers) */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FlaskConical className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Use experimental data</span>
-                  {!isSubscribed && (
+                  <span className="text-sm">AI Enhanced Data</span>
+                  {isSubscribed ? (
+                    <span className="flex items-center gap-1 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                      Active
+                    </span>
+                  ) : (
                     <span className="flex items-center gap-1 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full">
                       <Crown className="w-3 h-3" />
                       Plus
                     </span>
                   )}
                 </div>
-                {isSubscribed ? (
-                  <Switch 
-                    checked={useExperimental} 
-                    onCheckedChange={(checked) => {
-                      setUseExperimental(checked);
-                      toast({
-                        title: "Data source updated",
-                        description: checked 
-                          ? "Now using AI-processed weather data" 
-                          : "Now using raw API weather data"
-                      });
-                    }} 
-                  />
-                ) : (
+                {!isSubscribed && (
                   <Button 
                     size="sm" 
                     variant="outline" 
@@ -470,13 +461,73 @@ export function SettingsDialog({
               </div>
               <p className="text-xs text-muted-foreground">
                 {isSubscribed 
-                  ? (useExperimental 
-                    ? 'Weather data is processed by AI for enhanced accuracy' 
-                    : 'Weather data comes directly from APIs without AI processing')
+                  ? 'Weather data is processed by AI for enhanced accuracy (always on with Rainz+)'
                   : 'Upgrade to Rainz+ to use AI-processed weather data'}
               </p>
             </div>
           </div>
+
+          {/* Rainz+ Premium Settings */}
+          {isSubscribed && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <Label className="text-base font-medium flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-amber-500" />
+                  Rainz+ Settings
+                </Label>
+                
+                {/* Extended Forecast Range */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Extended 14-day forecast</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Access extended weather forecasts up to 14 days ahead
+                  </p>
+                </div>
+
+                {/* Priority AI Processing */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Priority AI processing</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Faster AI responses and priority queue for weather insights
+                  </p>
+                </div>
+
+                {/* Morning Briefing */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">AI Morning Briefing</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Personalized morning weather reviews with outfit & activity recommendations
+                  </p>
+                </div>
+
+                {/* Manage Subscription */}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => openPortal()}
+                  className="w-full"
+                >
+                  Manage Subscription
+                </Button>
+              </div>
+            </>
+          )}
 
           <Separator />
 
