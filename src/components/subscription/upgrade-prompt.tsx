@@ -1,4 +1,5 @@
-import { Crown, Lock, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Crown, Lock, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -9,20 +10,41 @@ interface UpgradePromptProps {
   feature: string;
   description?: string;
   compact?: boolean;
+  onClose?: () => void;
 }
 
-export function UpgradePrompt({ feature, description, compact = false }: UpgradePromptProps) {
+export function UpgradePrompt({ feature, description, compact = false, onClose }: UpgradePromptProps) {
   const { openCheckout } = useSubscription();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (isLoading) return;
+    
     if (!user) {
       navigate("/auth");
       return;
     }
-    console.log('Upgrade button clicked, calling openCheckout...');
-    await openCheckout();
+    
+    setIsLoading(true);
+    
+    try {
+      // Close the dialog first to prevent any interference
+      onClose?.();
+      
+      // Small delay to let the dialog close
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      console.log('Upgrade button clicked, calling openCheckout...');
+      await openCheckout();
+    } catch (error) {
+      console.error('Error during upgrade:', error);
+      setIsLoading(false);
+    }
   };
 
   if (compact) {
@@ -35,10 +57,15 @@ export function UpgradePrompt({ feature, description, compact = false }: Upgrade
         <Button 
           size="sm" 
           onClick={handleUpgrade}
+          disabled={isLoading}
           className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
         >
-          <Crown className="w-3 h-3 mr-1" />
-          Upgrade
+          {isLoading ? (
+            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+          ) : (
+            <Crown className="w-3 h-3 mr-1" />
+          )}
+          {isLoading ? 'Loading...' : 'Upgrade'}
         </Button>
       </div>
     );
@@ -63,10 +90,15 @@ export function UpgradePrompt({ feature, description, compact = false }: Upgrade
         </p>
         <Button 
           onClick={handleUpgrade}
+          disabled={isLoading}
           className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
         >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Upgrade to Rainz+ • €2/month
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Sparkles className="w-4 h-4 mr-2" />
+          )}
+          {isLoading ? 'Opening checkout...' : 'Upgrade to Rainz+ • €2/month'}
         </Button>
       </CardContent>
     </Card>
