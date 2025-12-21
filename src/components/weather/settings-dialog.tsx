@@ -451,7 +451,10 @@ export function SettingsDialog({
                   <Button 
                     size="sm" 
                     variant="outline" 
-                    onClick={() => openCheckout()}
+                    onClick={() => {
+                      // Errors are surfaced via toast inside openCheckout
+                      void openCheckout().catch(() => {});
+                    }}
                     className="text-xs"
                   >
                     <Lock className="w-3 h-3 mr-1" />

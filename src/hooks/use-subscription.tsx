@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useAuth } from './use-auth';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 // Rainz+ product info
 export const RAINZ_PLUS = {
@@ -25,6 +26,7 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user, session } = useAuth();
+  const { toast } = useToast();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -66,8 +68,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   const openCheckout = useCallback(async () => {
     if (!session?.access_token) {
-      console.error('User must be logged in to subscribe');
-      return;
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to subscribe to Rainz+.',
+        variant: 'destructive',
+      });
+      throw new Error('No active session');
     }
 
     try {
@@ -81,25 +87,48 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       console.log('Checkout response:', { data, error });
 
       if (error) {
-        console.error('Error creating checkout session:', error);
-        return;
+        toast({
+          title: 'Checkout failed',
+          description: error.message || 'Unable to start checkout. Please try again.',
+          variant: 'destructive',
+        });
+        throw new Error(error.message);
       }
 
-      if (data?.url) {
-        console.log('Opening checkout URL:', data.url);
-        window.location.href = data.url;
-      } else {
-        console.error('No checkout URL returned:', data);
+      if (!data?.url) {
+        toast({
+          title: 'Checkout unavailable',
+          description: 'No checkout link was returned. Please try again.',
+          variant: 'destructive',
+        });
+        throw new Error('No checkout URL returned');
       }
+
+      console.log('Opening checkout URL:', data.url);
+      window.location.href = data.url;
     } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       console.error('Error opening checkout:', error);
+
+      // If we already toasted above, this is harmless; if not, still show a user-facing error.
+      toast({
+        title: 'Could not open checkout',
+        description: message || 'Please try again in a moment.',
+        variant: 'destructive',
+      });
+
+      throw error;
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, toast]);
 
   const openPortal = useCallback(async () => {
     if (!session?.access_token) {
-      console.error('User must be logged in to manage subscription');
-      return;
+      toast({
+        title: 'Sign in required',
+        description: 'Please sign in to manage your subscription.',
+        variant: 'destructive',
+      });
+      throw new Error('No active session');
     }
 
     try {
@@ -111,7 +140,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error creating portal session:', error);
-        return;
+        toast({
+          title: 'Portal unavailable',
+          description: error.message || 'Unable to open the customer portal. Please try again.',
+          variant: 'destructive',
+        });
+        throw new Error(error.message);
       }
 
       if (data?.url) {
@@ -119,8 +153,9 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Error opening portal:', error);
+      throw error;
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, toast]);
 
   // Check subscription on auth change
   useEffect(() => {
@@ -130,7 +165,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   // Periodic refresh every 60 seconds
   useEffect(() => {
     if (!user) return;
-    
+
     const interval = setInterval(() => {
       checkSubscription();
     }, 60000);

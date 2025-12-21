@@ -32,7 +32,9 @@ export default function SubscriptionCancel() {
 
           <div className="flex flex-col gap-2">
             <Button 
-              onClick={openCheckout} 
+              onClick={() => {
+                void openCheckout().catch(() => {});
+              }} 
               variant="outline"
               className="w-full"
             >
