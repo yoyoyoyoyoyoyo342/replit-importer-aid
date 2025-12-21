@@ -503,107 +503,164 @@ export function SettingsDialog({
                   </p>
                 </div>
 
-                {/* Extended Forecast Toggle */}
+                {/* Animated Weather Background Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Extended 14-day forecast</span>
+                      <span className="text-sm">Animated backgrounds</span>
                     </div>
-                    <Switch defaultChecked disabled />
+                    <Switch 
+                      checked={localStorage.getItem('rainz_animated_bg') !== 'false'}
+                      onCheckedChange={(checked) => {
+                        localStorage.setItem('rainz_animated_bg', String(checked));
+                        toast({
+                          title: "Animated Backgrounds",
+                          description: checked ? 'Weather animations enabled' : 'Animations disabled for better performance'
+                        });
+                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Access extended weather forecasts up to 14 days ahead (always on)
+                    Show animated weather effects in the background
                   </p>
                 </div>
 
-                {/* AI Weather Companion Toggle */}
+                {/* Compact Mode Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">AI Weather Companion</span>
+                      <span className="text-sm">Compact mode</span>
                     </div>
-                    <Switch defaultChecked disabled />
+                    <Switch 
+                      checked={localStorage.getItem('rainz_compact_mode') === 'true'}
+                      onCheckedChange={(checked) => {
+                        localStorage.setItem('rainz_compact_mode', String(checked));
+                        toast({
+                          title: "Compact Mode",
+                          description: checked ? 'Showing condensed weather cards' : 'Showing full weather cards'
+                        });
+                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Chat with your personal AI weather assistant (always on)
+                    Use smaller, more condensed weather cards
                   </p>
                 </div>
 
-                {/* Weather Games Toggle */}
+                {/* Show Feels Like Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Weather games & predictions</span>
+                      <span className="text-sm">Show "feels like" temperature</span>
                     </div>
-                    <Switch defaultChecked disabled />
+                    <Switch 
+                      checked={localStorage.getItem('rainz_show_feels_like') !== 'false'}
+                      onCheckedChange={(checked) => {
+                        localStorage.setItem('rainz_show_feels_like', String(checked));
+                        toast({
+                          title: "Feels Like Temperature",
+                          description: checked ? 'Showing feels like temperature' : 'Hiding feels like temperature'
+                        });
+                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Play weather games and make predictions (always on)
+                    Display the "feels like" temperature alongside actual temperature
                   </p>
                 </div>
 
-                {/* Prediction Battles Toggle */}
+                {/* Show Wind Chill/Heat Index Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Prediction battles</span>
+                      <span className="text-sm">Show wind chill & heat index</span>
                     </div>
-                    <Switch defaultChecked disabled />
+                    <Switch 
+                      checked={localStorage.getItem('rainz_show_wind_chill') !== 'false'}
+                      onCheckedChange={(checked) => {
+                        localStorage.setItem('rainz_show_wind_chill', String(checked));
+                        toast({
+                          title: "Wind Chill & Heat Index",
+                          description: checked ? 'Showing wind chill and heat index' : 'Hidden'
+                        });
+                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Challenge other users to weather prediction battles (always on)
+                    Show wind chill in cold weather and heat index in hot weather
                   </p>
                 </div>
 
-                {/* Ad-Free Toggle */}
+                {/* Show Humidity Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Ad-free experience</span>
+                      <span className="text-sm">Show humidity on main display</span>
                     </div>
-                    <Switch defaultChecked disabled />
+                    <Switch 
+                      checked={localStorage.getItem('rainz_show_humidity') !== 'false'}
+                      onCheckedChange={(checked) => {
+                        localStorage.setItem('rainz_show_humidity', String(checked));
+                        toast({
+                          title: "Humidity Display",
+                          description: checked ? 'Showing humidity' : 'Hiding humidity from main display'
+                        });
+                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Enjoy Rainz without any advertisements (always on)
+                    Display current humidity percentage on the main weather card
                   </p>
                 </div>
 
-                {/* Unlimited Locations Toggle */}
+                {/* Show UV Index Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Unlimited saved locations</span>
+                      <span className="text-sm">Show UV index</span>
                     </div>
-                    <Switch defaultChecked disabled />
+                    <Switch 
+                      checked={localStorage.getItem('rainz_show_uv') !== 'false'}
+                      onCheckedChange={(checked) => {
+                        localStorage.setItem('rainz_show_uv', String(checked));
+                        toast({
+                          title: "UV Index",
+                          description: checked ? 'Showing UV index' : 'Hiding UV index'
+                        });
+                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Save as many locations as you want (always on)
+                    Display UV index with sun protection recommendations
                   </p>
                 </div>
 
-                {/* Priority Support Toggle */}
+                {/* Show Precipitation Chance Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Priority support</span>
+                      <span className="text-sm">Show precipitation chance</span>
                     </div>
-                    <Switch defaultChecked disabled />
+                    <Switch 
+                      checked={localStorage.getItem('rainz_show_precip') !== 'false'}
+                      onCheckedChange={(checked) => {
+                        localStorage.setItem('rainz_show_precip', String(checked));
+                        toast({
+                          title: "Precipitation Chance",
+                          description: checked ? 'Showing precipitation chance' : 'Hidden'
+                        });
+                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
+                      }}
+                    />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Get faster responses from our support team (always on)
-                  </p>
-                </div>
-
-                {/* Early Access Toggle */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">Early access to new features</span>
-                    </div>
-                    <Switch defaultChecked disabled />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Be the first to try new Rainz features (always on)
+                    Show the probability of rain or snow
                   </p>
                 </div>
 
