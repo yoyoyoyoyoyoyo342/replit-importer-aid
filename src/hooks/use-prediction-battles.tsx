@@ -69,10 +69,20 @@ export const usePredictionBattles = () => {
       );
 
       setBattles(battlesWithNames);
+      
+      // Get today at midnight for expiration check
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Filter pending challenges - exclude expired ones (created before today)
       setPendingChallenges(
-        battlesWithNames.filter(
-          (b) => b.status === "pending" && b.opponent_id === user.id
-        )
+        battlesWithNames.filter((b) => {
+          if (b.status !== "pending" || b.opponent_id !== user.id) return false;
+          
+          const createdAt = new Date(b.created_at);
+          createdAt.setHours(0, 0, 0, 0);
+          return createdAt >= today; // Only include challenges from today
+        })
       );
     } catch (error) {
       console.error("Error fetching battles:", error);
@@ -160,9 +170,33 @@ export const usePredictionBattles = () => {
       // Get battle info first
       const { data: battle } = await supabase
         .from("prediction_battles")
-        .select("challenger_id, location_name")
+        .select("challenger_id, location_name, created_at, status")
         .eq("id", battleId)
         .single();
+
+      // Check if battle has expired (created before today at midnight)
+      if (battle) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const createdAt = new Date(battle.created_at);
+        createdAt.setHours(0, 0, 0, 0);
+        
+        if (createdAt < today) {
+          // Mark as expired
+          await supabase
+            .from("prediction_battles")
+            .update({ status: "expired" })
+            .eq("id", battleId);
+          
+          toast({
+            title: "Challenge Expired",
+            description: "This challenge has expired. Battles must be accepted on the same day they're created.",
+            variant: "destructive",
+          });
+          await fetchBattles();
+          return false;
+        }
+      }
 
       const { error } = await supabase
         .from("prediction_battles")
@@ -249,10 +283,21 @@ export const usePredictionBattles = () => {
 
       if (error) throw error;
 
-      // Filter out user's own battles and add names
-      const filteredBattles = (data || []).filter(
-        (b) => b.challenger_id !== user?.id
-      );
+      // Get today's date at midnight in local timezone
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Filter out user's own battles, expired battles (created before today), and add names
+      const filteredBattles = (data || []).filter((b) => {
+        if (b.challenger_id === user?.id) return false;
+        
+        // Check if battle was created before today (expired at midnight)
+        const createdAt = new Date(b.created_at);
+        createdAt.setHours(0, 0, 0, 0);
+        if (createdAt < today) return false;
+        
+        return true;
+      });
 
       const battlesWithNames = await Promise.all(
         filteredBattles.map(async (battle) => {
