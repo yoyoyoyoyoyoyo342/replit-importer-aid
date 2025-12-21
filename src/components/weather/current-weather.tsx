@@ -1,4 +1,4 @@
-import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, Snowflake } from "lucide-react";
+import { MapPin, RefreshCw, Eye, Droplets, Wind, Sun, Cloud, CloudSun, CloudRain, CloudDrizzle, CloudSnow, CloudLightning, CloudFog, Camera, Plus, Minus, Snowflake, Thermometer } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WeatherSource } from "@/types/weather";
@@ -8,6 +8,7 @@ import { useLanguage } from "@/contexts/language-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PremiumSettings } from "@/hooks/use-premium-settings";
 
 interface SavedLocation {
   id: string;
@@ -31,6 +32,7 @@ interface CurrentWeatherProps {
   onLocationSelect?: (lat: number, lon: number, locationName: string) => void;
   displayName?: string | null;
   actualStationName?: string;
+  premiumSettings?: PremiumSettings;
 }
 
 export function CurrentWeather({
@@ -44,7 +46,8 @@ export function CurrentWeather({
   currentLocation,
   onLocationSelect,
   displayName,
-  actualStationName
+  actualStationName,
+  premiumSettings
 }: CurrentWeatherProps) {
   const [showLocationCard, setShowLocationCard] = useState(false);
   const { t } = useLanguage();
@@ -180,11 +183,15 @@ export function CurrentWeather({
     ? displayName.split(',')[0] 
     : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0]);
 
+  // Apply compact mode padding
+  const cardPadding = premiumSettings?.compactMode ? 'p-3' : 'p-4';
+  const statsPadding = premiumSettings?.compactMode ? 'p-2' : 'p-2.5';
+
   return (
     <section className="mb-4">
       <Card className="overflow-hidden border-0 shadow-xl">
         {/* Main Weather Display with Dynamic Gradient */}
-        <div className={`relative bg-gradient-to-br ${getWeatherGradient(mostAccurate.currentWeather.condition)} p-4`}>
+        <div className={`relative bg-gradient-to-br ${getWeatherGradient(mostAccurate.currentWeather.condition)} ${cardPadding}`}>
           {/* Ambient glow effects */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
@@ -231,31 +238,66 @@ export function CurrentWeather({
               </div>
             </div>
 
-            {/* Feels Like */}
-            <div className="text-right">
-              <p className="text-white/60 text-xs uppercase tracking-wide">{t('weather.feelsLike')}</p>
-              <p className="text-3xl font-bold text-white">{feelsLikeTemp}°</p>
-              <p className="text-white/70 text-xs">H:{highTemp}° L:{lowTemp}°</p>
-            </div>
+            {/* Feels Like - controlled by setting */}
+            {(premiumSettings?.showFeelsLike !== false) && (
+              <div className="text-right">
+                <p className="text-white/60 text-xs uppercase tracking-wide">{t('weather.feelsLike')}</p>
+                <p className="text-3xl font-bold text-white">{feelsLikeTemp}°</p>
+                <p className="text-white/70 text-xs">H:{highTemp}° L:{lowTemp}°</p>
+              </div>
+            )}
           </div>
 
-          {/* Bottom: Quick Stats */}
+          {/* Bottom: Quick Stats - controlled by settings */}
           <div className="relative grid grid-cols-3 gap-2">
-            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2.5 text-center">
+            {/* Wind - always shown */}
+            <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
               <Wind className="w-4 h-4 text-white/80 mx-auto mb-1" />
               <p className="text-white font-semibold text-sm">{formatWindSpeed(mostAccurate.currentWeather.windSpeed)}</p>
               <p className="text-white/60 text-xs">{isImperial ? 'mph' : 'km/h'}</p>
             </div>
-            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2.5 text-center">
-              <Droplets className="w-4 h-4 text-white/80 mx-auto mb-1" />
-              <p className="text-white font-semibold text-sm">{mostAccurate.currentWeather.humidity}%</p>
-              <p className="text-white/60 text-xs">Humidity</p>
-            </div>
-            <div className="bg-white/15 backdrop-blur-sm rounded-xl p-2.5 text-center">
-              <Eye className="w-4 h-4 text-white/80 mx-auto mb-1" />
-              <p className="text-white font-semibold text-sm">{displayVisibility}</p>
-              <p className="text-white/60 text-xs">{isImperial ? 'mi' : 'km'}</p>
-            </div>
+            {/* Humidity - controlled by setting */}
+            {(premiumSettings?.showHumidity !== false) && (
+              <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
+                <Droplets className="w-4 h-4 text-white/80 mx-auto mb-1" />
+                <p className="text-white font-semibold text-sm">{mostAccurate.currentWeather.humidity}%</p>
+                <p className="text-white/60 text-xs">Humidity</p>
+              </div>
+            )}
+            {/* Visibility - controlled by setting */}
+            {(premiumSettings?.showVisibility !== false) && (
+              <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
+                <Eye className="w-4 h-4 text-white/80 mx-auto mb-1" />
+                <p className="text-white font-semibold text-sm">{displayVisibility}</p>
+                <p className="text-white/60 text-xs">{isImperial ? 'mi' : 'km'}</p>
+              </div>
+            )}
+            {/* Precipitation Chance - controlled by setting */}
+            {premiumSettings?.showPrecipChance && (mostAccurate.currentWeather as any).precipChance !== undefined && (
+              <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
+                <Droplets className="w-4 h-4 text-blue-300 mx-auto mb-1" />
+                <p className="text-white font-semibold text-sm">{(mostAccurate.currentWeather as any).precipChance}%</p>
+                <p className="text-white/60 text-xs">Precip</p>
+              </div>
+            )}
+            {/* Dew Point - controlled by setting */}
+            {premiumSettings?.showDewPoint && (mostAccurate.currentWeather as any).dewPoint !== undefined && (
+              <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
+                <Thermometer className="w-4 h-4 text-white/80 mx-auto mb-1" />
+                <p className="text-white font-semibold text-sm">
+                  {isImperial ? (mostAccurate.currentWeather as any).dewPoint : Math.round(((mostAccurate.currentWeather as any).dewPoint - 32) * 5 / 9)}°
+                </p>
+                <p className="text-white/60 text-xs">Dew Pt</p>
+              </div>
+            )}
+            {/* Pressure - controlled by setting */}
+            {premiumSettings?.showPressure && mostAccurate.currentWeather.pressure !== undefined && (
+              <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
+                <span className="text-white/80 text-xs">hPa</span>
+                <p className="text-white font-semibold text-sm">{Math.round(mostAccurate.currentWeather.pressure)}</p>
+                <p className="text-white/60 text-xs">Pressure</p>
+              </div>
+            )}
           </div>
         </div>
 
