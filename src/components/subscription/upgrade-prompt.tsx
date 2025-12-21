@@ -16,12 +16,13 @@ export function UpgradePrompt({ feature, description, compact = false }: Upgrade
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleUpgrade = () => {
+  const handleUpgrade = async () => {
     if (!user) {
       navigate("/auth");
       return;
     }
-    openCheckout();
+    console.log('Upgrade button clicked, calling openCheckout...');
+    await openCheckout();
   };
 
   if (compact) {

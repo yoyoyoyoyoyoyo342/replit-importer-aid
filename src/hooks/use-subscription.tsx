@@ -71,11 +71,14 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      console.log('Creating checkout session...');
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
+
+      console.log('Checkout response:', { data, error });
 
       if (error) {
         console.error('Error creating checkout session:', error);
@@ -83,7 +86,10 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       }
 
       if (data?.url) {
-        window.open(data.url, '_blank');
+        console.log('Opening checkout URL:', data.url);
+        window.location.href = data.url;
+      } else {
+        console.error('No checkout URL returned:', data);
       }
     } catch (error) {
       console.error('Error opening checkout:', error);
