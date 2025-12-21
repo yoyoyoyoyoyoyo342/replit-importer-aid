@@ -40,6 +40,7 @@ import { BarometerCard } from "@/components/weather/barometer-card";
 import { MobileLocationNav } from "@/components/weather/mobile-location-nav";
 import { HeaderInfoBar } from "@/components/weather/header-info-bar";
 import RainMapCard from "@/components/weather/rain-map-card";
+import { usePremiumSettings } from "@/hooks/use-premium-settings";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -73,6 +74,9 @@ export default function WeatherPage() {
   const {
     setTimeOfDay
   } = useTimeOfDayContext();
+  
+  // Premium display settings
+  const { settings: premiumSettings, isSubscribed } = usePremiumSettings();
 
   // Fetch hyperlocal weather data
   const {
@@ -286,7 +290,9 @@ export default function WeatherPage() {
     window.location.reload();
   };
   return <div className="min-h-screen overflow-x-hidden relative">
-      <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} sunrise={weatherData?.mostAccurate?.currentWeather?.sunrise} sunset={weatherData?.mostAccurate?.currentWeather?.sunset} moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase} />
+      {premiumSettings.animatedBackgrounds && (
+        <AnimatedWeatherBackground condition={weatherData?.mostAccurate?.currentWeather?.condition} sunrise={weatherData?.mostAccurate?.currentWeather?.sunrise} sunset={weatherData?.mostAccurate?.currentWeather?.sunset} moonPhase={weatherData?.mostAccurate?.currentWeather?.moonPhase} />
+      )}
       
       <div className="container mx-auto px-4 py-4 sm:py-6 max-w-7xl relative z-10">
         {/* Modern Header Card */}
@@ -403,7 +409,7 @@ export default function WeatherPage() {
               </div>}
 
             {/* Main Location Card */}
-            <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} currentLocation={selectedLocation} onLocationSelect={handleLocationSelect} displayName={customDisplayName} actualStationName={actualStationName} />
+            <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} currentLocation={selectedLocation} onLocationSelect={handleLocationSelect} displayName={customDisplayName} actualStationName={actualStationName} premiumSettings={premiumSettings} />
 
             {/* Pollen/Snow Index - Right after main card */}
             {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
@@ -436,7 +442,7 @@ export default function WeatherPage() {
             case "tenDay":
               return <TenDayForecast key="tenDay" dailyForecast={weatherData.mostAccurate.dailyForecast} weatherSources={weatherData.sources} hourlyForecast={weatherData.mostAccurate.hourlyForecast} isImperial={isImperial} is24Hour={is24Hour} />;
             case "detailedMetrics":
-              return <DetailedMetrics key="detailedMetrics" currentWeather={weatherData.mostAccurate.currentWeather} is24Hour={is24Hour} />;
+              return <DetailedMetrics key="detailedMetrics" currentWeather={weatherData.mostAccurate.currentWeather} is24Hour={is24Hour} premiumSettings={premiumSettings} />;
             case "aqi":
               return hyperlocalData?.aqi ? <div key="aqi" className="mb-4">
                       <AQICard data={hyperlocalData.aqi} />
