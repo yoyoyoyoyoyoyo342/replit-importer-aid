@@ -69,12 +69,25 @@ serve(async (req) => {
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      logStep("Active subscription found", { subscriptionId: subscription.id, currentPeriodEnd: subscription.current_period_end });
       
-      const priceProduct = subscription.items.data[0].price.product;
-      productId = typeof priceProduct === 'string' ? priceProduct : priceProduct.id;
-      logStep("Determined subscription product", { productId });
+      // Safely parse subscription end date
+      if (subscription.current_period_end) {
+        try {
+          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+        } catch (dateError) {
+          logStep("Warning: Could not parse subscription end date", { value: subscription.current_period_end });
+          subscriptionEnd = null;
+        }
+      }
+      
+      // Get product ID safely
+      const priceItem = subscription.items?.data?.[0];
+      if (priceItem?.price?.product) {
+        const priceProduct = priceItem.price.product;
+        productId = typeof priceProduct === 'string' ? priceProduct : priceProduct.id;
+      }
+      logStep("Determined subscription product", { productId, subscriptionEnd });
     } else {
       logStep("No active subscription found");
     }
