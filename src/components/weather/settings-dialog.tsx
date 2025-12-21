@@ -519,12 +519,66 @@ export function SettingsDialog({
                   </p>
                 </div>
 
+                {/* Ad-Free Experience */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Ad-free experience</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Enjoy Rainz without any advertisements
+                  </p>
+                </div>
+
+                {/* AI Weather Companion */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">AI Weather Companion</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Chat with your personal AI weather assistant for insights and recommendations
+                  </p>
+                </div>
+
+                {/* Weather Games & Predictions */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Weather games & predictions</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Play weather games and make predictions to earn points
+                  </p>
+                </div>
+
+                {/* Unlimited Saved Locations */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Unlimited saved locations</span>
+                    </div>
+                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Save as many locations as you want for quick access
+                  </p>
+                </div>
+
                 {/* Manage Subscription */}
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => openPortal()}
-                  className="w-full"
+                  onClick={() => {
+                    openPortal().catch(() => {});
+                  }}
+                  className="w-full mt-2"
                 >
                   Manage Subscription
                 </Button>
