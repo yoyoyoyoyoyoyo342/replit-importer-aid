@@ -131,7 +131,9 @@ export function MorningWeatherReview({
       navigate("/auth");
       return;
     }
-    openCheckout();
+
+    // Errors are surfaced via toast inside openCheckout
+    void openCheckout().catch(() => {});
   };
 
   // Don't show if not morning time, already dismissed, or no weather data

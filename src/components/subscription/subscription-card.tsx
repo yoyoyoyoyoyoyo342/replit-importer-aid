@@ -38,12 +38,14 @@ export function SubscriptionCard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!user) {
       navigate("/auth");
       return;
     }
-    openCheckout();
+
+    // Errors are surfaced via toast inside openCheckout
+    await openCheckout().catch(() => {});
   };
 
   return (
