@@ -50,6 +50,7 @@ export function AIChatButton({ weatherData, location, isImperial }: AIChatButton
               <UpgradePrompt 
                 feature="AI Weather Companion"
                 description="Chat with PAI for personalized weather insights, recommendations, and proactive alerts"
+                onClose={() => setIsOpen(false)}
               />
             </div>
           )}
