@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie, FileText, FlaskConical, Crown, Lock } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie, FileText, FlaskConical, Crown, Lock, Thermometer, Droplets, Wind, Gauge, Sunrise, MoonIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -22,6 +22,7 @@ import { IOSInstallGuide } from "@/components/ui/ios-install-guide";
 import { useCookieConsent } from "@/hooks/use-cookie-consent";
 import { useExperimentalData } from "@/hooks/use-experimental-data";
 import { useSubscription } from "@/hooks/use-subscription";
+import { usePremiumSettings } from "@/hooks/use-premium-settings";
 
 interface SettingsDialogProps {
   isImperial: boolean;
@@ -96,6 +97,7 @@ export function SettingsDialog({
   const { preferences: cookiePreferences, savePreferences: saveCookiePreferences } = useCookieConsent();
   const { useExperimental, setUseExperimental } = useExperimentalData();
   const { isSubscribed, openCheckout, openPortal } = useSubscription();
+  const { settings: premiumSettings, updateSetting: updatePremiumSetting } = usePremiumSettings();
   const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
@@ -477,8 +479,11 @@ export function SettingsDialog({
               <div className="space-y-4">
                 <Label className="text-base font-medium flex items-center gap-2">
                   <Crown className="w-4 h-4 text-amber-500" />
-                  Rainz+ Settings
+                  Rainz+ Display Settings
                 </Label>
+                <p className="text-xs text-muted-foreground">
+                  These settings are synced to your account and apply across all devices.
+                </p>
                 
                 {/* AI Enhanced Data Toggle */}
                 <div className="space-y-2">
@@ -510,14 +515,13 @@ export function SettingsDialog({
                       <span className="text-sm">Animated backgrounds</span>
                     </div>
                     <Switch 
-                      checked={localStorage.getItem('rainz_animated_bg') !== 'false'}
+                      checked={premiumSettings.animatedBackgrounds}
                       onCheckedChange={(checked) => {
-                        localStorage.setItem('rainz_animated_bg', String(checked));
+                        updatePremiumSetting('animatedBackgrounds', checked);
                         toast({
                           title: "Animated Backgrounds",
                           description: checked ? 'Weather animations enabled' : 'Animations disabled for better performance'
                         });
-                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
                       }}
                     />
                   </div>
@@ -533,14 +537,13 @@ export function SettingsDialog({
                       <span className="text-sm">Compact mode</span>
                     </div>
                     <Switch 
-                      checked={localStorage.getItem('rainz_compact_mode') === 'true'}
+                      checked={premiumSettings.compactMode}
                       onCheckedChange={(checked) => {
-                        localStorage.setItem('rainz_compact_mode', String(checked));
+                        updatePremiumSetting('compactMode', checked);
                         toast({
                           title: "Compact Mode",
                           description: checked ? 'Showing condensed weather cards' : 'Showing full weather cards'
                         });
-                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
                       }}
                     />
                   </div>
@@ -553,92 +556,80 @@ export function SettingsDialog({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      <Thermometer className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm">Show "feels like" temperature</span>
                     </div>
                     <Switch 
-                      checked={localStorage.getItem('rainz_show_feels_like') !== 'false'}
+                      checked={premiumSettings.showFeelsLike}
                       onCheckedChange={(checked) => {
-                        localStorage.setItem('rainz_show_feels_like', String(checked));
+                        updatePremiumSetting('showFeelsLike', checked);
                         toast({
                           title: "Feels Like Temperature",
                           description: checked ? 'Showing feels like temperature' : 'Hiding feels like temperature'
                         });
-                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
                       }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Display the "feels like" temperature alongside actual temperature
-                  </p>
                 </div>
 
                 {/* Show Wind Chill/Heat Index Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      <Wind className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm">Show wind chill & heat index</span>
                     </div>
                     <Switch 
-                      checked={localStorage.getItem('rainz_show_wind_chill') !== 'false'}
+                      checked={premiumSettings.showWindChill}
                       onCheckedChange={(checked) => {
-                        localStorage.setItem('rainz_show_wind_chill', String(checked));
+                        updatePremiumSetting('showWindChill', checked);
                         toast({
                           title: "Wind Chill & Heat Index",
                           description: checked ? 'Showing wind chill and heat index' : 'Hidden'
                         });
-                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
                       }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Show wind chill in cold weather and heat index in hot weather
-                  </p>
                 </div>
 
                 {/* Show Humidity Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      <Droplets className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm">Show humidity on main display</span>
                     </div>
                     <Switch 
-                      checked={localStorage.getItem('rainz_show_humidity') !== 'false'}
+                      checked={premiumSettings.showHumidity}
                       onCheckedChange={(checked) => {
-                        localStorage.setItem('rainz_show_humidity', String(checked));
+                        updatePremiumSetting('showHumidity', checked);
                         toast({
                           title: "Humidity Display",
                           description: checked ? 'Showing humidity' : 'Hiding humidity from main display'
                         });
-                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
                       }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Display current humidity percentage on the main weather card
-                  </p>
                 </div>
 
                 {/* Show UV Index Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
+                      <Sun className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm">Show UV index</span>
                     </div>
                     <Switch 
-                      checked={localStorage.getItem('rainz_show_uv') !== 'false'}
+                      checked={premiumSettings.showUV}
                       onCheckedChange={(checked) => {
-                        localStorage.setItem('rainz_show_uv', String(checked));
+                        updatePremiumSetting('showUV', checked);
                         toast({
                           title: "UV Index",
                           description: checked ? 'Showing UV index' : 'Hiding UV index'
                         });
-                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
                       }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Display UV index with sun protection recommendations
-                  </p>
                 </div>
 
                 {/* Show Precipitation Chance Toggle */}
@@ -648,20 +639,116 @@ export function SettingsDialog({
                       <span className="text-sm">Show precipitation chance</span>
                     </div>
                     <Switch 
-                      checked={localStorage.getItem('rainz_show_precip') !== 'false'}
+                      checked={premiumSettings.showPrecipChance}
                       onCheckedChange={(checked) => {
-                        localStorage.setItem('rainz_show_precip', String(checked));
+                        updatePremiumSetting('showPrecipChance', checked);
                         toast({
                           title: "Precipitation Chance",
                           description: checked ? 'Showing precipitation chance' : 'Hidden'
                         });
-                        window.dispatchEvent(new CustomEvent('rainz-settings-changed'));
                       }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Show the probability of rain or snow
-                  </p>
+                </div>
+
+                {/* Show Dew Point Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Droplets className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">Show dew point</span>
+                    </div>
+                    <Switch 
+                      checked={premiumSettings.showDewPoint}
+                      onCheckedChange={(checked) => {
+                        updatePremiumSetting('showDewPoint', checked);
+                        toast({
+                          title: "Dew Point",
+                          description: checked ? 'Showing dew point' : 'Hidden'
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Show Pressure Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Gauge className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">Show barometric pressure</span>
+                    </div>
+                    <Switch 
+                      checked={premiumSettings.showPressure}
+                      onCheckedChange={(checked) => {
+                        updatePremiumSetting('showPressure', checked);
+                        toast({
+                          title: "Barometric Pressure",
+                          description: checked ? 'Showing pressure readings' : 'Hidden'
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Show Visibility Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">Show visibility</span>
+                    </div>
+                    <Switch 
+                      checked={premiumSettings.showVisibility}
+                      onCheckedChange={(checked) => {
+                        updatePremiumSetting('showVisibility', checked);
+                        toast({
+                          title: "Visibility",
+                          description: checked ? 'Showing visibility distance' : 'Hidden'
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Show Sun Times Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sunrise className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">Show sunrise/sunset times</span>
+                    </div>
+                    <Switch 
+                      checked={premiumSettings.showSunTimes}
+                      onCheckedChange={(checked) => {
+                        updatePremiumSetting('showSunTimes', checked);
+                        toast({
+                          title: "Sun Times",
+                          description: checked ? 'Showing sunrise and sunset' : 'Hidden'
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Show Moon Phase Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MoonIcon className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">Show moon phase</span>
+                    </div>
+                    <Switch 
+                      checked={premiumSettings.showMoonPhase}
+                      onCheckedChange={(checked) => {
+                        updatePremiumSetting('showMoonPhase', checked);
+                        toast({
+                          title: "Moon Phase",
+                          description: checked ? 'Showing current moon phase' : 'Hidden'
+                        });
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Manage Subscription */}
