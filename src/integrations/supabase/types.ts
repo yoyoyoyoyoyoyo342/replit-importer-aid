@@ -456,6 +456,7 @@ export type Database = {
           is_24_hour: boolean | null
           is_high_contrast: boolean | null
           language: string | null
+          premium_settings: Json
           saved_address: string | null
           saved_latitude: number | null
           saved_longitude: number | null
@@ -470,6 +471,7 @@ export type Database = {
           is_24_hour?: boolean | null
           is_high_contrast?: boolean | null
           language?: string | null
+          premium_settings?: Json
           saved_address?: string | null
           saved_latitude?: number | null
           saved_longitude?: number | null
@@ -484,6 +486,7 @@ export type Database = {
           is_24_hour?: boolean | null
           is_high_contrast?: boolean | null
           language?: string | null
+          premium_settings?: Json
           saved_address?: string | null
           saved_latitude?: number | null
           saved_longitude?: number | null

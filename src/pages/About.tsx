@@ -47,11 +47,6 @@ export default function About() {
       description: "Daily weather briefings and severe weather alerts delivered to your device."
     },
     {
-      icon: Gamepad2,
-      title: "Weather Games & Battles",
-      description: "Compete with friends in prediction battles and climb the leaderboard."
-    },
-    {
       icon: Crown,
       title: "Ad-Free Experience",
       description: "Enjoy Rainz without any advertisements interrupting your weather experience."
@@ -65,11 +60,11 @@ export default function About() {
     },
     {
       question: "How do weather predictions work?",
-      answer: "You can submit one prediction per day for tomorrow's weather, including high/low temperatures and conditions. Once verified against actual weather data, you earn points based on accuracy. Correct predictions earn up to 300 points, while maintaining daily streaks earns bonus points. This feature is available to Rainz+ subscribers."
+      answer: "You can submit one prediction per day for tomorrow's weather, including high/low temperatures and conditions. Once verified against actual weather data, you earn points based on accuracy. Correct predictions earn up to 300 points, while maintaining daily streaks earns bonus points. This feature is free for all logged-in users!"
     },
     {
       question: "What is Rainz+?",
-      answer: "Rainz+ is our premium subscription that unlocks advanced features including AI-enhanced weather data, push notifications, weather games and predictions, prediction battles, the AI Weather Companion, ad-free experience, and extensive customization options. Subscribe to get the most out of Rainz!"
+      answer: "Rainz+ is our premium subscription that unlocks advanced features including AI-enhanced weather data, push notifications, the AI Weather Companion, ad-free experience, and extensive display customization options. Weather predictions, battles, and leaderboards are free for everyone!"
     },
     {
       question: "Why do I see ads?",
@@ -77,7 +72,7 @@ export default function About() {
     },
     {
       question: "What is the leaderboard?",
-      answer: "The leaderboard ranks Rainz+ users based on their prediction accuracy and streak maintenance. Top predictors are displayed publicly with a crown badge, encouraging friendly competition among weather enthusiasts."
+      answer: "The leaderboard ranks users based on their prediction accuracy and streak maintenance. Top predictors are displayed publicly, and Rainz+ subscribers get a special crown badge. The leaderboard is free for all users!"
     },
     {
       question: "How does the snow/pollen index work?",
@@ -201,30 +196,27 @@ export default function About() {
                   <span className="text-green-500">✓</span> Push notifications
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Weather games & predictions
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Prediction battles
-                </li>
-                <li className="flex items-center gap-2">
                   <span className="text-green-500">✓</span> AI Weather Companion
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-green-500">✓</span> Ad-free experience
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Extended 14-day forecasts
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Unlimited saved locations
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-green-500">✓</span> Advanced customization
+                  <span className="text-green-500">✓</span> Advanced display customization
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-green-500">✓</span> Premium leaderboard badge
                 </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> Cloud-synced settings
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-500">✓</span> Extended 14-day forecasts
+                </li>
               </ul>
+              <p className="text-xs text-muted-foreground mt-3">
+                <strong>Free for everyone:</strong> Weather predictions, prediction battles, and leaderboards!
+              </p>
             </div>
           </CardContent>
         </Card>
