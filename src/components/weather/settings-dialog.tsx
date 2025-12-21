@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie, FileText, FlaskConical } from "lucide-react";
+import { Settings, Globe, LogOut, User, Eye, RotateCcw, GripVertical, Languages, Moon, Sun, Shield, Bell, Smartphone, Cookie, FileText, FlaskConical, Crown, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage, Language, languageFlags } from "@/contexts/language-context";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -21,6 +21,7 @@ import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { IOSInstallGuide } from "@/components/ui/ios-install-guide";
 import { useCookieConsent } from "@/hooks/use-cookie-consent";
 import { useExperimentalData } from "@/hooks/use-experimental-data";
+import { useSubscription } from "@/hooks/use-subscription";
 
 interface SettingsDialogProps {
   isImperial: boolean;
@@ -94,6 +95,7 @@ export function SettingsDialog({
   const { isIOS, isPWAInstalled, needsPWAInstall, requestPermission: requestNotificationPermission, sendTestNotification } = usePushNotifications();
   const { preferences: cookiePreferences, savePreferences: saveCookiePreferences } = useCookieConsent();
   const { useExperimental, setUseExperimental } = useExperimentalData();
+  const { isSubscribed, openCheckout } = useSubscription();
   const [showIOSInstallGuide, setShowIOSInstallGuide] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [notificationTime, setNotificationTime] = useState('08:00');
@@ -428,30 +430,50 @@ export function SettingsDialog({
               </p>
             </div>
 
-            {/* Experimental Data */}
+            {/* Experimental Data - Premium Feature */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FlaskConical className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm">Use experimental data</span>
+                  {!isSubscribed && (
+                    <span className="flex items-center gap-1 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full">
+                      <Crown className="w-3 h-3" />
+                      Plus
+                    </span>
+                  )}
                 </div>
-                <Switch 
-                  checked={useExperimental} 
-                  onCheckedChange={(checked) => {
-                    setUseExperimental(checked);
-                    toast({
-                      title: "Data source updated",
-                      description: checked 
-                        ? "Now using AI-processed weather data" 
-                        : "Now using raw API weather data"
-                    });
-                  }} 
-                />
+                {isSubscribed ? (
+                  <Switch 
+                    checked={useExperimental} 
+                    onCheckedChange={(checked) => {
+                      setUseExperimental(checked);
+                      toast({
+                        title: "Data source updated",
+                        description: checked 
+                          ? "Now using AI-processed weather data" 
+                          : "Now using raw API weather data"
+                      });
+                    }} 
+                  />
+                ) : (
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => openCheckout()}
+                    className="text-xs"
+                  >
+                    <Lock className="w-3 h-3 mr-1" />
+                    Upgrade
+                  </Button>
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
-                {useExperimental 
-                  ? 'Weather data is processed by AI for enhanced accuracy' 
-                  : 'Weather data comes directly from APIs without AI processing'}
+                {isSubscribed 
+                  ? (useExperimental 
+                    ? 'Weather data is processed by AI for enhanced accuracy' 
+                    : 'Weather data comes directly from APIs without AI processing')
+                  : 'Upgrade to Rainz+ to use AI-processed weather data'}
               </p>
             </div>
           </div>
