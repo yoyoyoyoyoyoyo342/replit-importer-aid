@@ -480,94 +480,78 @@ export function SettingsDialog({
                   Rainz+ Settings
                 </Label>
                 
-                {/* Extended Forecast Range */}
+                {/* AI Enhanced Data Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FlaskConical className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">AI Enhanced Data</span>
+                    </div>
+                    <Switch 
+                      checked={useExperimental}
+                      onCheckedChange={(checked) => {
+                        setUseExperimental(checked);
+                        toast({
+                          title: "AI Enhanced Data",
+                          description: checked ? 'Enabled - Weather data will be AI-processed' : 'Disabled'
+                        });
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Use AI-processed weather data for enhanced accuracy
+                  </p>
+                </div>
+
+                {/* Extended Forecast Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">Extended 14-day forecast</span>
                     </div>
-                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                    <Switch defaultChecked disabled />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Access extended weather forecasts up to 14 days ahead
+                    Access extended weather forecasts up to 14 days ahead (always on)
                   </p>
                 </div>
 
-                {/* Priority AI Processing */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">Priority AI processing</span>
-                    </div>
-                    <span className="text-xs text-green-500 font-medium">Enabled</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Faster AI responses and priority queue for weather insights
-                  </p>
-                </div>
-
-                {/* Morning Briefing */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">AI Morning Briefing</span>
-                    </div>
-                    <span className="text-xs text-green-500 font-medium">Enabled</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Personalized morning weather reviews with outfit & activity recommendations
-                  </p>
-                </div>
-
-                {/* Ad-Free Experience */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">Ad-free experience</span>
-                    </div>
-                    <span className="text-xs text-green-500 font-medium">Enabled</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Enjoy Rainz without any advertisements
-                  </p>
-                </div>
-
-                {/* AI Weather Companion */}
+                {/* AI Weather Companion Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">AI Weather Companion</span>
                     </div>
-                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                    <Switch defaultChecked disabled />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Chat with your personal AI weather assistant for insights and recommendations
+                    Chat with your personal AI weather assistant (always on)
                   </p>
                 </div>
 
-                {/* Weather Games & Predictions */}
+                {/* Weather Games Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">Weather games & predictions</span>
                     </div>
-                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                    <Switch defaultChecked disabled />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Play weather games and make predictions to earn points
+                    Play weather games and make predictions (always on)
                   </p>
                 </div>
 
-                {/* Unlimited Saved Locations */}
+                {/* Ad-Free Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">Unlimited saved locations</span>
+                      <span className="text-sm">Ad-free experience</span>
                     </div>
-                    <span className="text-xs text-green-500 font-medium">Enabled</span>
+                    <Switch defaultChecked disabled />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Save as many locations as you want for quick access
+                    Enjoy Rainz without any advertisements (always on)
                   </p>
                 </div>
 
@@ -588,156 +572,191 @@ export function SettingsDialog({
 
           <Separator />
 
-          {/* Notification Settings */}
+          {/* Notification Settings - Premium Only */}
           <div className="space-y-4">
-            <Label className="text-base font-medium">Notifications</Label>
+            <Label className="text-base font-medium flex items-center gap-2">
+              Notifications
+              {!isSubscribed && (
+                <span className="flex items-center gap-1 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full">
+                  <Crown className="w-3 h-3" />
+                  Plus
+                </span>
+              )}
+            </Label>
             
-            {/* iOS PWA Installation Status */}
-            {isIOS && (
-              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 space-y-2">
+            {!isSubscribed ? (
+              <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-3">
                 <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                    {isPWAInstalled ? 'PWA Installed ✓' : 'Installation Required'}
+                  <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                    Premium Feature
                   </span>
                 </div>
-                <p className="text-xs text-blue-600/90 dark:text-blue-400/90">
-                  {isPWAInstalled 
-                    ? 'Rainz is installed. You can enable notifications below.'
-                    : 'Notifications only work when Rainz is installed to your home screen.'}
+                <p className="text-xs text-amber-600/90 dark:text-amber-400/90">
+                  Upgrade to Rainz+ to receive AI-powered daily weather notifications with personalized insights.
                 </p>
-                {!isPWAInstalled && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowIOSInstallGuide(true)}
-                    className="w-full mt-2 border-blue-500/30 hover:bg-blue-500/10"
-                  >
-                    View Installation Instructions
-                  </Button>
-                )}
-              </div>
-            )}
-            
-            {/* Enable Notifications */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Daily weather notifications</span>
-                </div>
-                <Switch 
-                  checked={notificationsEnabled}
-                  disabled={loadingNotifications || (isIOS && !isPWAInstalled)}
-                  onCheckedChange={(checked) => {
-                    setNotificationsEnabled(checked);
-                    updateNotificationSettings(checked);
-                  }} 
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {notificationsEnabled 
-                  ? 'Receive AI-powered morning weather updates' 
-                  : isIOS && !isPWAInstalled
-                    ? 'Install Rainz to enable notifications'
-                    : 'Enable to get daily weather notifications'}
-              </p>
-            </div>
-
-            {/* Notification Time */}
-            {notificationsEnabled && (
-              <div className="space-y-2">
-                <Label htmlFor="notification-time" className="text-sm">
-                  Notification time
-                </Label>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="notification-time"
-                    type="time"
-                    value={notificationTime}
-                    onChange={(e) => {
-                      const newTime = e.target.value;
-                      setNotificationTime(newTime);
-                      updateNotificationSettings(true, newTime);
-                    }}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  You'll receive notifications at {notificationTime} daily
-                </p>
-              </div>
-            )}
-
-            {/* Test Notification Button */}
-            {notificationsEnabled && (
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                  onClick={async () => {
-                    await sendTestNotification({
-                      temperature: 72,
-                      condition: 'Partly Cloudy',
-                      highTemp: 78,
-                      lowTemp: 65,
-                      pollenAlerts: ['Grass pollen: Moderate']
-                    });
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => {
+                    void openCheckout().catch(() => {});
                   }}
+                  className="w-full border-amber-500/30 hover:bg-amber-500/10"
                 >
-                  <Bell className="w-4 h-4 mr-2" />
-                  Send Test Notification
+                  <Lock className="w-3 h-3 mr-2" />
+                  Upgrade to Rainz+
                 </Button>
-                <p className="text-xs text-muted-foreground">
-                  Test your notification settings with a sample weather update
-                </p>
               </div>
-            )}
-
-            {/* Notification Type Preferences */}
-            {notificationsEnabled && (
-              <div className="space-y-3 pt-2">
-                <Label className="text-sm font-medium">Notification types</Label>
+            ) : (
+              <>
+                {/* iOS PWA Installation Status */}
+                {isIOS && (
+                  <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        {isPWAInstalled ? 'PWA Installed ✓' : 'Installation Required'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-600/90 dark:text-blue-400/90">
+                      {isPWAInstalled 
+                        ? 'Rainz is installed. You can enable notifications below.'
+                        : 'Notifications only work when Rainz is installed to your home screen.'}
+                    </p>
+                    {!isPWAInstalled && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setShowIOSInstallGuide(true)}
+                        className="w-full mt-2 border-blue-500/30 hover:bg-blue-500/10"
+                      >
+                        View Installation Instructions
+                      </Button>
+                    )}
+                  </div>
+                )}
                 
-                <div className="space-y-2 pl-2">
+                {/* Enable Notifications */}
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Severe weather alerts</span>
+                    <div className="flex items-center gap-2">
+                      <Bell className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">Daily weather notifications</span>
+                    </div>
                     <Switch 
-                      checked={notifySettings.severe_weather}
-                      onCheckedChange={(checked) => updateNotificationPreference('severe_weather', checked)}
+                      checked={notificationsEnabled}
+                      disabled={loadingNotifications || (isIOS && !isPWAInstalled)}
+                      onCheckedChange={(checked) => {
+                        setNotificationsEnabled(checked);
+                        updateNotificationSettings(checked);
+                      }} 
                     />
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Pollen alerts</span>
-                    <Switch 
-                      checked={notifySettings.pollen}
-                      onCheckedChange={(checked) => updateNotificationPreference('pollen', checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Daily summary</span>
-                    <Switch 
-                      checked={notifySettings.daily_summary}
-                      onCheckedChange={(checked) => updateNotificationPreference('daily_summary', checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">AI weather preview</span>
-                    <Switch 
-                      checked={notifySettings.ai_preview}
-                      onCheckedChange={(checked) => updateNotificationPreference('ai_preview', checked)}
-                    />
-                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {notificationsEnabled 
+                      ? 'Receive AI-powered morning weather updates' 
+                      : isIOS && !isPWAInstalled
+                        ? 'Install Rainz to enable notifications'
+                        : 'Enable to get daily weather notifications'}
+                  </p>
                 </div>
 
-                <p className="text-xs text-muted-foreground">
-                  Choose which types of weather notifications you want to receive
-                </p>
-              </div>
+                {/* Notification Time */}
+                {notificationsEnabled && (
+                  <div className="space-y-2">
+                    <Label htmlFor="notification-time" className="text-sm">
+                      Notification time
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="notification-time"
+                        type="time"
+                        value={notificationTime}
+                        onChange={(e) => {
+                          const newTime = e.target.value;
+                          setNotificationTime(newTime);
+                          updateNotificationSettings(true, newTime);
+                        }}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      You'll receive notifications at {notificationTime} daily
+                    </p>
+                  </div>
+                )}
+
+                {/* Test Notification Button */}
+                {notificationsEnabled && (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={async () => {
+                        await sendTestNotification({
+                          temperature: 72,
+                          condition: 'Partly Cloudy',
+                          highTemp: 78,
+                          lowTemp: 65,
+                          pollenAlerts: ['Grass pollen: Moderate']
+                        });
+                      }}
+                    >
+                      <Bell className="w-4 h-4 mr-2" />
+                      Send Test Notification
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Test your notification settings with a sample weather update
+                    </p>
+                  </div>
+                )}
+
+                {/* Notification Type Preferences */}
+                {notificationsEnabled && (
+                  <div className="space-y-3 pt-2">
+                    <Label className="text-sm font-medium">Notification types</Label>
+                    
+                    <div className="space-y-2 pl-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Severe weather alerts</span>
+                        <Switch 
+                          checked={notifySettings.severe_weather}
+                          onCheckedChange={(checked) => updateNotificationPreference('severe_weather', checked)}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Pollen alerts</span>
+                        <Switch 
+                          checked={notifySettings.pollen}
+                          onCheckedChange={(checked) => updateNotificationPreference('pollen', checked)}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Daily summary</span>
+                        <Switch 
+                          checked={notifySettings.daily_summary}
+                          onCheckedChange={(checked) => updateNotificationPreference('daily_summary', checked)}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">AI weather preview</span>
+                        <Switch 
+                          checked={notifySettings.ai_preview}
+                          onCheckedChange={(checked) => updateNotificationPreference('ai_preview', checked)}
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                      Choose which types of weather notifications you want to receive
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
