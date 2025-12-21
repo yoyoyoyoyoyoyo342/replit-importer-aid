@@ -132,6 +132,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      toast({
+        title: 'Opening subscription portal...',
+        description: 'Please wait while we redirect you to Stripe.',
+      });
+      
       const { data, error } = await supabase.functions.invoke('customer-portal', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -149,7 +154,14 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       }
 
       if (data?.url) {
-        window.open(data.url, '_blank');
+        // Use same-window redirect to avoid popup blockers
+        window.location.href = data.url;
+      } else {
+        toast({
+          title: 'Portal unavailable',
+          description: 'No portal URL was returned. Please try again.',
+          variant: 'destructive',
+        });
       }
     } catch (error) {
       console.error('Error opening portal:', error);
