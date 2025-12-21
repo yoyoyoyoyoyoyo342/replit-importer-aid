@@ -5,8 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 
 // Rainz+ product info
 export const RAINZ_PLUS = {
-  product_id: "prod_TdxeVWiNtskwEP",
-  price_id: "price_1Sgfiw8mRhH1c6KOVIlDcgRe",
+  product_id: "prod_TdzVEL9ACxncTQ",
+  price_id: "price_1SghW18mRhH1c6KOK1yEPelt",
   name: "Rainz+",
   price: "€2",
   interval: "month",
