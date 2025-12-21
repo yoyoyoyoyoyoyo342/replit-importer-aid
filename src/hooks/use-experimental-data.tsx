@@ -4,7 +4,8 @@ import { useSubscription } from "@/hooks/use-subscription";
 const STORAGE_KEY = "rainz_use_experimental_data";
 
 export function useExperimentalData() {
-  const { isSubscribed } = useSubscription();
+  const subscriptionData = useSubscription();
+  const isSubscribed = subscriptionData?.isSubscribed ?? false;
   
   // Experimental data is always on for subscribers, off for non-subscribers
   const [useExperimental, setUseExperimentalState] = useState<boolean>(() => {
@@ -31,7 +32,7 @@ export function useExperimentalData() {
   }, [useExperimental]);
 
   // No-op setter since it's controlled by subscription
-  const setUseExperimental = useCallback((value: boolean) => {
+  const setUseExperimental = useCallback((_value: boolean) => {
     // Can't manually change - controlled by subscription
     console.log('Experimental data is controlled by Rainz+ subscription');
   }, []);
