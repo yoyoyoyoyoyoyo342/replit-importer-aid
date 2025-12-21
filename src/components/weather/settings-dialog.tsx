@@ -542,6 +542,19 @@ export function SettingsDialog({
                   </p>
                 </div>
 
+                {/* Prediction Battles Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Prediction battles</span>
+                    </div>
+                    <Switch defaultChecked disabled />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Challenge other users to weather prediction battles (always on)
+                  </p>
+                </div>
+
                 {/* Ad-Free Toggle */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -552,6 +565,45 @@ export function SettingsDialog({
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Enjoy Rainz without any advertisements (always on)
+                  </p>
+                </div>
+
+                {/* Unlimited Locations Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Unlimited saved locations</span>
+                    </div>
+                    <Switch defaultChecked disabled />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Save as many locations as you want (always on)
+                  </p>
+                </div>
+
+                {/* Priority Support Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Priority support</span>
+                    </div>
+                    <Switch defaultChecked disabled />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Get faster responses from our support team (always on)
+                  </p>
+                </div>
+
+                {/* Early Access Toggle */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">Early access to new features</span>
+                    </div>
+                    <Switch defaultChecked disabled />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Be the first to try new Rainz features (always on)
                   </p>
                 </div>
 
