@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
@@ -34,7 +34,18 @@ const DEFAULT_PREMIUM_SETTINGS: PremiumSettings = {
   showMoonPhase: true,
 };
 
-export function usePremiumSettings() {
+type PremiumSettingsContextValue = {
+  settings: PremiumSettings;
+  loading: boolean;
+  isSubscribed: boolean;
+  updateSetting: <K extends keyof PremiumSettings>(key: K, value: PremiumSettings[K]) => Promise<void>;
+  updateSettings: (newSettings: Partial<PremiumSettings>) => Promise<void>;
+  resetToDefaults: () => Promise<void>;
+};
+
+const PremiumSettingsContext = createContext<PremiumSettingsContextValue | undefined>(undefined);
+
+function usePremiumSettingsState(): PremiumSettingsContextValue {
   const { user } = useAuth();
   const { isSubscribed } = useSubscription();
   const { toast } = useToast();
@@ -80,68 +91,72 @@ export function usePremiumSettings() {
   }, [user]);
 
   // Update a single setting
-  const updateSetting = useCallback(async <K extends keyof PremiumSettings>(
-    key: K,
-    value: PremiumSettings[K]
-  ) => {
-    if (!user || !isSubscribed) return;
+  const updateSetting = useCallback(
+    async <K extends keyof PremiumSettings>(key: K, value: PremiumSettings[K]) => {
+      if (!user || !isSubscribed) return;
 
-    const newSettings = { ...settings, [key]: value };
-    setSettings(newSettings);
+      const prevSettings = settings;
+      const newSettings = { ...settings, [key]: value };
+      setSettings(newSettings);
 
-    try {
-      const { error } = await supabase
-        .from("user_preferences")
-        .update({
-          premium_settings: JSON.parse(JSON.stringify(newSettings)),
-        })
-        .eq("user_id", user.id);
+      try {
+        const { error } = await supabase
+          .from("user_preferences")
+          .update({
+            premium_settings: JSON.parse(JSON.stringify(newSettings)),
+          })
+          .eq("user_id", user.id);
 
-      if (error) {
-        console.error("Error updating premium setting:", error);
-        toast({
-          title: "Failed to save setting",
-          description: error.message,
-          variant: "destructive",
-        });
-        // Revert on error
-        setSettings(settings);
+        if (error) {
+          console.error("Error updating premium setting:", error);
+          toast({
+            title: "Failed to save setting",
+            description: error.message,
+            variant: "destructive",
+          });
+          setSettings(prevSettings);
+        }
+      } catch (error) {
+        console.error("Error in updateSetting:", error);
+        setSettings(prevSettings);
       }
-    } catch (error) {
-      console.error("Error in updateSetting:", error);
-      setSettings(settings);
-    }
-  }, [user, isSubscribed, settings, toast]);
+    },
+    [user, isSubscribed, settings, toast]
+  );
 
   // Update multiple settings at once
-  const updateSettings = useCallback(async (newSettings: Partial<PremiumSettings>) => {
-    if (!user || !isSubscribed) return;
+  const updateSettings = useCallback(
+    async (newSettings: Partial<PremiumSettings>) => {
+      if (!user || !isSubscribed) return;
 
-    const mergedSettings = { ...settings, ...newSettings };
-    setSettings(mergedSettings);
+      const prevSettings = settings;
+      const mergedSettings = { ...settings, ...newSettings };
+      setSettings(mergedSettings);
 
-    try {
-      const { error } = await supabase
-        .from("user_preferences")
-        .update({
-          premium_settings: JSON.parse(JSON.stringify(mergedSettings)),
-        })
-        .eq("user_id", user.id);
+      try {
+        const { error } = await supabase
+          .from("user_preferences")
+          .update({
+            premium_settings: JSON.parse(JSON.stringify(mergedSettings)),
+          })
+          .eq("user_id", user.id);
 
-      if (error) {
-        console.error("Error updating premium settings:", error);
-        toast({
-          title: "Failed to save settings",
-          description: error.message,
-          variant: "destructive",
-        });
-        setSettings(settings);
+        if (error) {
+          console.error("Error updating premium settings:", error);
+          toast({
+            title: "Failed to save settings",
+            description: error.message,
+            variant: "destructive",
+          });
+          setSettings(prevSettings);
+        }
+      } catch (error) {
+        console.error("Error in updateSettings:", error);
+        setSettings(prevSettings);
       }
-    } catch (error) {
-      console.error("Error in updateSettings:", error);
-      setSettings(settings);
-    }
-  }, [user, isSubscribed, settings, toast]);
+    },
+    [user, isSubscribed, settings, toast]
+  );
 
   // Reset to defaults
   const resetToDefaults = useCallback(async () => {
@@ -184,3 +199,15 @@ export function usePremiumSettings() {
     resetToDefaults,
   };
 }
+
+export function PremiumSettingsProvider({ children }: { children: ReactNode }) {
+  const value = usePremiumSettingsState();
+  return <PremiumSettingsContext.Provider value={value}>{children}</PremiumSettingsContext.Provider>;
+}
+
+export function usePremiumSettings() {
+  const context = useContext(PremiumSettingsContext);
+  // Backwards-compatible fallback (e.g. if provider not mounted yet)
+  return context ?? usePremiumSettingsState();
+}
+

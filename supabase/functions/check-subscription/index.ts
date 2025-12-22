@@ -36,18 +36,54 @@ serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     logStep("Authenticating user with token");
-    
+
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    const requester = userData.user;
+    if (!requester?.id) throw new Error("User not authenticated");
+    logStep("User authenticated", { userId: requester.id });
+
+    // Optional: check a different user's subscription (used for leaderboard badges)
+    let targetUserId: string | null = null;
+    let body: any = null;
+    try {
+      body = await req.json();
+      targetUserId = typeof body?.check_user_id === "string" ? body.check_user_id : null;
+    } catch {
+      // No body is fine
+    }
+
+    const userIdToCheck = targetUserId || requester.id;
+    logStep("Checking subscription for user", { userIdToCheck, requestedBy: requester.id });
+
+    // Resolve email for the user we're checking
+    let emailToCheck: string | null = null;
+
+    if (userIdToCheck === requester.id) {
+      // Fast path: requester email is already available via getUser(token)
+      emailToCheck = requester.email ?? null;
+    } else {
+      // Leaderboard use-case: look up another user's email via admin API
+      const { data: adminUser, error: adminErr } = await supabaseClient.auth.admin.getUserById(userIdToCheck);
+      if (adminErr) {
+        logStep("Failed to fetch user via admin API", { userIdToCheck, message: adminErr.message });
+      }
+      emailToCheck = adminUser?.user?.email ?? null;
+    }
+
+    if (!emailToCheck) {
+      logStep("No email available for user; returning unsubscribed", { userIdToCheck });
+      return new Response(JSON.stringify({ subscribed: false }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    
+    const customers = await stripe.customers.list({ email: emailToCheck, limit: 1 });
+
     if (customers.data.length === 0) {
-      logStep("No customer found, returning unsubscribed");
+      logStep("No customer found, returning unsubscribed", { email: emailToCheck });
       return new Response(JSON.stringify({ subscribed: false }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -62,44 +98,50 @@ serve(async (req) => {
       status: "active",
       limit: 1,
     });
-    
+
     const hasActiveSub = subscriptions.data.length > 0;
     let productId = null;
     let subscriptionEnd = null;
 
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
-      logStep("Active subscription found", { subscriptionId: subscription.id, currentPeriodEnd: subscription.current_period_end });
-      
-      // Safely parse subscription end date
+      logStep("Active subscription found", {
+        subscriptionId: subscription.id,
+        currentPeriodEnd: subscription.current_period_end,
+      });
+
       if (subscription.current_period_end) {
         try {
           subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
         } catch (dateError) {
-          logStep("Warning: Could not parse subscription end date", { value: subscription.current_period_end });
+          logStep("Warning: Could not parse subscription end date", {
+            value: subscription.current_period_end,
+          });
           subscriptionEnd = null;
         }
       }
-      
-      // Get product ID safely
+
       const priceItem = subscription.items?.data?.[0];
       if (priceItem?.price?.product) {
         const priceProduct = priceItem.price.product;
-        productId = typeof priceProduct === 'string' ? priceProduct : priceProduct.id;
+        productId = typeof priceProduct === "string" ? priceProduct : priceProduct.id;
       }
       logStep("Determined subscription product", { productId, subscriptionEnd });
     } else {
       logStep("No active subscription found");
     }
 
-    return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
-      product_id: productId,
-      subscription_end: subscriptionEnd
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({
+        subscribed: hasActiveSub,
+        product_id: productId,
+        subscription_end: subscriptionEnd,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
