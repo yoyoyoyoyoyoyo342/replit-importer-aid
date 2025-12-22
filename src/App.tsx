@@ -32,6 +32,8 @@ const About = lazy(() => import("./pages/About"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const SubscriptionCancel = lazy(() => import("./pages/SubscriptionCancel"));
+const Affiliate = lazy(() => import("./pages/Affiliate"));
+const AffiliatePolicy = lazy(() => import("./pages/AffiliatePolicy"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -144,6 +146,8 @@ function AppContent() {
                             <Route path="/profile/:userId" element={<UserProfile />} />
                             <Route path="/subscription-success" element={<SubscriptionSuccess />} />
                             <Route path="/subscription-cancel" element={<SubscriptionCancel />} />
+                            <Route path="/affiliate" element={<Affiliate />} />
+                            <Route path="/affiliate-policy" element={<AffiliatePolicy />} />
                             <Route path="/weather" element={<Navigate to="/" replace />} />
                             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                             <Route path="*" element={<NotFound />} />
