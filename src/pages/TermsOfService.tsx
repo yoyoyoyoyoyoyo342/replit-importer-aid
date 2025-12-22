@@ -22,7 +22,7 @@ export default function TermsOfService() {
           <FileText className="w-8 h-8 text-primary" />
           <div>
             <h1 className="text-3xl font-bold">Terms of Service</h1>
-            <p className="text-sm text-muted-foreground">Last updated: December 2025</p>
+            <p className="text-sm text-muted-foreground">Last updated: January 2025</p>
           </div>
         </div>
 
@@ -32,7 +32,7 @@ export default function TermsOfService() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
-              By accessing and using Rainz Weather ("the Service"), you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, please do not use the Service.
+              By accessing and using this weather prediction application ("the Service"), you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, please do not use the Service.
             </p>
           </CardContent>
         </Card>
@@ -67,65 +67,10 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>3. Rainz+ Subscription</CardTitle>
+            <CardTitle>3. User-Generated Content</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <h4 className="font-semibold">3.1 Subscription Features</h4>
-            <p>
-              Rainz+ is a premium subscription that provides enhanced features including:
-            </p>
-            <ul className="list-disc list-inside space-y-1 ml-4">
-              <li>Ad-free experience throughout the application</li>
-              <li>AI-powered weather insights and enhanced data processing</li>
-              <li>Push notifications with personalized weather updates</li>
-              <li>Access to weather games, predictions, and leaderboards</li>
-              <li>AI Weather Companion chat assistant</li>
-              <li>Prediction battles with other users</li>
-              <li>Advanced customization options</li>
-              <li>Extended 14-day forecasts</li>
-              <li>Unlimited saved locations</li>
-            </ul>
-
-            <h4 className="font-semibold">3.2 Billing and Cancellation</h4>
-            <p>
-              Rainz+ subscriptions are billed on a recurring basis. You may cancel your subscription at any time through the Stripe customer portal. Upon cancellation, you will retain access to premium features until the end of your current billing period.
-            </p>
-
-            <h4 className="font-semibold">3.3 Refunds</h4>
-            <p>
-              Refund requests are handled on a case-by-case basis. Contact us through the feedback form for refund inquiries.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>4. Advertising</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <h4 className="font-semibold">4.1 Display of Advertisements</h4>
-            <p>
-              Free users of Rainz Weather may see advertisements within the application. These ads help support the continued development and maintenance of our free service.
-            </p>
-
-            <h4 className="font-semibold">4.2 Third-Party Advertisers</h4>
-            <p>
-              Advertisements may be served by third-party advertising networks. We are not responsible for the content, accuracy, or practices of third-party advertisers. Clicking on advertisements may take you to external websites not operated by us.
-            </p>
-
-            <h4 className="font-semibold">4.3 Ad-Free Experience</h4>
-            <p>
-              Rainz+ subscribers enjoy a completely ad-free experience within the application.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>5. User-Generated Content</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <h4 className="font-semibold">5.1 User Predictions and Reports</h4>
+            <h4 className="font-semibold">3.1 User Predictions and Reports</h4>
             <p>
               Users may submit weather predictions, reports, and observations. You acknowledge that:
             </p>
@@ -136,12 +81,12 @@ export default function TermsOfService() {
               <li>We reserve the right to remove any content without notice</li>
             </ul>
 
-            <h4 className="font-semibold">5.2 Content Ownership and License</h4>
+            <h4 className="font-semibold">3.2 Content Ownership and License</h4>
             <p>
               By submitting content to the Service, you grant us a worldwide, non-exclusive, royalty-free license to use, reproduce, modify, and display your content in connection with operating the Service.
             </p>
 
-            <h4 className="font-semibold">5.3 Prohibited Content</h4>
+            <h4 className="font-semibold">3.3 Prohibited Content</h4>
             <p>
               You agree not to submit content that is:
             </p>
@@ -156,7 +101,7 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>6. Limitation of Liability</CardTitle>
+            <CardTitle>4. Limitation of Liability</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p className="font-semibold">
@@ -177,7 +122,7 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>7. Use at Your Own Risk</CardTitle>
+            <CardTitle>5. Use at Your Own Risk</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -191,7 +136,7 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>8. Account Responsibilities</CardTitle>
+            <CardTitle>6. Account Responsibilities</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -207,7 +152,7 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>9. Service Modifications and Termination</CardTitle>
+            <CardTitle>7. Service Modifications and Termination</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -217,14 +162,13 @@ export default function TermsOfService() {
               <li>Modify or discontinue the Service at any time without notice</li>
               <li>Change these Terms of Service at our discretion</li>
               <li>Terminate or suspend your account for violations of these terms</li>
-              <li>Modify Rainz+ subscription pricing with 30 days notice</li>
             </ul>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>10. Indemnification</CardTitle>
+            <CardTitle>8. Indemnification</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -241,7 +185,7 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>11. Governing Law</CardTitle>
+            <CardTitle>9. Governing Law</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -252,7 +196,7 @@ export default function TermsOfService() {
 
         <Card>
           <CardHeader>
-            <CardTitle>12. Contact Information</CardTitle>
+            <CardTitle>10. Contact Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>

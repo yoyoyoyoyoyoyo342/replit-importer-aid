@@ -14,51 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      affiliate_applications: {
-        Row: {
-          business_name: string
-          contact_email: string
-          created_at: string
-          description: string | null
-          id: string
-          is_active: boolean
-          status: string
-          stripe_subscription_id: string | null
-          updated_at: string
-          user_id: string
-          weather_condition: string
-          website_url: string
-        }
-        Insert: {
-          business_name: string
-          contact_email: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          status?: string
-          stripe_subscription_id?: string | null
-          updated_at?: string
-          user_id: string
-          weather_condition: string
-          website_url: string
-        }
-        Update: {
-          business_name?: string
-          contact_email?: string
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_active?: boolean
-          status?: string
-          stripe_subscription_id?: string | null
-          updated_at?: string
-          user_id?: string
-          weather_condition?: string
-          website_url?: string
-        }
-        Relationships: []
-      }
       analytics_events: {
         Row: {
           city: string | null
@@ -501,7 +456,6 @@ export type Database = {
           is_24_hour: boolean | null
           is_high_contrast: boolean | null
           language: string | null
-          premium_settings: Json
           saved_address: string | null
           saved_latitude: number | null
           saved_longitude: number | null
@@ -516,7 +470,6 @@ export type Database = {
           is_24_hour?: boolean | null
           is_high_contrast?: boolean | null
           language?: string | null
-          premium_settings?: Json
           saved_address?: string | null
           saved_latitude?: number | null
           saved_longitude?: number | null
@@ -531,7 +484,6 @@ export type Database = {
           is_24_hour?: boolean | null
           is_high_contrast?: boolean | null
           language?: string | null
-          premium_settings?: Json
           saved_address?: string | null
           saved_latitude?: number | null
           saved_longitude?: number | null

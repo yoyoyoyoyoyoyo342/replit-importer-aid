@@ -6,8 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/hooks/use-auth";
-import { SubscriptionProvider } from "@/hooks/use-subscription";
-import { PremiumSettingsProvider } from "@/hooks/use-premium-settings";
 import { LanguageProvider } from "@/contexts/language-context";
 import { TimeOfDayProvider, useTimeOfDayContext } from "@/contexts/time-of-day-context";
 import { CookieConsentProvider } from "@/hooks/use-cookie-consent";
@@ -30,10 +28,6 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataSettings = lazy(() => import("./pages/DataSettings"));
 const About = lazy(() => import("./pages/About"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
-const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
-const SubscriptionCancel = lazy(() => import("./pages/SubscriptionCancel"));
-const Affiliate = lazy(() => import("./pages/Affiliate"));
-const AffiliatePolicy = lazy(() => import("./pages/AffiliatePolicy"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -122,45 +116,37 @@ function AppContent() {
     <ThemeProvider defaultTheme="light" storageKey="weather-app-theme" isNightTime={isNightTime}>
       <LanguageProvider>
         <AuthProvider>
-          <SubscriptionProvider>
-            <PremiumSettingsProvider>
-              <CookieConsentProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <CookieConsentBanner />
-                  <PWAInstallPopup />
-                  <BrowserRouter>
-                    <div className="flex flex-col min-h-screen">
-                      <div className="flex-1">
-                        <AnalyticsTracker />
-                        <Suspense fallback={<LoadingOverlay isOpen={true} />}>
-                          <Routes>
-                            <Route path="/" element={<Weather />} />
-                            <Route path="/auth" element={<Auth />} />
-                            <Route path="/admin" element={<AdminPanel />} />
-                            <Route path="/terms" element={<TermsOfService />} />
-                            <Route path="/privacy" element={<PrivacyPolicy />} />
-                            <Route path="/data-settings" element={<DataSettings />} />
-                            <Route path="/about" element={<About />} />
-                            <Route path="/profile/:userId" element={<UserProfile />} />
-                            <Route path="/subscription-success" element={<SubscriptionSuccess />} />
-                            <Route path="/subscription-cancel" element={<SubscriptionCancel />} />
-                            <Route path="/affiliate" element={<Affiliate />} />
-                            <Route path="/affiliate-policy" element={<AffiliatePolicy />} />
-                            <Route path="/weather" element={<Navigate to="/" replace />} />
-                            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
-                        </Suspense>
-                      </div>
-                      <Footer />
-                    </div>
-                  </BrowserRouter>
-                </TooltipProvider>
-              </CookieConsentProvider>
-            </PremiumSettingsProvider>
-          </SubscriptionProvider>
+          <CookieConsentProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <CookieConsentBanner />
+              <PWAInstallPopup />
+              <BrowserRouter>
+                <div className="flex flex-col min-h-screen">
+                  <div className="flex-1">
+                    <AnalyticsTracker />
+                    <Suspense fallback={<LoadingOverlay isOpen={true} />}>
+                      <Routes>
+                        <Route path="/" element={<Weather />} />
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/admin" element={<AdminPanel />} />
+                        <Route path="/terms" element={<TermsOfService />} />
+                        <Route path="/privacy" element={<PrivacyPolicy />} />
+                        <Route path="/data-settings" element={<DataSettings />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/profile/:userId" element={<UserProfile />} />
+                        <Route path="/weather" element={<Navigate to="/" replace />} />
+                        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </div>
+                  <Footer />
+                </div>
+              </BrowserRouter>
+            </TooltipProvider>
+          </CookieConsentProvider>
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>

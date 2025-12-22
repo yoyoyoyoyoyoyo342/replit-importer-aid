@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
           <Shield className="w-8 h-8 text-primary" />
           <div>
             <h1 className="text-3xl font-bold">Privacy Policy</h1>
-            <p className="text-sm text-muted-foreground">Last updated: December 2025</p>
+            <p className="text-sm text-muted-foreground">Last updated: January 2025</p>
           </div>
         </div>
 
@@ -32,7 +32,7 @@ export default function PrivacyPolicy() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
-              This Privacy Policy describes how Rainz Weather ("we", "us", or "the Service") collects, uses, stores, and protects your personal information. We are committed to protecting your privacy and complying with applicable data protection laws, including GDPR (General Data Protection Regulation) and CCPA (California Consumer Privacy Act).
+              This Privacy Policy describes how we collect, use, store, and protect your personal information when you use our weather prediction application ("the Service"). We are committed to protecting your privacy and complying with applicable data protection laws, including GDPR (General Data Protection Regulation) and CCPA (California Consumer Privacy Act).
             </p>
           </CardContent>
         </Card>
@@ -50,7 +50,6 @@ export default function PrivacyPolicy() {
               <li><strong>Location Data:</strong> Saved locations and addresses you search for</li>
               <li><strong>Preferences:</strong> Display settings, notification preferences, and cookie choices</li>
               <li><strong>Feedback:</strong> Messages and feedback you submit through our forms</li>
-              <li><strong>Payment Information:</strong> Rainz+ subscription payments are processed securely by Stripe. We do not store your payment card details.</li>
             </ul>
 
             <h4 className="font-semibold mt-4">2.2 Automatically Collected Information</h4>
@@ -68,7 +67,6 @@ export default function PrivacyPolicy() {
               <li><strong>Necessary Cookies:</strong> Essential for authentication and core functionality</li>
               <li><strong>Analytics Cookies:</strong> Help us understand how users interact with the Service (requires consent)</li>
               <li><strong>Functional Cookies:</strong> Store preferences and enable enhanced features (requires consent)</li>
-              <li><strong>Advertising Cookies:</strong> Used by our advertising partners to display relevant ads to free users (requires consent)</li>
             </ul>
           </CardContent>
         </Card>
@@ -82,12 +80,10 @@ export default function PrivacyPolicy() {
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li><strong>Service Delivery:</strong> Provide weather predictions and location-based forecasts</li>
               <li><strong>Account Management:</strong> Create and maintain your user account</li>
-              <li><strong>Subscription Management:</strong> Process Rainz+ subscriptions and manage premium features</li>
               <li><strong>Personalization:</strong> Save your preferences and display customized content</li>
               <li><strong>Analytics:</strong> Understand usage patterns and improve the Service (with consent)</li>
-              <li><strong>Notifications:</strong> Send weather alerts and updates if you opt in (Rainz+ feature)</li>
+              <li><strong>Notifications:</strong> Send weather alerts and updates if you opt in</li>
               <li><strong>Leaderboards:</strong> Display prediction accuracy rankings</li>
-              <li><strong>Advertising:</strong> Display relevant advertisements to free users</li>
               <li><strong>Communication:</strong> Respond to feedback and support requests</li>
               <li><strong>Security:</strong> Detect and prevent fraud, abuse, and security threats</li>
               <li><strong>Legal Compliance:</strong> Comply with legal obligations and enforce our terms</li>
@@ -97,56 +93,26 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>4. Advertising and Third-Party Services</CardTitle>
+            <CardTitle>4. Data Sharing and Disclosure</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <h4 className="font-semibold">4.1 Advertisements</h4>
-            <p>
-              Free users may see advertisements within the application. These ads are served by third-party advertising networks and may use cookies and similar technologies to display relevant content.
-            </p>
-
-            <h4 className="font-semibold mt-4">4.2 Advertising Partners</h4>
-            <p>
-              Our advertising partners may collect information about your visits to our Service and other websites to provide targeted advertisements. This information is typically collected through cookies and similar technologies.
-            </p>
-
-            <h4 className="font-semibold mt-4">4.3 Opting Out of Targeted Advertising</h4>
-            <p>
-              You can manage your advertising preferences through our cookie consent settings. Rainz+ subscribers do not see advertisements and are not subject to advertising tracking within our application.
-            </p>
-
-            <h4 className="font-semibold mt-4">4.4 Payment Processing</h4>
-            <p>
-              Rainz+ subscription payments are processed by Stripe. When you subscribe, your payment information is sent directly to Stripe's secure servers. Please review Stripe's privacy policy for information on how they handle your payment data.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>5. Data Sharing and Disclosure</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <h4 className="font-semibold">5.1 Third-Party Service Providers</h4>
+            <h4 className="font-semibold">4.1 Third-Party Service Providers</h4>
             <p>We share data with trusted third-party services:</p>
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li><strong>Supabase:</strong> Database hosting and authentication</li>
               <li><strong>Weather APIs:</strong> WeatherAPI.com, Tomorrow.io for weather data</li>
               <li><strong>Nominatim:</strong> Address geocoding services</li>
-              <li><strong>Stripe:</strong> Payment processing for Rainz+ subscriptions</li>
-              <li><strong>Advertising Networks:</strong> Display advertisements to free users</li>
             </ul>
 
-            <h4 className="font-semibold mt-4">5.2 Public Information</h4>
+            <h4 className="font-semibold mt-4">4.2 Public Information</h4>
             <p>The following information may be visible to other users:</p>
             <ul className="list-disc list-inside space-y-1 ml-4">
               <li>Display name and profile picture</li>
               <li>Prediction accuracy and leaderboard rankings</li>
-              <li>Rainz+ subscriber status (shown as a badge)</li>
               <li>Weather reports you submit</li>
             </ul>
 
-            <h4 className="font-semibold mt-4">5.3 Legal Requirements</h4>
+            <h4 className="font-semibold mt-4">4.3 Legal Requirements</h4>
             <p>
               We may disclose your information if required by law, court order, or government request, or to protect our rights, property, or safety.
             </p>
@@ -155,13 +121,12 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>6. Data Retention</CardTitle>
+            <CardTitle>5. Data Retention</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <ul className="list-disc list-inside space-y-2 ml-4">
               <li><strong>Account Data:</strong> Retained while your account is active and for 90 days after deletion</li>
               <li><strong>Weather Predictions:</strong> Retained indefinitely for historical accuracy tracking</li>
-              <li><strong>Subscription Data:</strong> Retained for legal and accounting purposes as required</li>
               <li><strong>Analytics Data:</strong> Aggregated and anonymized after 12 months</li>
               <li><strong>Session Data:</strong> Retained for 30 days</li>
               <li><strong>Cookies:</strong> Stored based on your preferences (session or persistent)</li>
@@ -174,33 +139,33 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>7. Your Rights (GDPR & CCPA)</CardTitle>
+            <CardTitle>6. Your Rights (GDPR & CCPA)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>Under GDPR and CCPA, you have the following rights:</p>
             
-            <h4 className="font-semibold">7.1 Right to Access</h4>
+            <h4 className="font-semibold">6.1 Right to Access</h4>
             <p>Request a copy of all personal data we hold about you.</p>
 
-            <h4 className="font-semibold">7.2 Right to Rectification</h4>
+            <h4 className="font-semibold">6.2 Right to Rectification</h4>
             <p>Correct inaccurate or incomplete personal data.</p>
 
-            <h4 className="font-semibold">7.3 Right to Erasure ("Right to be Forgotten")</h4>
+            <h4 className="font-semibold">6.3 Right to Erasure ("Right to be Forgotten")</h4>
             <p>Request deletion of your personal data, subject to legal obligations.</p>
 
-            <h4 className="font-semibold">7.4 Right to Data Portability</h4>
+            <h4 className="font-semibold">6.4 Right to Data Portability</h4>
             <p>Receive your data in a structured, machine-readable format.</p>
 
-            <h4 className="font-semibold">7.5 Right to Object</h4>
-            <p>Object to processing of your data for specific purposes, including targeted advertising.</p>
+            <h4 className="font-semibold">6.5 Right to Object</h4>
+            <p>Object to processing of your data for specific purposes.</p>
 
-            <h4 className="font-semibold">7.6 Right to Restrict Processing</h4>
+            <h4 className="font-semibold">6.6 Right to Restrict Processing</h4>
             <p>Request limitation on how we use your data.</p>
 
-            <h4 className="font-semibold">7.7 Right to Withdraw Consent</h4>
-            <p>Withdraw consent for analytics, advertising, and functional cookies at any time.</p>
+            <h4 className="font-semibold">6.7 Right to Withdraw Consent</h4>
+            <p>Withdraw consent for analytics and functional cookies at any time.</p>
 
-            <h4 className="font-semibold">7.8 Right to Lodge a Complaint</h4>
+            <h4 className="font-semibold">6.8 Right to Lodge a Complaint</h4>
             <p>File a complaint with your local data protection authority.</p>
 
             <p className="mt-4 font-semibold">
@@ -211,7 +176,7 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>8. Data Security</CardTitle>
+            <CardTitle>7. Data Security</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>We implement appropriate technical and organizational measures to protect your data:</p>
@@ -219,7 +184,6 @@ export default function PrivacyPolicy() {
               <li>Encrypted data transmission (HTTPS/TLS)</li>
               <li>Secure authentication with password hashing</li>
               <li>Access controls and authorization checks</li>
-              <li>Secure payment processing through Stripe</li>
               <li>Regular security audits and updates</li>
               <li>Data backup and recovery procedures</li>
             </ul>
@@ -231,7 +195,7 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>9. Children's Privacy</CardTitle>
+            <CardTitle>8. Children's Privacy</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -242,7 +206,7 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>10. International Data Transfers</CardTitle>
+            <CardTitle>9. International Data Transfers</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -253,7 +217,7 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>11. Changes to This Privacy Policy</CardTitle>
+            <CardTitle>10. Changes to This Privacy Policy</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>
@@ -264,7 +228,7 @@ export default function PrivacyPolicy() {
 
         <Card>
           <CardHeader>
-            <CardTitle>12. Contact Us</CardTitle>
+            <CardTitle>11. Contact Us</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <p>

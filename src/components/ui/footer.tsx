@@ -1,19 +1,17 @@
 import { Link } from "react-router-dom";
-import { CarbonAd } from "./carbon-ad";
-import { useSubscription } from "@/hooks/use-subscription";
+import { GoogleAd } from "./carbon-ad";
 
 export function Footer() {
-  const { isSubscribed } = useSubscription();
-
   return (
     <footer className="w-full border-t border-border bg-background/80 backdrop-blur-sm mt-auto">
       <div className="container mx-auto px-4 py-6">
-        {/* Show ad only for non-subscribers */}
-        {!isSubscribed && (
-          <div className="flex justify-center mb-6">
-            <CarbonAd />
-          </div>
-        )}
+        {/* Non-intrusive Google AdSense */}
+        <div className="flex justify-center mb-6">
+          <GoogleAd 
+            adClient="ca-pub-XXXXXXXXXXXXXXXX" 
+            adSlot="XXXXXXXXXX" 
+          />
+        </div>
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
           <div className="flex flex-wrap justify-center md:justify-start gap-4">

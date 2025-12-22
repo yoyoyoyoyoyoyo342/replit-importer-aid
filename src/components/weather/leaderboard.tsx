@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Trophy, Medal, Award, TrendingUp, Crown } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DisplayNameDialog } from "./display-name-dialog";
 import { useAuth } from "@/hooks/use-auth";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface LeaderboardEntry {
   rank: number;
@@ -17,7 +16,6 @@ interface LeaderboardEntry {
   longest_streak: number;
   total_predictions: number;
   correct_predictions: number;
-  is_subscriber?: boolean;
 }
 
 export const Leaderboard = () => {
@@ -70,7 +68,7 @@ export const Leaderboard = () => {
 
       if (profilesError) throw profilesError;
 
-      // Get streak data for each user and check subscription status
+      // Get streak data for each user
       const leaderboardWithStreaks = await Promise.all(
         (profilesData || []).map(async (profile, index) => {
           const { data: streakData } = await supabase
@@ -91,23 +89,6 @@ export const Leaderboard = () => {
             .eq("is_verified", true)
             .eq("is_correct", true);
 
-          // Check subscription status via edge function
-          let isSubscriber = false;
-          try {
-            const { data: session } = await supabase.auth.getSession();
-            if (session?.session) {
-              const { data: subData } = await supabase.functions.invoke('check-subscription', {
-                headers: {
-                  Authorization: `Bearer ${session.session.access_token}`,
-                },
-                body: { check_user_id: profile.user_id }
-              });
-              isSubscriber = subData?.subscribed || false;
-            }
-          } catch {
-            // Silently fail subscription check
-          }
-
           return {
             rank: index + 1,
             user_id: profile.user_id,
@@ -117,7 +98,6 @@ export const Leaderboard = () => {
             longest_streak: streakData?.longest_streak || 0,
             total_predictions: totalPredictions || 0,
             correct_predictions: correctPredictions || 0,
-            is_subscriber: isSubscriber,
           };
         })
       );
@@ -213,28 +193,12 @@ export const Leaderboard = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => navigate(`/profile/${entry.user_id}`)}
-                      className="font-bold text-foreground truncate hover:text-primary hover:underline transition-colors text-left"
-                    >
-                      {entry.display_name}
-                    </button>
-                    {entry.is_subscriber && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <span className="flex items-center gap-0.5 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white px-1.5 py-0.5 rounded-full">
-                              <Crown className="w-3 h-3" />
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Rainz+ Subscriber</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    )}
-                  </div>
+                  <button
+                    onClick={() => navigate(`/profile/${entry.user_id}`)}
+                    className="font-bold text-foreground truncate hover:text-primary hover:underline transition-colors text-left"
+                  >
+                    {entry.display_name}
+                  </button>
                   <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mt-1">
                     <span className="font-medium">{accuracy}% accurate</span>
                     <span>•</span>

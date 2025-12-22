@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Swords, Trophy, Clock, CheckCircle, XCircle, Users, Timer } from "lucide-react";
+import { Swords, Trophy, Clock, CheckCircle, XCircle, Users } from "lucide-react";
 import { usePredictionBattles } from "@/hooks/use-prediction-battles";
-import { format, differenceInHours, differenceInMinutes } from "date-fns";
+import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface PredictionBattlesProps {
@@ -13,23 +13,6 @@ interface PredictionBattlesProps {
   longitude: number;
   onAcceptBattle?: (battleId: string) => void;
 }
-
-// Helper function to calculate time until midnight
-const getTimeUntilExpiry = (createdAt: string) => {
-  const now = new Date();
-  const midnight = new Date();
-  midnight.setHours(23, 59, 59, 999);
-  
-  const hoursLeft = differenceInHours(midnight, now);
-  const minutesLeft = differenceInMinutes(midnight, now) % 60;
-  
-  if (hoursLeft > 0) {
-    return `${hoursLeft}h ${minutesLeft}m`;
-  } else if (minutesLeft > 0) {
-    return `${minutesLeft}m`;
-  }
-  return "< 1m";
-};
 
 export const PredictionBattles = ({
   location,
@@ -41,7 +24,6 @@ export const PredictionBattles = ({
     usePredictionBattles();
   const [openBattles, setOpenBattles] = useState<any[]>([]);
   const [loadingOpen, setLoadingOpen] = useState(true);
-  const [, forceUpdate] = useState(0);
 
   const tomorrow = format(new Date(Date.now() + 86400000), "yyyy-MM-dd");
 
@@ -55,14 +37,6 @@ export const PredictionBattles = ({
     fetchOpen();
   }, [location]);
 
-  // Update countdown every minute
-  useEffect(() => {
-    const interval = setInterval(() => {
-      forceUpdate(n => n + 1);
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
@@ -73,8 +47,6 @@ export const PredictionBattles = ({
         return <Badge variant="outline"><Trophy className="w-3 h-3 mr-1" />Completed</Badge>;
       case "declined":
         return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Declined</Badge>;
-      case "expired":
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Expired</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -108,15 +80,9 @@ export const PredictionBattles = ({
                       <p className="text-sm text-muted-foreground">
                         wants to battle for {format(new Date(battle.battle_date), "MMM d")}
                       </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <p className="text-xs text-primary">
-                          +{battle.bonus_points} bonus points for winner!
-                        </p>
-                        <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                          <Timer className="w-3 h-3" />
-                          Expires in {getTimeUntilExpiry(battle.created_at)}
-                        </span>
-                      </div>
+                      <p className="text-xs text-primary mt-1">
+                        +{battle.bonus_points} bonus points for winner!
+                      </p>
                     </div>
                     <Button
                       size="sm"
@@ -150,10 +116,6 @@ export const PredictionBattles = ({
                       <p className="text-sm text-muted-foreground">
                         {battle.location_name} • {format(new Date(battle.battle_date), "MMM d")}
                       </p>
-                      <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 mt-1">
-                        <Timer className="w-3 h-3" />
-                        Expires in {getTimeUntilExpiry(battle.created_at)}
-                      </span>
                     </div>
                     <div className="flex gap-2">
                       <Button
