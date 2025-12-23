@@ -183,9 +183,14 @@ export function CurrentWeather({
     ? displayName.split(',')[0] 
     : (isAutoDetected ? t('weather.myLocation') : mostAccurate.location.split(',')[0]);
 
-  // Apply compact mode padding
-  const cardPadding = premiumSettings?.compactMode ? 'p-3' : 'p-4';
-  const statsPadding = premiumSettings?.compactMode ? 'p-2' : 'p-2.5';
+  // Apply compact mode styling
+  const isCompact = premiumSettings?.compactMode;
+  const cardPadding = isCompact ? 'p-2' : 'p-4';
+  const statsPadding = isCompact ? 'p-1.5' : 'p-2.5';
+  const tempSize = isCompact ? 'text-4xl' : 'text-6xl';
+  const feelsLikeTempSize = isCompact ? 'text-xl' : 'text-3xl';
+  const iconSize = isCompact ? 'w-10 h-10' : 'w-16 h-16';
+  const marginBottom = isCompact ? 'mb-2' : 'mb-4';
 
   return (
     <section className="mb-4">
@@ -199,11 +204,11 @@ export function CurrentWeather({
           </div>
 
           {/* Top Row: Location + Actions */}
-          <div className="relative flex items-center justify-between mb-4">
+          <div className={`relative flex items-center justify-between ${marginBottom}`}>
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-white/80" />
-              <span className="text-white font-semibold text-lg">{locationDisplay}</span>
-              {currentLocation && (
+              <MapPin className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-white/80`} />
+              <span className={`text-white font-semibold ${isCompact ? 'text-base' : 'text-lg'}`}>{locationDisplay}</span>
+              {currentLocation && !isCompact && (
                 <button
                   onClick={() => isLocationSaved ? removeLocationMutation.mutate() : addLocationMutation.mutate()}
                   className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
@@ -216,86 +221,86 @@ export function CurrentWeather({
               <button
                 onClick={onRefresh}
                 disabled={isLoading}
-                className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors disabled:opacity-50"
+                className={`${isCompact ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors disabled:opacity-50`}
               >
-                <RefreshCw className={`w-4 h-4 text-white ${isLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-white ${isLoading ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
 
           {/* Center: Temperature + Condition */}
-          <div className="relative flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+          <div className={`relative flex items-center justify-between ${marginBottom}`}>
+            <div className={`flex items-center ${isCompact ? 'gap-2' : 'gap-3'}`}>
+              <div className={`${iconSize} rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center`}>
                 {getConditionIcon(mostAccurate.currentWeather.condition)}
               </div>
               <div>
                 <div className="flex items-baseline">
-                  <span className="text-6xl font-bold text-white tracking-tight">{actualTemp}</span>
-                  <span className="text-2xl text-white/70 ml-1">°{isImperial ? 'F' : 'C'}</span>
+                  <span className={`${tempSize} font-bold text-white tracking-tight`}>{actualTemp}</span>
+                  <span className={`${isCompact ? 'text-lg' : 'text-2xl'} text-white/70 ml-1`}>°{isImperial ? 'F' : 'C'}</span>
                 </div>
-                <p className="text-white/80 font-medium text-sm">{mostAccurate.currentWeather.condition}</p>
+                <p className={`text-white/80 font-medium ${isCompact ? 'text-xs' : 'text-sm'}`}>{mostAccurate.currentWeather.condition}</p>
               </div>
             </div>
 
             {/* Feels Like - controlled by setting */}
             {(premiumSettings?.showFeelsLike !== false) && (
               <div className="text-right">
-                <p className="text-white/60 text-xs uppercase tracking-wide">{t('weather.feelsLike')}</p>
-                <p className="text-3xl font-bold text-white">{feelsLikeTemp}°</p>
-                <p className="text-white/70 text-xs">H:{highTemp}° L:{lowTemp}°</p>
+                <p className={`text-white/60 uppercase tracking-wide ${isCompact ? 'text-[10px]' : 'text-xs'}`}>{t('weather.feelsLike')}</p>
+                <p className={`${feelsLikeTempSize} font-bold text-white`}>{feelsLikeTemp}°</p>
+                <p className={`text-white/70 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>H:{highTemp}° L:{lowTemp}°</p>
               </div>
             )}
           </div>
 
           {/* Bottom: Quick Stats - controlled by settings */}
-          <div className="relative grid grid-cols-3 gap-2">
+          <div className={`relative grid grid-cols-3 ${isCompact ? 'gap-1' : 'gap-2'}`}>
             {/* Wind - always shown */}
             <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
-              <Wind className="w-4 h-4 text-white/80 mx-auto mb-1" />
-              <p className="text-white font-semibold text-sm">{formatWindSpeed(mostAccurate.currentWeather.windSpeed)}</p>
-              <p className="text-white/60 text-xs">{isImperial ? 'mph' : 'km/h'}</p>
+              <Wind className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-white/80 mx-auto ${isCompact ? 'mb-0.5' : 'mb-1'}`} />
+              <p className={`text-white font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}>{formatWindSpeed(mostAccurate.currentWeather.windSpeed)}</p>
+              <p className={`text-white/60 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>{isImperial ? 'mph' : 'km/h'}</p>
             </div>
             {/* Humidity - controlled by setting */}
             {(premiumSettings?.showHumidity !== false) && (
               <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
-                <Droplets className="w-4 h-4 text-white/80 mx-auto mb-1" />
-                <p className="text-white font-semibold text-sm">{mostAccurate.currentWeather.humidity}%</p>
-                <p className="text-white/60 text-xs">Humidity</p>
+                <Droplets className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-white/80 mx-auto ${isCompact ? 'mb-0.5' : 'mb-1'}`} />
+                <p className={`text-white font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}>{mostAccurate.currentWeather.humidity}%</p>
+                <p className={`text-white/60 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>Humidity</p>
               </div>
             )}
             {/* Visibility - controlled by setting */}
             {(premiumSettings?.showVisibility !== false) && (
               <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
-                <Eye className="w-4 h-4 text-white/80 mx-auto mb-1" />
-                <p className="text-white font-semibold text-sm">{displayVisibility}</p>
-                <p className="text-white/60 text-xs">{isImperial ? 'mi' : 'km'}</p>
+                <Eye className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-white/80 mx-auto ${isCompact ? 'mb-0.5' : 'mb-1'}`} />
+                <p className={`text-white font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}>{displayVisibility}</p>
+                <p className={`text-white/60 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>{isImperial ? 'mi' : 'km'}</p>
               </div>
             )}
             {/* Precipitation Chance - controlled by setting */}
             {premiumSettings?.showPrecipChance && (mostAccurate.currentWeather as any).precipChance !== undefined && (
               <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
-                <Droplets className="w-4 h-4 text-blue-300 mx-auto mb-1" />
-                <p className="text-white font-semibold text-sm">{(mostAccurate.currentWeather as any).precipChance}%</p>
-                <p className="text-white/60 text-xs">Precip</p>
+                <Droplets className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-blue-300 mx-auto ${isCompact ? 'mb-0.5' : 'mb-1'}`} />
+                <p className={`text-white font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}>{(mostAccurate.currentWeather as any).precipChance}%</p>
+                <p className={`text-white/60 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>Precip</p>
               </div>
             )}
             {/* Dew Point - controlled by setting */}
             {premiumSettings?.showDewPoint && (mostAccurate.currentWeather as any).dewPoint !== undefined && (
               <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
-                <Thermometer className="w-4 h-4 text-white/80 mx-auto mb-1" />
-                <p className="text-white font-semibold text-sm">
+                <Thermometer className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-white/80 mx-auto ${isCompact ? 'mb-0.5' : 'mb-1'}`} />
+                <p className={`text-white font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}>
                   {isImperial ? (mostAccurate.currentWeather as any).dewPoint : Math.round(((mostAccurate.currentWeather as any).dewPoint - 32) * 5 / 9)}°
                 </p>
-                <p className="text-white/60 text-xs">Dew Pt</p>
+                <p className={`text-white/60 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>Dew Pt</p>
               </div>
             )}
             {/* Pressure - controlled by setting */}
             {premiumSettings?.showPressure && mostAccurate.currentWeather.pressure !== undefined && (
               <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
-                <span className="text-white/80 text-xs">hPa</span>
-                <p className="text-white font-semibold text-sm">{Math.round(mostAccurate.currentWeather.pressure)}</p>
-                <p className="text-white/60 text-xs">Pressure</p>
+                <span className={`text-white/80 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>hPa</span>
+                <p className={`text-white font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}>{Math.round(mostAccurate.currentWeather.pressure)}</p>
+                <p className={`text-white/60 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>Pressure</p>
               </div>
             )}
           </div>
