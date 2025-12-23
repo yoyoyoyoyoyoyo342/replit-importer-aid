@@ -312,7 +312,7 @@ export default function WeatherPage() {
               rel="noopener noreferrer"
               className="text-primary hover:underline inline-flex items-center gap-1"
             >
-          NordVPN
+              NordVPN
               <ExternalLink className="w-3 h-3" /</p>
               </div>
 
