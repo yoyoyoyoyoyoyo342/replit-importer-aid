@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Play, Pause, SkipBack, SkipForward, CloudRain } from 'lucide-react';
+import { MapPin, Play, Pause, SkipBack, SkipForward, CloudRain, Lock } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
+import { useSubscription } from '@/hooks/use-subscription';
+import { useNavigate } from 'react-router-dom';
 interface RainMapCardProps {
   latitude: number;
   longitude: number;
@@ -22,6 +23,8 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
   longitude,
   locationName,
 }) => {
+  const { isSubscribed } = useSubscription();
+  const navigate = useNavigate();
   const [radarFrames, setRadarFrames] = useState<RadarFrame[]>([]);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -33,6 +36,30 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
   const radarLayerRef = useRef<L.TileLayer | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Premium-only feature
+  if (!isSubscribed) {
+    return (
+      <Card className="overflow-hidden border-0 shadow-lg">
+        <CardHeader className="pb-2 bg-gradient-to-r from-blue-500/80 via-cyan-500/70 to-blue-500/80">
+          <CardTitle className="flex items-center gap-2 text-white text-lg">
+            <CloudRain className="h-5 w-5" />
+            Rain Radar
+            <Lock className="h-4 w-4 text-white/80 ml-auto" />
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 bg-background/50 text-center">
+          <Lock className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+          <h4 className="font-semibold mb-2">Premium Feature</h4>
+          <p className="text-sm text-muted-foreground mb-4">
+            View live rain radar with animated precipitation forecasts with Premium.
+          </p>
+          <Button size="sm" onClick={() => navigate("/subscription")}>
+            Upgrade to Premium
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
   // Initialize map
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
