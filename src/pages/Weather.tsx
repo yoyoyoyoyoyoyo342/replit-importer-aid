@@ -412,8 +412,8 @@ export default function WeatherPage() {
             {/* Main Location Card */}
             <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} currentLocation={selectedLocation} onLocationSelect={handleLocationSelect} displayName={customDisplayName} actualStationName={actualStationName} premiumSettings={premiumSettings} />
 
-            {/* Affiliate Card */}
-            <AffiliateCard />
+            {/* Affiliate Card - hidden for premium users */}
+            {!isSubscribed && <AffiliateCard />}
 
             {/* Pollen/Snow Index - Right after main card */}
             {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
