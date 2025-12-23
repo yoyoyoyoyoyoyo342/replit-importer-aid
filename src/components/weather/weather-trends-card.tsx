@@ -1,12 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Calendar } from "lucide-react";
+import { TrendingUp, Calendar, Lock } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays } from "date-fns";
 import { CurrentWeather } from "@/types/weather";
 import { useEffect } from "react";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
-
+import { useSubscription } from "@/hooks/use-subscription";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 interface WeatherTrendsCardProps {
   currentWeather?: CurrentWeather;
   location?: string;
@@ -32,6 +34,33 @@ export function WeatherTrendsCard({
   isImperial = false,
 }: WeatherTrendsCardProps) {
   const { is24Hour } = useUserPreferences();
+  const { isSubscribed } = useSubscription();
+  const navigate = useNavigate();
+
+  // Premium-only feature
+  if (!isSubscribed) {
+    return (
+      <div className="overflow-hidden rounded-2xl shadow-xl border-0 relative">
+        <div className="bg-gradient-to-r from-rose-300/70 via-pink-400/60 to-fuchsia-400/70 backdrop-blur-sm p-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-white" />
+            <h3 className="font-semibold text-white">Weather Trends</h3>
+            <Lock className="w-4 h-4 text-white/80 ml-auto" />
+          </div>
+        </div>
+        <div className="bg-background/50 backdrop-blur-md p-6 text-center">
+          <Lock className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+          <h4 className="font-semibold mb-2">Premium Feature</h4>
+          <p className="text-sm text-muted-foreground mb-4">
+            Unlock 30-day weather trends and historical analysis with Premium.
+          </p>
+          <Button size="sm" onClick={() => navigate("/subscription")}>
+            Upgrade to Premium
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   const { data: historyData = [], isLoading } = useQuery({
     queryKey: ["weather-history", location],

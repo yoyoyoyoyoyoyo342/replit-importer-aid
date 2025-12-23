@@ -12,28 +12,31 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 
-const AFFILIATE_PRODUCT = {
-  price_id: "price_1Sh0n18mRhH1c6KOhmxF97O8",
-  product_id: "prod_TeJPOGKdFelTsG",
-  name: "Rainz Affiliate Spot",
-  price: "€10",
-  interval: "month",
-};
+// Pricing based on weather condition frequency (rarer = cheaper)
+const AFFILIATE_PRICING = {
+  rain: { price: "€15", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Common
+  cloudy: { price: "€20", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Very common
+  snow: { price: "€5", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Rare
+  wind: { price: "€10", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Moderate
+  storm: { price: "€8", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Rare
+  all: { price: "€25", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Always shown
+} as const;
 
 const affiliateSchema = z.object({
   businessName: z.string().trim().min(2, "Business name must be at least 2 characters").max(100, "Business name is too long"),
   contactEmail: z.string().trim().email("Invalid email address").max(255, "Email is too long"),
   websiteUrl: z.string().trim().url("Invalid URL - must start with https://").refine((url) => url.startsWith("https://"), "URL must use HTTPS"),
   description: z.string().trim().max(500, "Description is too long").optional(),
-  weatherCondition: z.enum(["rain", "snow", "wind", "storm", "all"], { required_error: "Please select a weather condition" }),
+  weatherCondition: z.enum(["rain", "cloudy", "snow", "wind", "storm", "all"], { required_error: "Please select a weather condition" }),
 });
 
 const weatherConditions = [
-  { value: "rain", label: "When it's Raining", icon: CloudRain, description: "Your link shows when rain is detected" },
-  { value: "snow", label: "When it's Snowing", icon: Snowflake, description: "Your link shows during snowfall" },
-  { value: "wind", label: "When it's Windy", icon: Wind, description: "Your link shows during high winds" },
-  { value: "storm", label: "During Storms", icon: Zap, description: "Your link shows during thunderstorms" },
-  { value: "all", label: "All Conditions", icon: CloudRain, description: "Your link shows for all weather" },
+  { value: "cloudy", label: "When it's Cloudy", icon: CloudRain, description: "Your link shows during cloudy weather", price: "€20/mo" },
+  { value: "rain", label: "When it's Raining", icon: CloudRain, description: "Your link shows when rain is detected", price: "€15/mo" },
+  { value: "wind", label: "When it's Windy", icon: Wind, description: "Your link shows during high winds", price: "€10/mo" },
+  { value: "storm", label: "During Storms", icon: Zap, description: "Your link shows during thunderstorms", price: "€8/mo" },
+  { value: "snow", label: "When it's Snowing", icon: Snowflake, description: "Your link shows during snowfall", price: "€5/mo" },
+  { value: "all", label: "All Conditions", icon: CloudRain, description: "Your link shows for all weather", price: "€25/mo" },
 ];
 
 export default function Affiliate() {
@@ -81,8 +84,8 @@ export default function Affiliate() {
 
     setLoading(true);
     try {
-      // Create affiliate application first
-      const { data: application, error: appError } = await supabase
+      // Create affiliate application - payment only after approval
+      const { error: appError } = await supabase
         .from("affiliate_applications")
         .insert({
           user_id: user.id,
@@ -92,28 +95,15 @@ export default function Affiliate() {
           description: result.data.description || null,
           weather_condition: result.data.weatherCondition,
           status: "pending",
-        })
-        .select()
-        .single();
+        });
 
       if (appError) throw appError;
 
-      // Create checkout session
-      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke("create-affiliate-checkout", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: {
-          application_id: application.id,
-        },
+      setSubmitted(true);
+      toast({
+        title: "Application submitted!",
+        description: "We'll review your application and contact you about payment once approved.",
       });
-
-      if (checkoutError || !checkoutData?.url) {
-        throw new Error(checkoutError?.message || "Failed to create checkout session");
-      }
-
-      // Redirect to Stripe checkout
-      window.location.href = checkoutData.url;
     } catch (error) {
       console.error("Affiliate application error:", error);
       toast({
@@ -161,32 +151,51 @@ export default function Affiliate() {
           </p>
         </div>
 
-        {/* Pricing Card */}
+        {/* Pricing Grid */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold mb-4 text-center">Pricing by Weather Condition</h2>
+          <p className="text-sm text-muted-foreground text-center mb-4">
+            Pricing varies based on how often the condition occurs. Rarer conditions = lower price.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {weatherConditions.map((condition) => (
+              <Card key={condition.value} className="border-border/50">
+                <CardContent className="p-4 text-center">
+                  <condition.icon className="w-6 h-6 mx-auto mb-2 text-primary" />
+                  <p className="font-medium text-sm">{condition.label}</p>
+                  <p className="text-lg font-bold text-primary">{condition.price}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Benefits Card */}
         <Card className="mb-8 border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">{AFFILIATE_PRODUCT.name}</CardTitle>
-            <CardDescription>
-              <span className="text-4xl font-bold text-foreground">{AFFILIATE_PRODUCT.price}</span>
-              <span className="text-muted-foreground">/{AFFILIATE_PRODUCT.interval}</span>
-            </CardDescription>
+            <CardTitle className="text-xl">How It Works</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                Display your link when your chosen weather is active
+                Submit your application for free — no payment until approved
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
-                Contextual advertising reaches users when they care most
+                We review and approve within 24-48 hours
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                Once approved, you'll receive a payment link via email
+              </li>
+              <li className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                Your link goes live when your weather condition is active
               </li>
               <li className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
                 Cancel anytime with no commitment
-              </li>
-              <li className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
-                Reviewed and approved within 24-48 hours
               </li>
             </ul>
           </CardContent>
@@ -269,6 +278,7 @@ export default function Affiliate() {
                         <div className="flex items-center gap-2">
                           <condition.icon className="w-4 h-4" />
                           <span>{condition.label}</span>
+                          <span className="text-muted-foreground ml-auto">({condition.price})</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -304,12 +314,11 @@ export default function Affiliate() {
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
+                        Submitting...
                       </>
                     ) : (
                       <>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Continue to Payment ({AFFILIATE_PRODUCT.price}/month)
+                        Submit Application (Free)
                       </>
                     )}
                   </Button>
