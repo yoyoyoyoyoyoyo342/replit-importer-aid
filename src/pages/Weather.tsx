@@ -305,15 +305,7 @@ export default function WeatherPage() {
                 <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
                   Rainz Weather
                 </h1>
-                <p className="text-sm text-white/80">Be prepared. Powered by {" "}
-            <a
-              href="https://go.nordvpn.net/aff_c?offer_id=15&aff_id=137610&url_id=902"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline inline-flex items-center gap-1"
-            >
-              NordVPN
-              <ExternalLink className="w-3 h-3" /</p>
+                <p className="text-sm text-white/80">Be prepared. Powered by NordVPN</p>
               </div>
 
               {/* Auth & Controls */}
