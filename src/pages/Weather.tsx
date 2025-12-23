@@ -41,6 +41,7 @@ import { MobileLocationNav } from "@/components/weather/mobile-location-nav";
 import { HeaderInfoBar } from "@/components/weather/header-info-bar";
 import RainMapCard from "@/components/weather/rain-map-card";
 import { usePremiumSettings } from "@/hooks/use-premium-settings";
+import { AffiliateCard } from "@/components/weather/affiliate-card";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -410,6 +411,9 @@ export default function WeatherPage() {
 
             {/* Main Location Card */}
             <CurrentWeather weatherData={weatherData.sources} mostAccurate={weatherData.mostAccurate} onRefresh={handleRefresh} isLoading={isLoading} lastUpdated={lastUpdated} isImperial={isImperial} isAutoDetected={isAutoDetected} currentLocation={selectedLocation} onLocationSelect={handleLocationSelect} displayName={customDisplayName} actualStationName={actualStationName} premiumSettings={premiumSettings} />
+
+            {/* Affiliate Card */}
+            <AffiliateCard />
 
             {/* Pollen/Snow Index - Right after main card */}
             {weatherData?.mostAccurate?.currentWeather?.pollenData && <div className="mb-4">
