@@ -510,6 +510,7 @@ export default function WeatherPage() {
                       hourlyData={weatherData.mostAccurate.hourlyForecast}
                       isImperial={isImperial}
                       is24Hour={is24Hour}
+                      premiumSettings={premiumSettings}
                     />
                   );
                 case "rainMap":
@@ -531,6 +532,7 @@ export default function WeatherPage() {
                       hourlyForecast={weatherData.mostAccurate.hourlyForecast}
                       isImperial={isImperial}
                       is24Hour={is24Hour}
+                      premiumSettings={premiumSettings}
                     />
                   );
                 case "detailedMetrics":
@@ -612,8 +614,8 @@ export default function WeatherPage() {
         <AIChatButton weatherData={weatherData.mostAccurate} location={selectedLocation.name} isImperial={isImperial} />
       )}
 
-      {/* Mobile Location Nav - Bottom */}
-      {user && selectedLocation && (
+      {/* Mobile Location Nav - Bottom - Show even without selectedLocation */}
+      {user && (
         <MobileLocationNav
           onLocationSelect={handleLocationSelect}
           currentLocation={selectedLocation}

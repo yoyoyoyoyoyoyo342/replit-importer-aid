@@ -58,6 +58,7 @@ export interface CurrentWeather {
   windGusts?: number;
   snowfall?: number;
   snowDepth?: number;
+  dewPoint?: number;
 }
 
 export interface HourlyForecast {

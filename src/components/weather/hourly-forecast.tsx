@@ -4,15 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { HourlyForecast as HourlyData } from "@/types/weather";
 import { formatTime } from "@/lib/time-format";
+import { PremiumSettings } from "@/hooks/use-premium-settings";
 
 interface HourlyForecastProps {
   hourlyData: HourlyData[];
   isImperial?: boolean;
   is24Hour?: boolean;
+  premiumSettings?: PremiumSettings;
 }
 
-export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true }: HourlyForecastProps) {
+export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true, premiumSettings }: HourlyForecastProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const isCompact = premiumSettings?.compactMode;
   
   const getConditionIcon = (condition: string, size: string = "w-5 h-5") => {
     const c = condition.toLowerCase();
@@ -48,14 +51,20 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
   
   const defaultVisibleData = fullDayData.slice(0, Math.min(3, fullDayData.length));
   
+  const cardPadding = isCompact ? 'p-2' : 'p-3';
+  const itemPadding = isCompact ? 'p-2' : 'p-3';
+  const iconSize = isCompact ? 'w-6 h-6' : 'w-8 h-8';
+  const textSize = isCompact ? 'text-xs' : 'text-sm';
+  const tempSize = isCompact ? 'text-base' : 'text-lg';
+  
   return (
-    <section className="mb-4 md:mb-8">
+    <section className={`${isCompact ? 'mb-2' : 'mb-4'} md:mb-8`}>
       <div className="overflow-hidden rounded-2xl shadow-xl border-0">
         {/* Header with softer gradient */}
-        <div className="bg-gradient-to-r from-indigo-400/70 via-purple-400/60 to-pink-400/70 backdrop-blur-sm p-4">
+        <div className={`bg-gradient-to-r from-indigo-400/70 via-purple-400/60 to-pink-400/70 backdrop-blur-sm ${isCompact ? 'p-2' : 'p-4'}`}>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-              <Clock className="w-5 h-5" />
+            <h2 className={`${isCompact ? 'text-sm' : 'text-lg'} font-semibold text-white flex items-center gap-2`}>
+              <Clock className={`${isCompact ? 'w-4 h-4' : 'w-5 h-5'}`} />
               24-Hour Forecast
             </h2>
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -63,7 +72,7 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-white hover:bg-white/20 gap-1"
+                  className={`text-white hover:bg-white/20 gap-1 ${isCompact ? 'h-6 px-2' : ''}`}
                 >
                   {isOpen ? (
                     <>
@@ -83,25 +92,25 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
         </div>
 
         {/* Content */}
-        <div className="bg-background/50 backdrop-blur-md p-3">
+        <div className={`bg-background/50 backdrop-blur-md ${cardPadding}`}>
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <div className="space-y-2">
+            <div className={`${isCompact ? 'space-y-1' : 'space-y-2'}`}>
               {defaultVisibleData.map((hour, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50"
+                  className={`flex items-center justify-between ${itemPadding} rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-muted-foreground w-14">
+                    <span className={`${textSize} font-medium text-muted-foreground w-14`}>
                       {formatTime(hour.time, is24Hour)}
                     </span>
-                    <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center">
-                      {getConditionIcon(hour.condition)}
+                    <div className={`${iconSize} rounded-full bg-primary/30 flex items-center justify-center`}>
+                      {getConditionIcon(hour.condition, isCompact ? 'w-4 h-4' : 'w-5 h-5')}
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-xs text-muted-foreground">{hour.precipitation}%</span>
-                    <span className="text-lg font-bold text-foreground">
+                    <span className={`${tempSize} font-bold text-foreground`}>
                       {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
                     </span>
                   </div>
@@ -109,23 +118,23 @@ export function HourlyForecast({ hourlyData, isImperial = true, is24Hour = true 
               ))}
               
               <CollapsibleContent>
-                <div className="space-y-2 mt-2">
+                <div className={`${isCompact ? 'space-y-1 mt-1' : 'space-y-2 mt-2'}`}>
                   {fullDayData.slice(defaultVisibleData.length).map((hour, index) => (
                     <div
                       key={index + defaultVisibleData.length}
-                      className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50"
+                      className={`flex items-center justify-between ${itemPadding} rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-border/50`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-muted-foreground w-14">
+                        <span className={`${textSize} font-medium text-muted-foreground w-14`}>
                           {formatTime(hour.time, is24Hour)}
                         </span>
-                        <div className="w-8 h-8 rounded-full bg-primary/30 flex items-center justify-center">
-                          {getConditionIcon(hour.condition)}
+                        <div className={`${iconSize} rounded-full bg-primary/30 flex items-center justify-center`}>
+                          {getConditionIcon(hour.condition, isCompact ? 'w-4 h-4' : 'w-5 h-5')}
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="text-xs text-muted-foreground">{hour.precipitation}%</span>
-                        <span className="text-lg font-bold text-foreground">
+                        <span className={`${tempSize} font-bold text-foreground`}>
                           {isImperial ? hour.temperature : Math.round((hour.temperature - 32) * 5/9)}°
                         </span>
                       </div>

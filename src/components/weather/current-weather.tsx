@@ -286,11 +286,11 @@ export function CurrentWeather({
               </div>
             )}
             {/* Dew Point - controlled by setting */}
-            {premiumSettings?.showDewPoint && (mostAccurate.currentWeather as any).dewPoint !== undefined && (
+            {premiumSettings?.showDewPoint && mostAccurate.currentWeather.dewPoint !== undefined && (
               <div className={`bg-white/15 backdrop-blur-sm rounded-xl ${statsPadding} text-center`}>
                 <Thermometer className={`${isCompact ? 'w-3 h-3' : 'w-4 h-4'} text-white/80 mx-auto ${isCompact ? 'mb-0.5' : 'mb-1'}`} />
                 <p className={`text-white font-semibold ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                  {isImperial ? (mostAccurate.currentWeather as any).dewPoint : Math.round(((mostAccurate.currentWeather as any).dewPoint - 32) * 5 / 9)}°
+                  {isImperial ? mostAccurate.currentWeather.dewPoint : Math.round((mostAccurate.currentWeather.dewPoint - 32) * 5 / 9)}°
                 </p>
                 <p className={`text-white/60 ${isCompact ? 'text-[10px]' : 'text-xs'}`}>Dew Pt</p>
               </div>
