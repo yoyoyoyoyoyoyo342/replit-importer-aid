@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MapPin, Play, Pause, SkipBack, SkipForward, CloudRain, Lock } from 'lucide-react';
+import { MapPin, Play, Pause, SkipBack, SkipForward, CloudRain, Lock, Crown, Sparkles } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/use-auth';
 interface RainMapCardProps {
   latitude: number;
   longitude: number;
@@ -23,7 +24,8 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
   longitude,
   locationName,
 }) => {
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, openCheckout } = useSubscription();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [radarFrames, setRadarFrames] = useState<RadarFrame[]>([]);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
@@ -36,25 +38,41 @@ const RainMapCard: React.FC<RainMapCardProps> = ({
   const radarLayerRef = useRef<L.TileLayer | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Premium-only feature
+  const handleUpgrade = () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    void openCheckout().catch(() => {});
+  };
+
+  // Plus-only feature
   if (!isSubscribed) {
     return (
-      <Card className="overflow-hidden border-0 shadow-lg">
+      <Card className="overflow-hidden border-0 shadow-lg border-2 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5">
         <CardHeader className="pb-2 bg-gradient-to-r from-blue-500/80 via-cyan-500/70 to-blue-500/80">
           <CardTitle className="flex items-center gap-2 text-white text-lg">
             <CloudRain className="h-5 w-5" />
             Rain Radar
-            <Lock className="h-4 w-4 text-white/80 ml-auto" />
+            <span className="flex items-center gap-1 text-xs bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full ml-auto">
+              <Crown className="w-3 h-3" />
+              Plus
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6 bg-background/50 text-center">
-          <Lock className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-          <h4 className="font-semibold mb-2">Premium Feature</h4>
-          <p className="text-sm text-muted-foreground mb-4">
-            View live rain radar with animated precipitation forecasts with Premium.
+          <Lock className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+          <p className="text-sm font-medium mb-1">Live Rain Radar</p>
+          <p className="text-xs text-muted-foreground mb-3">
+            View animated precipitation forecasts with Rainz+.
           </p>
-          <Button size="sm" onClick={() => navigate("/subscription")}>
-            Upgrade to Premium
+          <Button 
+            onClick={handleUpgrade}
+            size="sm"
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Upgrade to Rainz+ • €2/month
           </Button>
         </CardContent>
       </Card>

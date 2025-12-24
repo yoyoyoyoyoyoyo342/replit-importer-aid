@@ -121,7 +121,8 @@ export const weatherApi = {
         "cloud_cover",
         "wind_speed_10m",
         "wind_direction_10m",
-        "wind_gusts_10m"
+        "wind_gusts_10m",
+        "dew_point_2m"
       ].join(","),
       daily: [
         "weathercode",
@@ -427,6 +428,9 @@ export const weatherApi = {
       currentWindSpeed
     );
     
+    // Calculate dew point (Open-Meteo provides it directly in Fahrenheit since we request temperature_unit=fahrenheit)
+    const currentDewPoint = Math.round(data?.hourly?.dew_point_2m?.[idx] ?? 0);
+
     const current: CurrentWeather = {
       temperature: currentTemp,
       condition: currentCondition,
@@ -453,6 +457,7 @@ export const weatherApi = {
       windGusts: Math.round(data?.hourly?.wind_gusts_10m?.[idx] ?? 0),
       snowfall: Math.round((snowfallCm / 2.54) * 10) / 10, // Convert cm to inches
       snowDepth: snowDepthInches,
+      dewPoint: currentDewPoint,
     };
 
     console.log("Processed current weather:", {
