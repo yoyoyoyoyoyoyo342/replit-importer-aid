@@ -115,10 +115,15 @@ export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
     }
 
     async function loadUserNotifications() {
+      // Only load notifications from the last 7 days to avoid bombarding new users
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      
       const { data } = await supabase
         .from('user_notifications')
         .select('*')
         .eq('user_id', user.id)
+        .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: false })
         .limit(20);
 

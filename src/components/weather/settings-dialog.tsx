@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserPreferences } from "@/hooks/use-user-preferences";
 import { FeedbackForm } from "./feedback-form";
+import { AISupportChat } from "./ai-support-chat";
 import { useTheme } from "@/components/theme-provider";
 import { useIsAdmin } from "@/hooks/use-is-admin";
 import { useNavigate } from "react-router-dom";
@@ -333,9 +334,10 @@ export function SettingsDialog({
 
           <Separator />
 
-          {/* Feedback Button */}
+          {/* Feedback & Support */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Feedback</Label>
+            <Label className="text-base font-medium">Help & Feedback</Label>
+            <AISupportChat />
             <FeedbackForm />
           </div>
 

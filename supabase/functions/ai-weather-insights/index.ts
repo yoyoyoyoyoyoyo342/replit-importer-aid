@@ -297,6 +297,18 @@ Examples of good insights:
         .filter(([_, value]) => value > 6)
         .map(([type]) => type);
 
+      // Extract hourly forecast for the whole day to make consistent clothing recommendations
+      const hourlyForecast = weatherData.hourlyForecast?.slice(0, 24) || [];
+      const dailyTemps = hourlyForecast.map((h: any) => {
+        const t = h.temperature || h.temp || 0;
+        return isImperial ? t : Math.round((t - 32) * 5/9);
+      });
+      const dailyConditions = hourlyForecast.map((h: any) => h.condition || 'Unknown');
+      const hasRain = dailyConditions.some((c: string) => c.toLowerCase().includes('rain') || c.toLowerCase().includes('shower') || c.toLowerCase().includes('drizzle'));
+      const hasClouds = dailyConditions.some((c: string) => c.toLowerCase().includes('cloud') || c.toLowerCase().includes('overcast'));
+      const minTemp = dailyTemps.length > 0 ? Math.min(...dailyTemps) : temp;
+      const maxTemp = dailyTemps.length > 0 ? Math.max(...dailyTemps) : temp;
+
       // Map language codes to language names for AI prompt
       const languageMap: Record<string, string> = {
         'en-GB': 'British English',
@@ -309,36 +321,43 @@ Examples of good insights:
       };
       const targetLanguage = languageMap[language] || 'English';
 
-      systemPrompt = `You are creating a personalized morning weather briefing. Provide a warm, helpful summary that helps the user plan their day.
+      systemPrompt = `You are creating a personalized morning weather briefing. Provide a warm, helpful summary that helps the user plan their ENTIRE day.
 
 CRITICAL: You MUST respond in ${targetLanguage}. All text in your response must be in ${targetLanguage}, including the greeting, weather description, clothing suggestions, and activity recommendations.
 
+IMPORTANT: Base your outfit recommendations on the FULL DAY forecast, not just the morning. Consider the temperature range throughout the day.
+
 Current Weather in ${location}:
-- Temperature: ${temp}°${isImperial ? 'F' : 'C'} (feels like ${feelsLike}°${isImperial ? 'F' : 'C'})
-- Condition: ${condition}
+- Current Temperature: ${temp}°${isImperial ? 'F' : 'C'} (feels like ${feelsLike}°${isImperial ? 'F' : 'C'})
+- Current Condition: ${condition}
 - Humidity: ${humidity}%
 - Wind: ${windSpeed} ${isImperial ? 'mph' : 'km/h'}
 - UV Index: ${uvIndex}/10
 ${highPollens.length > 0 ? `- High Pollen: ${highPollens.join(', ')}` : ''}
 
+Full Day Forecast:
+- Temperature Range: ${minTemp}°${isImperial ? 'F' : 'C'} to ${maxTemp}°${isImperial ? 'F' : 'C'}
+- Rain Expected Today: ${hasRain ? 'Yes - bring umbrella/rain jacket' : 'No'}
+- Cloudy Periods: ${hasClouds ? 'Yes' : 'No'}
+
 Return ONLY a JSON object (no markdown code blocks) with these fields:
 {
-  "summary": "A warm 2-sentence greeting with weather overview",
-  "outfit": "VERY SPECIFIC clothing items list (e.g., 'Light jacket, long sleeves, jeans, and trainers' or 'T-shirt, shorts, trainers, and sunglasses'). Never say just 'dress appropriately'. Always list actual clothing items.",
+  "summary": "A warm 2-sentence greeting with weather overview mentioning temp range",
+  "outfit": "VERY SPECIFIC clothing items list that works for the FULL DAY temperature range (${minTemp}° to ${maxTemp}°). Include layers if temp varies significantly. ${hasRain ? 'MUST include rain protection (umbrella or rain jacket).' : ''} Never say just 'dress appropriately'. Always list actual clothing items.",
   "pollenAlerts": ["Array of specific pollen warnings if any high levels detected"],
-  "activityRecommendation": "SPECIFIC activity suggestions based on weather analysis (e.g., 'Perfect for outdoor running from 8-10am before it gets hot' or 'Indoor activities recommended due to rain - great day for museums or cinema'). Never say generic phrases like 'plan your day'. Always analyze weather and suggest specific activities with timing.",
-  "keyInsight": "One important thing to remember for the day"
+  "activityRecommendation": "SPECIFIC activity suggestions based on FULL DAY weather analysis. Consider when it will be warmest/coolest. ${hasRain ? 'Account for rain timing.' : ''}",
+  "keyInsight": "One important thing to remember for the day based on full forecast"
 }`;
 
       userPrompt = `Create a morning briefing for ${location}. Be warm, specific, and actionable. 
 
 CRITICAL REQUIREMENTS:
 1. LANGUAGE: You MUST write the ENTIRE response in ${targetLanguage}. Every single word must be in ${targetLanguage}.
-2. For "outfit": List SPECIFIC clothing items (jacket, t-shirt, trousers, shoes, etc.) in ${targetLanguage}. NEVER say "dress appropriately" or generic advice. Think about what someone would actually wear for ${temp}°${isImperial ? 'F' : 'C'} and ${condition}.
-3. For "activityRecommendation": Analyze the weather (${temp}°, ${condition}, ${windSpeed} ${isImperial ? 'mph' : 'km/h'} wind, UV ${uvIndex}) and suggest SPECIFIC activities with timing in ${targetLanguage}. Examples: "Perfect for outdoor cycling 7-9am", "Stay indoors, heavy rain expected - good day for reading", "Great beach weather 10am-4pm, apply SPF30+". NEVER give generic advice.
+2. For "outfit": Consider the FULL DAY temperature range of ${minTemp}° to ${maxTemp}°${isImperial ? 'F' : 'C'}. List SPECIFIC clothing items that work for the entire day. ${hasRain ? 'MUST include umbrella or rain jacket!' : ''} Include layers if there's a significant temperature swing. NEVER say "dress appropriately" or generic advice.
+3. For "activityRecommendation": Analyze the FULL DAY weather and suggest SPECIFIC activities with optimal timing in ${targetLanguage}. Consider when temps are best for outdoor activities.
 4. IMPORTANT: Return ONLY pure JSON. Do NOT wrap the response in markdown code blocks. Do NOT include \`\`\`json or \`\`\`. Just return the raw JSON object.
 
-Consider the weather conditions carefully: ${temp}° temperature, ${condition} conditions, and ${highPollens.length > 0 ? 'high pollen levels' : 'current pollen levels'}.`;
+Weather summary: Current ${temp}°, ranging from ${minTemp}° to ${maxTemp}° throughout the day. ${hasRain ? 'Rain expected.' : ''} ${condition} conditions. ${highPollens.length > 0 ? 'High pollen levels.' : ''}`;
 
     } else if (type === 'chat') {
       // Convert temperatures and units for chat context
@@ -371,6 +390,38 @@ Guidelines:
 - Consider user's location and current conditions in all responses
 
 Recent conversation context: ${conversationHistory?.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n') || 'None'}`;
+
+      userPrompt = message;
+    } else if (type === 'support_chat') {
+      // Support chat for Rainz app help
+      systemPrompt = `You are the Rainz Support Assistant, a helpful AI that assists users with the Rainz weather app. You should be friendly, concise, and helpful.
+
+You can help with:
+- How to use Rainz features (weather predictions, games, leaderboards, morning review, etc.)
+- Understanding weather data and what it means
+- Subscription questions (Rainz+ features, pricing at €2/month, benefits)
+- Troubleshooting common issues
+- General weather-related questions
+
+Key Rainz+ features to know:
+- AI Morning Review with personalized outfit and activity recommendations
+- AI Weather Chat for real-time weather assistance
+- Offline mode for 3-day weather downloads
+- Animated weather backgrounds
+- Compact mode and customization options
+- Ad-free experience
+- Enhanced weather data with AI processing
+
+Guidelines:
+- Be concise and helpful (keep responses under 100 words when possible)
+- Use friendly, casual language
+- Provide specific, actionable answers
+- If you don't know something, suggest contacting support@rainz.app
+- For billing issues, direct to support@rainz.app
+- Don't make up features that don't exist
+
+Recent conversation:
+${conversationHistory?.map((msg: any) => `${msg.role}: ${msg.content}`).join('\n') || 'None'}`;
 
       userPrompt = message;
     }

@@ -42,6 +42,7 @@ import { HeaderInfoBar } from "@/components/weather/header-info-bar";
 import RainMapCard from "@/components/weather/rain-map-card";
 import { usePremiumSettings } from "@/hooks/use-premium-settings";
 import { AffiliateCard } from "@/components/weather/affiliate-card";
+import { OfflineDownloadButton } from "@/components/weather/offline-download-button";
 export default function WeatherPage() {
   const [selectedLocation, setSelectedLocation] = useState<{
     lat: number;
@@ -311,6 +312,18 @@ export default function WeatherPage() {
               {/* Auth & Controls */}
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <HeaderInfoBar user={user} />
+
+                {/* Offline Download Button */}
+                {user && selectedLocation && weatherData && (
+                  <OfflineDownloadButton
+                    location={selectedLocation.name}
+                    latitude={selectedLocation.lat}
+                    longitude={selectedLocation.lon}
+                    currentWeather={weatherData.mostAccurate?.currentWeather}
+                    hourlyForecast={weatherData.mostAccurate?.hourlyForecast || []}
+                    dailyForecast={weatherData.mostAccurate?.dailyForecast || []}
+                  />
+                )}
 
                 <LockedFeature isLocked={!user}>
                   <SettingsDialog
