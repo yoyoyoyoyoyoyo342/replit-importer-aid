@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { WeatherSource } from "@/types/weather";
 import { useAuth } from "@/hooks/use-auth";
 import { useLanguage } from "@/contexts/language-context";
-import rainzLogo from "@/assets/rainz-logo.png";
+import rainzLogo from "@/assets/rainz-logo-new.png";
 
 interface Message {
   id: string;

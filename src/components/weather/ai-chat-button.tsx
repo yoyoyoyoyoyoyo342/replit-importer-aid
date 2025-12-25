@@ -6,7 +6,7 @@ import { UpgradePrompt } from "@/components/subscription/upgrade-prompt";
 import { WeatherSource } from "@/types/weather";
 import { useSubscription } from "@/hooks/use-subscription";
 import { Crown, Lock } from "lucide-react";
-import rainzLogo from "@/assets/rainz-logo.png";
+import rainzLogo from "@/assets/rainz-logo-new.png";
 
 interface AIChatButtonProps {
   weatherData: WeatherSource;
