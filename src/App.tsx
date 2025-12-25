@@ -25,6 +25,8 @@ import Auth from "./pages/Auth";
 // Lazy load non-critical routes for faster initial load
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataSettings = lazy(() => import("./pages/DataSettings"));
@@ -139,6 +141,8 @@ function AppContent() {
                             <Route path="/" element={<Weather />} />
                             <Route path="/auth" element={<Auth />} />
                             <Route path="/admin" element={<AdminPanel />} />
+                            <Route path="/blog" element={<Blog />} />
+                            <Route path="/blog/:slug" element={<BlogPost />} />
                             <Route path="/terms" element={<TermsOfService />} />
                             <Route path="/privacy" element={<PrivacyPolicy />} />
                             <Route path="/data-settings" element={<DataSettings />} />
