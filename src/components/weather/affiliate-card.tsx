@@ -24,9 +24,9 @@ export function AffiliateCard() {
           </p>
 
           <p className="text-muted-foreground">
-            <span className="font-medium text-foreground">NordPass</span> - Get NordPass{" "}
+            <span className="font-medium text-foreground">No one!</span> - Get this spot{" "}
             <a
-              href="https://go.nordpass.io/aff_c?offer_id=488&aff_id=137610&url_id=9356"
+              href="https://rainz.net/affiliate"
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline inline-flex items-center gap-1"
