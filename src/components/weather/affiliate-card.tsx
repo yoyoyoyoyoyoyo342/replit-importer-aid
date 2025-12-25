@@ -11,20 +11,7 @@ export function AffiliateCard() {
 
         <div className="space-y-2 text-sm">
           <p className="text-muted-foreground">
-            <span className="font-medium text-foreground">NordVPN</span> - Get NordVPN{" "}
-            <a
-              href="https://go.nordvpn.net/aff_c?offer_id=15&aff_id=137610&url_id=902"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline inline-flex items-center gap-1"
-            >
-              here
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </p>
-
-          <p className="text-muted-foreground">
-            <span className="font-medium text-foreground">No one!</span> - Get this spot{" "}
+            <span className="font-medium text-foreground">No one!</span> Get this spot{" "}
             <a
               href="https://rainz.net/affiliate"
               target="_blank"
