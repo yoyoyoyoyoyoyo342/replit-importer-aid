@@ -247,7 +247,7 @@ export default function Auth() {
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
                 <div className="relative">
-                  <Input 
+                  <input 
                     id="new-password" 
                     type={showPassword ? "text" : "password"} 
                     placeholder="Enter new password" 
@@ -255,11 +255,11 @@ export default function Auth() {
                     onChange={e => setNewPassword(e.target.value)} 
                     required 
                     minLength={6}
-                    className="pr-10"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-10"
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => setShowPassword(prev => !prev)}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -269,7 +269,7 @@ export default function Auth() {
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
                 <div className="relative">
-                  <Input 
+                  <input 
                     id="confirm-password" 
                     type={showPassword ? "text" : "password"} 
                     placeholder="Confirm new password" 
@@ -277,7 +277,7 @@ export default function Auth() {
                     onChange={e => setConfirmPassword(e.target.value)} 
                     required 
                     minLength={6}
-                    className="pr-10"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-10"
                   />
                 </div>
               </div>
@@ -314,18 +314,18 @@ export default function Auth() {
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Password</Label>
                   <div className="relative">
-                    <Input 
+                    <input 
                       id="signin-password" 
                       type={showPassword ? "text" : "password"} 
                       placeholder="Enter your password" 
                       value={password} 
                       onChange={e => setPassword(e.target.value)} 
                       required 
-                      className="pr-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-10"
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => setShowPassword(prev => !prev)}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -385,7 +385,7 @@ export default function Auth() {
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
                   <div className="relative">
-                    <Input 
+                    <input 
                       id="signup-password" 
                       type={showPassword ? "text" : "password"} 
                       placeholder="Create a password" 
@@ -393,11 +393,11 @@ export default function Auth() {
                       onChange={e => setPassword(e.target.value)} 
                       required 
                       minLength={6}
-                      className="pr-10"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pr-10"
                     />
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                       onClick={() => setShowPassword(prev => !prev)}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Eye, EyeOff, Upload, X, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -21,6 +21,7 @@ interface BlogPost {
   cover_image_url: string | null;
   is_published: boolean;
   published_at: string | null;
+  scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -33,13 +34,16 @@ export default function Blog() {
   const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
     content: '',
     excerpt: '',
     cover_image_url: '',
-    is_published: false
+    is_published: false,
+    scheduled_at: ''
   });
 
   useEffect(() => {
@@ -56,9 +60,8 @@ export default function Blog() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      setPosts((data || []) as BlogPost[]);
     } catch (error) {
-      console.error('Error loading posts:', error);
       toast.error('Failed to load posts');
     } finally {
       setLoading(false);
@@ -80,6 +83,66 @@ export default function Blog() {
     }));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image must be less than 5MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('blog_images')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('blog_images')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, cover_image_url: publicUrl }));
+      toast.success('Image uploaded successfully');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const notifyAllUsers = async (post: { title: string; excerpt: string | null; slug: string }) => {
+    try {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id');
+
+      if (!profiles || profiles.length === 0) return;
+
+      const notifications = profiles.map(profile => ({
+        user_id: profile.user_id,
+        type: 'article',
+        title: `New Article: ${post.title}`,
+        message: `${post.excerpt || post.title}\n\nRead the full article at https://rainz.net/blog/${post.slug}`,
+        metadata: { slug: post.slug }
+      }));
+
+      await supabase.from('user_notifications').insert(notifications);
+    } catch (error) {
+      console.error('Failed to notify users:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -89,14 +152,18 @@ export default function Blog() {
     }
 
     try {
+      const shouldPublishNow = formData.is_published && !formData.scheduled_at;
+      const scheduledDate = formData.scheduled_at ? new Date(formData.scheduled_at).toISOString() : null;
+
       const postData = {
         title: formData.title,
         slug: formData.slug || generateSlug(formData.title),
         content: formData.content,
         excerpt: formData.excerpt || null,
         cover_image_url: formData.cover_image_url || null,
-        is_published: formData.is_published,
-        published_at: formData.is_published ? new Date().toISOString() : null,
+        is_published: shouldPublishNow,
+        published_at: shouldPublishNow ? new Date().toISOString() : null,
+        scheduled_at: scheduledDate,
         author_id: user?.id
       };
 
@@ -107,6 +174,11 @@ export default function Blog() {
           .eq('id', editingPost.id);
 
         if (error) throw error;
+        
+        if (shouldPublishNow && !editingPost.is_published) {
+          await notifyAllUsers({ title: formData.title, excerpt: formData.excerpt, slug: postData.slug });
+        }
+        
         toast.success('Post updated successfully');
       } else {
         const { error } = await supabase
@@ -114,13 +186,17 @@ export default function Blog() {
           .insert(postData);
 
         if (error) throw error;
+        
+        if (shouldPublishNow) {
+          await notifyAllUsers({ title: formData.title, excerpt: formData.excerpt, slug: postData.slug });
+        }
+        
         toast.success('Post created successfully');
       }
 
       resetForm();
       loadPosts();
     } catch (error: any) {
-      console.error('Error saving post:', error);
       toast.error(error.message || 'Failed to save post');
     }
   };
@@ -133,7 +209,8 @@ export default function Blog() {
       content: post.content,
       excerpt: post.excerpt || '',
       cover_image_url: post.cover_image_url || '',
-      is_published: post.is_published
+      is_published: post.is_published,
+      scheduled_at: post.scheduled_at ? new Date(post.scheduled_at).toISOString().slice(0, 16) : ''
     });
     setIsCreating(true);
   };
@@ -151,26 +228,30 @@ export default function Blog() {
       toast.success('Post deleted successfully');
       loadPosts();
     } catch (error) {
-      console.error('Error deleting post:', error);
       toast.error('Failed to delete post');
     }
   };
 
   const togglePublish = async (post: BlogPost) => {
     try {
+      const newPublishedState = !post.is_published;
       const { error } = await supabase
         .from('blog_posts')
         .update({
-          is_published: !post.is_published,
-          published_at: !post.is_published ? new Date().toISOString() : null
+          is_published: newPublishedState,
+          published_at: newPublishedState ? new Date().toISOString() : null
         })
         .eq('id', post.id);
 
       if (error) throw error;
+      
+      if (newPublishedState) {
+        await notifyAllUsers({ title: post.title, excerpt: post.excerpt, slug: post.slug });
+      }
+      
       toast.success(post.is_published ? 'Post unpublished' : 'Post published');
       loadPosts();
     } catch (error) {
-      console.error('Error toggling publish:', error);
       toast.error('Failed to update post');
     }
   };
@@ -184,7 +265,8 @@ export default function Blog() {
       content: '',
       excerpt: '',
       cover_image_url: '',
-      is_published: false
+      is_published: false,
+      scheduled_at: ''
     });
   };
 
@@ -271,14 +353,46 @@ export default function Blog() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="cover_image">Cover Image URL</Label>
-                  <Input
-                    id="cover_image"
-                    value={formData.cover_image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                    className="bg-background"
-                  />
+                  <Label>Cover Image</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={formData.cover_image_url}
+                      onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
+                      placeholder="Image URL or upload below"
+                      className="bg-background flex-1"
+                    />
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? 'Uploading...' : <Upload className="w-4 h-4" />}
+                    </Button>
+                    {formData.cover_image_url && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setFormData(prev => ({ ...prev, cover_image_url: '' }))}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {formData.cover_image_url && (
+                    <img
+                      src={formData.cover_image_url}
+                      alt="Cover preview"
+                      className="mt-2 max-h-40 rounded-lg object-cover"
+                    />
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -293,13 +407,30 @@ export default function Blog() {
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="is_published"
-                    checked={formData.is_published}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_published: checked }))}
-                  />
-                  <Label htmlFor="is_published">Publish immediately</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="is_published"
+                      checked={formData.is_published}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_published: checked }))}
+                    />
+                    <Label htmlFor="is_published">Publish immediately</Label>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduled_at" className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Schedule for later
+                    </Label>
+                    <Input
+                      id="scheduled_at"
+                      type="datetime-local"
+                      value={formData.scheduled_at}
+                      onChange={(e) => setFormData(prev => ({ ...prev, scheduled_at: e.target.value, is_published: false }))}
+                      className="bg-background"
+                      disabled={formData.is_published}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-4">
@@ -333,11 +464,15 @@ export default function Blog() {
                   <CardContent className="py-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="text-lg font-semibold text-card-foreground">{post.title}</h3>
                           {post.is_published ? (
                             <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
                               Published
+                            </span>
+                          ) : post.scheduled_at ? (
+                            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">
+                              Scheduled: {new Date(post.scheduled_at).toLocaleDateString()}
                             </span>
                           ) : (
                             <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded">

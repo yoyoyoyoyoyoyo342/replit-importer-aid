@@ -14,12 +14,11 @@ import { z } from "zod";
 
 // Pricing based on weather condition frequency (rarer = cheaper)
 const AFFILIATE_PRICING = {
-  rain: { price: "€15", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Common
-  cloudy: { price: "€20", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Very common
-  snow: { price: "€5", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Rare
-  wind: { price: "€10", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Moderate
-  storm: { price: "€8", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Rare
-  all: { price: "€25", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" }, // Always shown
+  rain: { price: "€15", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" },
+  cloudy: { price: "€20", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" },
+  snow: { price: "€5", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" },
+  wind: { price: "€10", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" },
+  storm: { price: "€8", priceId: "price_1Sh0n18mRhH1c6KOhmxF97O8" },
 } as const;
 
 const affiliateSchema = z.object({
@@ -27,7 +26,7 @@ const affiliateSchema = z.object({
   contactEmail: z.string().trim().email("Invalid email address").max(255, "Email is too long"),
   websiteUrl: z.string().trim().url("Invalid URL - must start with https://").refine((url) => url.startsWith("https://"), "URL must use HTTPS"),
   description: z.string().trim().max(500, "Description is too long").optional(),
-  weatherCondition: z.enum(["rain", "cloudy", "snow", "wind", "storm", "all"], { required_error: "Please select a weather condition" }),
+  weatherCondition: z.enum(["rain", "cloudy", "snow", "wind", "storm"], { required_error: "Please select a weather condition" }),
 });
 
 const weatherConditions = [
@@ -36,7 +35,6 @@ const weatherConditions = [
   { value: "wind", label: "When it's Windy", icon: Wind, description: "Your link shows during high winds", price: "€10/mo" },
   { value: "storm", label: "During Storms", icon: Zap, description: "Your link shows during thunderstorms", price: "€8/mo" },
   { value: "snow", label: "When it's Snowing", icon: Snowflake, description: "Your link shows during snowfall", price: "€5/mo" },
-  { value: "all", label: "All Conditions", icon: CloudRain, description: "Your link shows for all weather", price: "€25/mo" },
 ];
 
 export default function Affiliate() {
