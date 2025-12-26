@@ -269,7 +269,24 @@ export function HeaderInfoBar({ user }: HeaderInfoBarProps) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-primary mb-1">{notification.title}</p>
-                        <p className="text-sm text-foreground break-words">{notification.message}</p>
+                        <p className="text-sm text-foreground break-words whitespace-pre-wrap">
+                          {notification.message.split(/(https?:\/\/[^\s]+)/g).map((part, i) =>
+                            part.match(/^https?:\/\//) ? (
+                              <a
+                                key={i}
+                                href={part}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary underline hover:text-primary/80"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {part}
+                              </a>
+                            ) : (
+                              <span key={i}>{part}</span>
+                            )
+                          )}
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           {new Date(notification.created_at).toLocaleDateString()}
                         </p>

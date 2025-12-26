@@ -27,6 +27,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Articles = lazy(() => import("./pages/Articles"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataSettings = lazy(() => import("./pages/DataSettings"));
@@ -143,6 +144,7 @@ function AppContent() {
                             <Route path="/admin" element={<AdminPanel />} />
                             <Route path="/blog" element={<Blog />} />
                             <Route path="/blog/:slug" element={<BlogPost />} />
+                            <Route path="/articles" element={<Articles />} />
                             <Route path="/terms" element={<TermsOfService />} />
                             <Route path="/privacy" element={<PrivacyPolicy />} />
                             <Route path="/data-settings" element={<DataSettings />} />
