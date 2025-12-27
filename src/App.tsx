@@ -121,6 +121,8 @@ function AppContent() {
   usePrefetchSavedLocations();
   useOAuthErrorToast();
 
+  const isBlogSubdomain = window.location.hostname === "blog.rainz.net";
+
   return (
     <ThemeProvider defaultTheme="light" storageKey="weather-app-theme" isNightTime={isNightTime}>
       <LanguageProvider>
@@ -138,26 +140,36 @@ function AppContent() {
                       <div className="flex-1">
                         <AnalyticsTracker />
                         <Suspense fallback={<LoadingOverlay isOpen={true} />}>
-                          <Routes>
-                            <Route path="/" element={<Weather />} />
-                            <Route path="/auth" element={<Auth />} />
-                            <Route path="/admin" element={<AdminPanel />} />
-                            <Route path="/blog" element={<Blog />} />
-                            <Route path="/blog/:slug" element={<BlogPost />} />
-                            <Route path="/articles" element={<Articles />} />
-                            <Route path="/terms" element={<TermsOfService />} />
-                            <Route path="/privacy" element={<PrivacyPolicy />} />
-                            <Route path="/data-settings" element={<DataSettings />} />
-                            <Route path="/about" element={<About />} />
-                            <Route path="/profile/:userId" element={<UserProfile />} />
-                            <Route path="/subscription-success" element={<SubscriptionSuccess />} />
-                            <Route path="/subscription-cancel" element={<SubscriptionCancel />} />
-                            <Route path="/affiliate" element={<Affiliate />} />
-                            <Route path="/affiliate-policy" element={<AffiliatePolicy />} />
-                            <Route path="/weather" element={<Navigate to="/" replace />} />
-                            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                            <Route path="*" element={<NotFound />} />
-                          </Routes>
+                          {isBlogSubdomain ? (
+                            <Routes>
+                              <Route path="/" element={<Articles />} />
+                              <Route path="/articles" element={<Articles />} />
+                              <Route path="/articles/:slug" element={<BlogPost />} />
+                              <Route path="/:slug" element={<BlogPost />} />
+                              <Route path="*" element={<Navigate to="/" replace />} />
+                            </Routes>
+                          ) : (
+                            <Routes>
+                              <Route path="/" element={<Weather />} />
+                              <Route path="/auth" element={<Auth />} />
+                              <Route path="/admin" element={<AdminPanel />} />
+                              <Route path="/blog" element={<Blog />} />
+                              <Route path="/blog/:slug" element={<BlogPost />} />
+                              <Route path="/articles" element={<Articles />} />
+                              <Route path="/articles/:slug" element={<BlogPost />} />
+                              <Route path="/terms" element={<TermsOfService />} />
+                              <Route path="/privacy" element={<PrivacyPolicy />} />
+                              <Route path="/data-settings" element={<DataSettings />} />
+                              <Route path="/about" element={<About />} />
+                              <Route path="/profile/:userId" element={<UserProfile />} />
+                              <Route path="/subscription-success" element={<SubscriptionSuccess />} />
+                              <Route path="/subscription-cancel" element={<SubscriptionCancel />} />
+                              <Route path="/affiliate" element={<Affiliate />} />
+                              <Route path="/affiliate-policy" element={<AffiliatePolicy />} />
+                              <Route path="/weather" element={<Navigate to="/" replace />} />
+                              <Route path="*" element={<NotFound />} />
+                            </Routes>
+                          )}
                         </Suspense>
                       </div>
                       <Footer />
