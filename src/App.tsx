@@ -28,6 +28,7 @@ const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Articles = lazy(() => import("./pages/Articles"));
+const Api = lazy(() => import("./pages/Api"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const DataSettings = lazy(() => import("./pages/DataSettings"));
@@ -122,6 +123,7 @@ function AppContent() {
   useOAuthErrorToast();
 
   const isBlogSubdomain = window.location.hostname === "blog.rainz.net";
+  const isApiSubdomain = window.location.hostname === "api.rainz.net";
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="weather-app-theme" isNightTime={isNightTime}>
@@ -140,7 +142,12 @@ function AppContent() {
                       <div className="flex-1">
                         <AnalyticsTracker />
                         <Suspense fallback={<LoadingOverlay isOpen={true} />}>
-                          {isBlogSubdomain ? (
+                          {isApiSubdomain ? (
+                            <Routes>
+                              <Route path="/" element={<Api />} />
+                              <Route path="*" element={<Navigate to="/" replace />} />
+                            </Routes>
+                          ) : isBlogSubdomain ? (
                             <Routes>
                               <Route path="/" element={<Articles />} />
                               <Route path="/articles" element={<Articles />} />
